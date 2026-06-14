@@ -1,17 +1,14 @@
-name: Perform linting and run tests
+name: CI
 
 on:
   push:
-    branches:
-      - master
+    branches-ignore: ["master"]
   pull_request:
-    branches:
-      - master
-  workflow_dispatch:
+    branches: ["master"]
 
 jobs:
-  build-and-test:
-    name: Build, Lint, and Test
+  test:
+    name: Lint and Test
     runs-on: ubuntu-latest
     if: "! contains(toJSON(github.event.commits.*.message), '[skip ci]')"
     env:
