@@ -75,51 +75,20 @@ jobs:
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
 
-  update-mix-version:
-    name: Update mix.exs version string
+  docker:
+    name: Build and Push Docker Image
     runs-on: ubuntu-latest
     needs: release-please
     if: needs.release-please.outputs.release_created == 'true'
     permissions:
-      contents: write
-    steps:
-      - name: Checkout master
-        uses: actions/checkout@v6
-        with:
-          ref: master
-          ssh-key: ${{ secrets.RELEASE_DEPLOY_KEY }}
-
-      - name: Set version in mix.exs
-        run: |
-          SEMVER=$(echo '${{ needs.release-please.outputs.tag_name }}' | sed 's/^v//')
-          sed -i "s|^      version: \".*\",|      version: \"${SEMVER}\",|" mix.exs
-
-      - name: Commit and push
-        run: |
-          SEMVER=$(echo '${{ needs.release-please.outputs.tag_name }}' | sed 's/^v//')
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add mix.exs
-          git diff --cached --quiet || git commit -m "chore: set app version to ${SEMVER} [skip ci]"
-          git push
-
-  docker:
-    name: Build and Push Docker Image
-    runs-on: ubuntu-latest
-    needs: [release-please, update-mix-version]
-    permissions:
       contents: read
       packages: write
-    env:
-      dev_arch: 'linux/amd64'
-      release_arch: 'linux/amd64,linux/arm64'
     steps:
       - name: Checkout
         uses: actions/checkout@v6
 
       - name: Strip v prefix from release tag
         id: version
-        if: needs.release-please.outputs.release_created == 'true'
         run: |
           echo "value=$(echo '${{ needs.release-please.outputs.tag_name }}' | sed 's/^v//')" >> $GITHUB_OUTPUT
 
@@ -131,9 +100,8 @@ jobs:
             docker.io/communitymaintained/pinchflat
             ghcr.io/${{ github.repository }}
           tags: |
-            type=raw,value=${{ steps.version.outputs.value }},enable=${{ needs.release-please.outputs.release_created == 'true' }}
-            type=raw,value=latest,enable=${{ needs.release-please.outputs.release_created == 'true' }}
-            type=raw,value=dev,enable=${{ needs.release-please.outputs.release_created != 'true' }}
+            type=raw,value=${{ steps.version.outputs.value }}
+            type=raw,value=latest
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v4
@@ -159,7 +127,7 @@ jobs:
         with:
           context: .
           file: ./docker/selfhosted.Dockerfile
-          platforms: ${{ needs.release-please.outputs.release_created == 'true' && env.release_arch || env.dev_arch }}
+          platforms: linux/amd64,linux/arm64
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}

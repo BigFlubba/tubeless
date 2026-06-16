@@ -9,7 +9,6 @@ jobs:
   test:
     name: Lint and Test
     runs-on: ubuntu-latest
-    if: "! contains(toJSON(github.event.commits.*.message), '[skip ci]')"
     permissions:
       contents: read
       packages: read
@@ -104,9 +103,9 @@ jobs:
           file: ./docker/selfhosted.Dockerfile
           platforms: linux/amd64
           push: true
-          tags: ghcr.io/${{ steps.meta.outputs.repo }}:pr-${{ github.event.pull_request.number }}-${{ steps.meta.outputs.sha }}
+          tags: ghcr.io/${{ steps.meta.outputs.repo }}-dev:pr-${{ github.event.pull_request.number }}-${{ steps.meta.outputs.sha }}
           cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-to: type=gha,mode=min
 
   docker-rc:
     name: Build RC Image
@@ -146,6 +145,6 @@ jobs:
           file: ./docker/selfhosted.Dockerfile
           platforms: linux/amd64
           push: true
-          tags: ghcr.io/${{ steps.meta.outputs.repo }}:rc-${{ steps.meta.outputs.version }}-${{ github.run_number }}
+          tags: ghcr.io/${{ steps.meta.outputs.repo }}-dev:rc-${{ steps.meta.outputs.version }}-${{ github.run_number }}
           cache-from: type=gha
           cache-to: type=gha,mode=max

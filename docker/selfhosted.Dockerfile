@@ -33,8 +33,7 @@ RUN apt-get update -y && \
     "linux/arm64")   echo "https://github.com/yt-dlp/FFmpeg-Builds/releases/download/autobuild-2024-07-30-14-10/ffmpeg-N-116468-g0e09f6d690-linuxarm64-gpl.tar.xz" ;; \
     *)               echo ""        ;; esac) && \
     curl -L ${FFMPEG_DOWNLOAD} --output /tmp/ffmpeg.tar.xz && \
-    tar -xf /tmp/ffmpeg.tar.xz --strip-components=2 --no-anchored -C /usr/local/bin/ "ffmpeg" && \
-    tar -xf /tmp/ffmpeg.tar.xz --strip-components=2 --no-anchored -C /usr/local/bin/ "ffprobe" && \
+    tar -xf /tmp/ffmpeg.tar.xz --strip-components=2 --no-anchored -C /usr/local/bin/ ffmpeg ffprobe && \
     # Cleanup
     apt-get clean && \
     rm -f /var/lib/apt/lists/*_*
