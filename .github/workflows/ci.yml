@@ -6,9 +6,8 @@ on:
     types: [opened, synchronize, reopened]
 
 env:
-  # TODO: pin to a smoke-tested :sha-<short> tag once ci-base.yml has produced one.
-  # :latest floats and is fine for bootstrapping; bump via PR for reproducibility.
-  CI_BASE_IMAGE: ghcr.io/communitymaintained/pinchflat-ci-base:latest
+  # Pinned to a smoke-tested ci-base build. Bump via PR after a new ci-base.yml run.
+  CI_BASE_IMAGE: ghcr.io/communitymaintained/pinchflat-ci-base:sha-bb9ea60
 
 jobs:
   test:
