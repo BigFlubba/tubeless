@@ -80,7 +80,7 @@ defmodule Pinchflat.MixProject do
       {:credo_naming, "~> 2.1", only: [:dev, :test], runtime: false},
       {:ex_check, "~> 0.16.0", only: [:dev, :test], runtime: false},
       {:faker, "~> 0.17", only: :test},
-      {:sobelow, "~> 0.13", only: [:dev, :test], runtime: false}
+      {:sobelow, "~> 0.14", only: [:dev, :test], runtime: false}
     ]
   end
 
