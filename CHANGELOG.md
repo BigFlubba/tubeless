@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.1.0](https://github.com/CommunityMaintained/pinchflat/compare/v1.0.0...v1.1.0) (2026-06-18)
+
+
+### Features
+
+* Add queue diagnostics page ([#48](https://github.com/CommunityMaintained/pinchflat/issues/48)) ([578f698](https://github.com/CommunityMaintained/pinchflat/commit/578f698712339bcb5ad3186fb39db0618286cbac))
+* Add YouTube API key testing in Settings ([#47](https://github.com/CommunityMaintained/pinchflat/issues/47)) ([90303c1](https://github.com/CommunityMaintained/pinchflat/commit/90303c15108a45f22c4fffbd31f15a99ade1f24c))
+
+
+### Bug Fixes
+
+* **ci:** remove CalVer, build version needs to be semver compliant ([55dece8](https://github.com/CommunityMaintained/pinchflat/commit/55dece8e63f77520e3a55d1a587415d7661b2b3d))
+
 ## [1.0.0](https://github.com/CommunityMaintained/pinchflat/compare/v0.9.9...v1.0.0) (2026-06-14)
 
 
