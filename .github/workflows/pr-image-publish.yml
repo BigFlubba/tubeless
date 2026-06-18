@@ -1,0 +1,75 @@
+name: Publish PR Image
+
+# Runs after CI finishes and pushes the PR image built by ci.yml's docker-pr
+# job. workflow_run executes in the trusted base-repo context (the version of
+# this file on the default branch) with access to a write-capable GITHUB_TOKEN,
+# so it can push fork PR images that the build job itself cannot. It only loads
+# and pushes the prebuilt image tarball — it never checks out or runs untrusted
+# PR code, so the write token is never exposed to fork-controlled code.
+
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+
+jobs:
+  publish:
+    name: Push PR Image to GHCR
+    runs-on: ubuntu-latest
+    # Only for CI runs that succeeded and were triggered by a pull request.
+    if: >
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.event == 'pull_request'
+    permissions:
+      packages: write
+      actions: read
+    steps:
+      # release-please PRs (and any run where docker-pr was skipped) produce no
+      # pr-image artifact. Detect that and no-op instead of failing noisily.
+      - name: Check for image artifact
+        id: check
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          count=$(gh api \
+            "repos/${{ github.repository }}/actions/runs/${{ github.event.workflow_run.id }}/artifacts" \
+            --jq '[.artifacts[] | select(.name == "pr-image")] | length')
+          if [ "$count" -gt 0 ]; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+            echo "No pr-image artifact for this run; nothing to publish."
+          fi
+
+      - name: Download image artifact
+        if: steps.check.outputs.exists == 'true'
+        uses: actions/download-artifact@v4
+        with:
+          name: pr-image
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Read metadata
+        if: steps.check.outputs.exists == 'true'
+        id: meta
+        run: |
+          echo "pr=$(cat meta/pr)" >> "$GITHUB_OUTPUT"
+          echo "sha=$(cat meta/sha)" >> "$GITHUB_OUTPUT"
+          echo "repo=${GITHUB_REPOSITORY,,}" >> "$GITHUB_OUTPUT"
+
+      - name: Login to GitHub Container Registry
+        if: steps.check.outputs.exists == 'true'
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Load and push image
+        if: steps.check.outputs.exists == 'true'
+        run: |
+          docker load -i image.tar
+          tag="ghcr.io/${{ steps.meta.outputs.repo }}-dev:pr-${{ steps.meta.outputs.pr }}-${{ steps.meta.outputs.sha }}"
+          docker tag "pinchflat-pr:${{ steps.meta.outputs.pr }}" "$tag"
+          docker push "$tag"
+          echo "Pushed $tag"

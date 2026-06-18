@@ -77,27 +77,31 @@ jobs:
     name: Build PR Image
     runs-on: ubuntu-latest
     needs: test
-    # Fork PRs can't write to GHCR, so skip them to avoid auth failures
+    # Build for all PRs, including forks. Fork PRs get a read-only GITHUB_TOKEN
+    # and can't push to GHCR, so this job never pushes — it saves the built
+    # image as an artifact, and the pr-image-publish workflow pushes it from the
+    # trusted base-repo context (where the write token is available). This keeps
+    # untrusted PR code and write credentials in separate, non-overlapping runs.
+    # release-please PRs are handled by docker-rc instead.
     if: |
       github.event_name == 'pull_request' &&
-      !startsWith(github.head_ref, 'release-please') &&
-      github.event.pull_request.head.repo.full_name == github.repository
+      !startsWith(github.head_ref, 'release-please')
     permissions:
       contents: read
-      packages: write
+      packages: read
     steps:
       - name: Checkout
         uses: actions/checkout@v6
 
-      - name: Get short SHA and lowercase repo
+      - name: Get short SHA
         id: meta
-        run: |
-          echo "sha=${GITHUB_SHA:0:7}" >> $GITHUB_OUTPUT
-          echo "repo=${GITHUB_REPOSITORY,,}" >> $GITHUB_OUTPUT
+        run: echo "sha=${GITHUB_SHA:0:7}" >> $GITHUB_OUTPUT
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v4
 
+      # Read-only login so the build can pull the private CI base image.
+      # Fork tokens are read-only, which is sufficient here (no push happens).
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v4
         with:
@@ -105,17 +109,34 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and push
+      - name: Build image
         uses: docker/build-push-action@v7
         with:
           context: .
           file: ./docker/selfhosted.Dockerfile
           platforms: linux/amd64
-          push: true
-          tags: ghcr.io/${{ steps.meta.outputs.repo }}-dev:pr-${{ github.event.pull_request.number }}-${{ steps.meta.outputs.sha }}
+          load: true
+          push: false
+          tags: pinchflat-pr:${{ github.event.pull_request.number }}
           build-args: CI_BASE_IMAGE=${{ env.CI_BASE_IMAGE }}
           cache-from: type=gha
           cache-to: type=gha,mode=min
+
+      - name: Save image and metadata
+        run: |
+          docker save pinchflat-pr:${{ github.event.pull_request.number }} -o image.tar
+          mkdir -p meta
+          echo "${{ github.event.pull_request.number }}" > meta/pr
+          echo "${{ steps.meta.outputs.sha }}" > meta/sha
+
+      - name: Upload image artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: pr-image
+          path: |
+            image.tar
+            meta/
+          retention-days: 1
 
   docker-rc:
     name: Build RC Image
