@@ -69,16 +69,32 @@ defmodule PinchflatWeb.Sources.MediaItemTableLiveTest do
       refute html =~ pending_media_item.title
     end
 
-    test "shows 'Manually Ignored' status when other", %{conn: conn, source: source} do
+    test "shows 'Ignored' status for manually prevented media when other", %{conn: conn, source: source} do
       _media_item = media_item_fixture(source_id: source.id, prevent_download: true, media_filepath: nil)
 
       {:ok, _view, html} = live_isolated(conn, MediaItemTableLive, session: create_session(source, "other"))
 
       assert html =~ "Status"
-      assert html =~ "Manually Ignored"
+      assert html =~ "Ignored"
+      refute html =~ "Removed"
     end
 
-    test "shows 'Skipped — Unavailable' status for unavailable media when other", %{conn: conn, source: source} do
+    test "shows 'Removed' status for culled media even when prevent_download is set", %{conn: conn, source: source} do
+      _media_item =
+        media_item_fixture(
+          source_id: source.id,
+          media_filepath: nil,
+          prevent_download: true,
+          culled_at: DateTime.utc_now()
+        )
+
+      {:ok, _view, html} = live_isolated(conn, MediaItemTableLive, session: create_session(source, "other"))
+
+      assert html =~ "Removed"
+      refute html =~ "Ignored"
+    end
+
+    test "shows 'Unavailable' status for unavailable media when other", %{conn: conn, source: source} do
       _media_item =
         media_item_fixture(
           source_id: source.id,
@@ -90,9 +106,19 @@ defmodule PinchflatWeb.Sources.MediaItemTableLiveTest do
 
       {:ok, _view, html} = live_isolated(conn, MediaItemTableLive, session: create_session(source, "other"))
 
-      assert html =~ "Skipped"
       assert html =~ "Unavailable"
-      refute html =~ "Manually Ignored"
+      refute html =~ "Ignored"
+      refute html =~ "Removed"
+    end
+
+    test "shows 'Filtered Out' status for media excluded by profile rules when other", %{conn: conn} do
+      media_profile = media_profile_fixture(shorts_behaviour: :exclude)
+      source = source_fixture(media_profile_id: media_profile.id)
+      _media_item = media_item_fixture(source_id: source.id, media_filepath: nil, short_form_content: true)
+
+      {:ok, _view, html} = live_isolated(conn, MediaItemTableLive, session: create_session(source, "other"))
+
+      assert html =~ "Filtered Out"
     end
   end
 
