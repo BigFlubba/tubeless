@@ -46,11 +46,19 @@ FROM ${RUNNER_IMAGE}
 
 ARG TARGETPLATFORM
 ARG PORT=8945
+# Deno is pinned to match ci-base so dev/CI and production run the same version.
+# Keep this in sync with DENO_VERSION in docker/ci-base.Dockerfile.
+# renovate: datasource=github-releases depName=denoland/deno
+ARG DENO_VERSION=v2.9.0
 
 # ffmpeg comes from ci-base (pinned there, see issue #347). Bumping it requires
 # rebuilding ci-base and bumping the consumer pin — drift is intentional.
 COPY --from=builder /usr/bin/ffmpeg /usr/bin/ffmpeg
 COPY --from=builder /usr/bin/ffprobe /usr/bin/ffprobe
+
+# Apprise is pinned via the shared requirements file so dev/CI and production
+# install the same version (single source of truth with ci-base).
+COPY docker/ci-base.requirements.txt /tmp/ci-base.requirements.txt
 
 RUN apt-get update -y && \
     # System packages
@@ -72,12 +80,14 @@ RUN apt-get update -y && \
       unzip \
       sqlite3 \
       procps && \
-    # Install Deno - required for YouTube downloads (See yt-dlp#14404)
-    curl -fsSL https://deno.land/install.sh | DENO_INSTALL=/usr/local sh -s -- -y --no-modify-path && \
-    # Apprise
+    # Install Deno - required for YouTube downloads (See yt-dlp#14404). Pinned to
+    # match ci-base via DENO_VERSION above.
+    curl -fsSL https://deno.land/install.sh | DENO_INSTALL=/usr/local sh -s -- ${DENO_VERSION} -y --no-modify-path && \
+    # Apprise (version pinned in docker/ci-base.requirements.txt, managed by Renovate)
     export PIPX_HOME=/opt/pipx && \
     export PIPX_BIN_DIR=/usr/local/bin && \
-    pipx install apprise && \
+    pipx install "$(cat /tmp/ci-base.requirements.txt)" && \
+    rm /tmp/ci-base.requirements.txt && \
     # yt-dlp
     export YT_DLP_DOWNLOAD=$(case ${TARGETPLATFORM:-linux/amd64} in \
     "linux/amd64")   echo "https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_linux"   ;; \
