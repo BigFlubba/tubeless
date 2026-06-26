@@ -50,6 +50,7 @@ config :pinchflat, PinchflatWeb.Endpoint,
 
 config :pinchflat, Oban,
   engine: Oban.Engines.Lite,
+  notifier: Oban.Notifiers.PG,
   repo: Pinchflat.Repo
 
 # Configures the mailer
