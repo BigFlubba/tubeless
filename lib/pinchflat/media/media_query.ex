@@ -213,7 +213,6 @@ defmodule Pinchflat.Media.MediaQuery do
   #   - Wraps any word in quotes (must happen after the double quote replacement)
   #
   # This allows for works with apostrophes and quotes to be searched for correctly
-  defp clean_search_term(nil), do: ""
   defp clean_search_term(""), do: ""
 
   defp clean_search_term(term) do

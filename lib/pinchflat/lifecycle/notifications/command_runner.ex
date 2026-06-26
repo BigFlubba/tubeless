@@ -3,8 +3,6 @@ defmodule Pinchflat.Lifecycle.Notifications.CommandRunner do
   Runs apprise commands using the `System.cmd/3` function
   """
 
-  require Logger
-
   alias Pinchflat.Utils.CliUtils
   alias Pinchflat.Utils.FunctionUtils
   alias Pinchflat.Lifecycle.Notifications.AppriseCommandRunner

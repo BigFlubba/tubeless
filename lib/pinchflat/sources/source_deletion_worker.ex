@@ -5,8 +5,6 @@ defmodule Pinchflat.Sources.SourceDeletionWorker do
     queue: :local_data,
     tags: ["sources", "local_data"]
 
-  require Logger
-
   alias __MODULE__
   alias Pinchflat.Sources
 

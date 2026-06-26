@@ -54,9 +54,7 @@ defmodule PinchflatWeb do
 
   def live_view do
     quote do
-      use Phoenix.Component, global_prefixes: ~w(x-)
-
-      use Phoenix.LiveView
+      use Phoenix.LiveView, global_prefixes: ~w(x-)
 
       alias Pinchflat.Settings
 

@@ -19,7 +19,8 @@ defmodule PinchflatWeb.Sources.SourceController do
 
   def new(conn, params) do
     # This lets me preload the settings from another source for more efficient creation
-    cs_struct =
+    %Source{} =
+      cs_struct =
       case to_string(params["template_id"]) do
         "" -> %Source{}
         template_id -> Repo.get(Source, template_id) || %Source{}

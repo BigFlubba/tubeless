@@ -4,8 +4,6 @@ defmodule Pinchflat.YtDlp.MediaCollection do
   media (aka: a source [ie: channels, playlists]).
   """
 
-  require Logger
-
   alias Pinchflat.Utils.FilesystemUtils
   alias Pinchflat.YtDlp.Media, as: YtDlpMedia
 
