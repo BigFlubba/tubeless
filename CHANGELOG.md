@@ -1,5 +1,22 @@
 # Changelog
 
+## [1.2.0](https://github.com/CommunityMaintained/pinchflat/compare/v1.1.0...v1.2.0) (2026-06-26)
+
+
+### Features
+
+* add setting to ignore unavailable/members-only media ([eff8c0c](https://github.com/CommunityMaintained/pinchflat/commit/eff8c0c075b287fbee19fbbcbc7a2ad234a27b64))
+* mask YouTube API key and add cookies file management ([#53](https://github.com/CommunityMaintained/pinchflat/issues/53)) ([343a630](https://github.com/CommunityMaintained/pinchflat/commit/343a630638bdf099a786e9022e3f3f6daf712a92))
+* report accurate status for non-downloaded media in Other tab ([8c188ac](https://github.com/CommunityMaintained/pinchflat/commit/8c188aca346a873e31ee2b8296c3e20f09615cf9))
+* surface auto-skipped unavailable media as a distinct status ([e88d403](https://github.com/CommunityMaintained/pinchflat/commit/e88d403c4d3b655ee08b5785298313e3fb6f3df8))
+
+
+### Bug Fixes
+
+* re-download existing media by forcing the download job ([f47a6e0](https://github.com/CommunityMaintained/pinchflat/commit/f47a6e03e2780cc67b6646560410085adb90e453))
+* render NFO aired date as plain date for Jellyfin ([#60](https://github.com/CommunityMaintained/pinchflat/issues/60)) ([0282c19](https://github.com/CommunityMaintained/pinchflat/commit/0282c19789d3154bf4eff92a74c8d7c90186ba5f)), closes [#57](https://github.com/CommunityMaintained/pinchflat/issues/57)
+* serve apple-touch-icon to avoid 404 probes from iOS ([451123b](https://github.com/CommunityMaintained/pinchflat/commit/451123b108bf2dfa14c6b87577a261f4c739d0f3))
+
 ## [1.1.0](https://github.com/CommunityMaintained/pinchflat/compare/v1.0.0...v1.1.0) (2026-06-18)
 
 
