@@ -124,6 +124,8 @@ Use [Conventional Commits](https://www.conventionalcommits.org/):
 - `feat:` → minor release
 - `chore:` / `docs:` → no release bump
 
+Always run prettier (`prettier . --check --config=.prettierrc.js --ignore-path=.prettierignore --ignore-path=.gitignore --write`) before staging and commiting files to ensure this doesn't fail in CI
+
 Releases are automated via release-please using semantic versioning (current version tracked in `version.txt`, e.g. `1.2.0`). Merging the release PR cuts a release and publishes Docker images to GHCR and Docker Hub. (`mix version.bump` / `tooling/version_bump.sh` still produce a legacy date-based `YYYY.M.D` version and predate the move to release-please — prefer the release-please flow.)
 
 ## Local Development Guide

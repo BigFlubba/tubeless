@@ -20,11 +20,11 @@
 
 ### Language & Runtime
 
-| Technology | Version | Role                                                         |
-| ---------- | ------- | ------------------------------------------------------------ |
-| Elixir     | 1.20.2  | Primary application language                                 |
-| Erlang/OTP | 28.5.0.2 | Runtime VM                                                  |
-| Node.js    | 24.x    | Asset pipeline only (esbuild, Tailwind, Yarn) — not a server |
+| Technology | Version  | Role                                                         |
+| ---------- | -------- | ------------------------------------------------------------ |
+| Elixir     | 1.20.2   | Primary application language                                 |
+| Erlang/OTP | 28.5.0.2 | Runtime VM                                                   |
+| Node.js    | 24.x     | Asset pipeline only (esbuild, Tailwind, Yarn) — not a server |
 
 ### Web Framework
 

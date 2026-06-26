@@ -40,21 +40,10 @@ jobs:
       - name: Pull prebuilt images
         run: docker compose pull
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v4
-
-      - name: Build docker image
-        uses: docker/build-push-action@v7
-        with:
-          context: .
-          file: ./docker/dev.Dockerfile
-          load: true
-          build-args: BASE_IMAGE=${{ env.CI_BASE_IMAGE }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-
+      # Compose builds the dev image from docker-compose.ci.yml, which passes
+      # BASE_IMAGE=${CI_BASE_IMAGE} so lint/test run on the sha-pinned ci-base.
       - name: Run Docker image
-        run: docker compose up --detach
+        run: docker compose up --detach --build
 
       # NOTE: All exec commands use the -T flag to compensate for
       # a bug in the GitHub Actions runner where its stdin/stderr
