@@ -3,6 +3,10 @@
   "extends": [
     "config:recommended"
   ],
+  "constraints": {
+    "elixir": "1.18.4",
+    "erlang": "27.2.4"
+  },
   "packageRules": [
     {
       "matchManagers": ["github-actions"],
