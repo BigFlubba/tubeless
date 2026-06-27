@@ -58,7 +58,7 @@ defmodule Pinchflat.MixProject do
       {:phoenix_html, "~> 4.2"},
       {:phoenix_live_reload, "~> 1.2", only: :dev},
       {:phoenix_live_view, "~> 1.2.0"},
-      {:floki, ">= 0.36.0", only: :test},
+      {:lazy_html, "~> 0.1", only: :test},
       {:phoenix_live_dashboard, "~> 0.8.2"},
       {:esbuild, "~> 0.8", runtime: Mix.env() == :dev},
       {:tailwind, "~> 0.5.0", runtime: Mix.env() == :dev},
