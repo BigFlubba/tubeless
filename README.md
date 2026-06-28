@@ -46,6 +46,7 @@
     - [ADVANCED: Storing Pinchflat config directory on a network share](#advanced-storing-pinchflat-config-directory-on-a-network-share)
     - [Environment variables](#environment-variables)
     - [Reverse Proxies](#reverse-proxies)
+      - [Caddy Proxy Example](#caddy-proxy-example)
   - [Migrating from kieraneglin/pinchflat](#migrating-from-kieraneglinpinchflat)
   - [EFF donations](#eff-donations)
   - [Stability disclaimer](#stability-disclaimer)
@@ -187,6 +188,20 @@ If you change this setting and it works well for you, please open an issue or le
 ### Reverse Proxies
 
 Pinchflat makes heavy use of websockets for real-time updates. If you're running Pinchflat behind a reverse proxy then you'll need to make sure it's configured to support websockets.
+
+#### Caddy Proxy Example
+
+To configure Pinchflat behind Caddy set the `BASE_ROUTE_PATH` environment variable to `/pinchflat/` then add a stanza like this to the `Caddyfile`:
+
+```caddyfile
+home.example.com:443 {
+  redir /pinchflat /pinchflat/
+
+  handle_path /pinchflat/* {
+    reverse_proxy localhost:8945
+  }
+}
+```
 
 ## Migrating from kieraneglin/pinchflat
 
