@@ -126,6 +126,8 @@ Use [Conventional Commits](https://www.conventionalcommits.org/):
 
 Only `fix:`, `feat:`, and a `!` / `BREAKING CHANGE:` (major) bump the version. Every type above is recognized by release-please (see the `changelog-sections` in `release-please-config.json`) and is sorted into the changelog accordingly — `test:` and `ci:` are hidden. Prefer `chore(deps):` for dependency bumps; the legacy `deps:` type is also mapped to the Chores section but is being phased out, so don't use it for new commits.
 
+Prefer `chore(ci):` for CI/build-pipeline changes (rather than a bare `ci:`) so they surface in the Chores changelog section instead of being hidden.
+
 Always run prettier (`prettier . --check --config=.prettierrc.js --ignore-path=.prettierignore --ignore-path=.gitignore --write`) before staging and commiting files to ensure this doesn't fail in CI
 
 Releases are automated via release-please using semantic versioning (current version tracked in `version.txt`, e.g. `1.2.0`). Merging the release PR cuts a release and publishes Docker images to GHCR and Docker Hub. (`mix version.bump` / `tooling/version_bump.sh` still produce a legacy date-based `YYYY.M.D` version and predate the move to release-please — prefer the release-please flow.)

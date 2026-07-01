@@ -70,6 +70,12 @@ jobs:
           yarn install
           (cd assets && yarn install)
 
+      # SQLean SQLite extensions aren't committed to git (fetched at build time).
+      # Migrations use gen_random_uuid() and queries use regexp_like(), so they
+      # must be present before ecto.create/migrate and the test run.
+      - name: Fetch SQLean extensions
+        run: ./tooling/fetch-sqlean.sh
+
       - name: Create and Migrate database
         run: |
           mix ecto.create

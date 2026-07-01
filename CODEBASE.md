@@ -219,16 +219,17 @@ All test infrastructure is used in both local dev and CI.
 
 ## Misc
 
-| File/Dir                                 | Used in    | Purpose                                                                  |
-| ---------------------------------------- | ---------- | ------------------------------------------------------------------------ |
-| `priv/repo/extensions/sqlean-linux-arm/` | CI/release | SQLean SQLite extensions — 14 `.so` files for ARM64                      |
-| `priv/repo/extensions/sqlean-linux-x86/` | CI/release | SQLean SQLite extensions — 14 `.so` files for x86-64                     |
-| `priv/repo/seeds.exs`                    | local only | Database seed script                                                     |
-| `priv/repo/erd.png`                      | local only | Entity-Relationship Diagram (generated via `yarn run create-erd`)        |
-| `priv/cmd_wrapper.sh`                    | CI/release | Shell wrapper used around external commands (yt-dlp, apprise) at runtime |
-| `.dockerignore`                          | CI/release | Docker build ignore list                                                 |
-| `.gitignore`                             | local only | Git ignore list                                                          |
-| `CONTRIBUTING.md`                        | —          | Contribution guidelines                                                  |
-| `LICENSE`                                | —          | Project license                                                          |
-| `.github/ISSUE_TEMPLATE/`                | —          | Bug report, feature request, and other issue templates                   |
-| `.github/pull_request_template.md`       | —          | PR description template with license acknowledgment                      |
+| File/Dir                                 | Used in    | Purpose                                                                                                                                                               |
+| ---------------------------------------- | ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `priv/repo/extensions/sqlean-linux-arm/` | CI/release | SQLean SQLite extensions (ARM64) — fetched by `tooling/fetch-sqlean.sh`, not committed (gitignored)                                                                   |
+| `priv/repo/extensions/sqlean-linux-x86/` | CI/release | SQLean SQLite extensions (x86-64) — fetched by `tooling/fetch-sqlean.sh`, not committed (gitignored)                                                                  |
+| `tooling/fetch-sqlean.sh`                | both       | Downloads the pinned SQLean release (`SQLEAN_VERSION`, Renovate-tracked) into `priv/repo/extensions/`; run by `mix setup` and the Docker builder before `mix release` |
+| `priv/repo/seeds.exs`                    | local only | Database seed script                                                                                                                                                  |
+| `priv/repo/erd.png`                      | local only | Entity-Relationship Diagram (generated via `yarn run create-erd`)                                                                                                     |
+| `priv/cmd_wrapper.sh`                    | CI/release | Shell wrapper used around external commands (yt-dlp, apprise) at runtime                                                                                              |
+| `.dockerignore`                          | CI/release | Docker build ignore list                                                                                                                                              |
+| `.gitignore`                             | local only | Git ignore list                                                                                                                                                       |
+| `CONTRIBUTING.md`                        | —          | Contribution guidelines                                                                                                                                               |
+| `LICENSE`                                | —          | Project license                                                                                                                                                       |
+| `.github/ISSUE_TEMPLATE/`                | —          | Bug report, feature request, and other issue templates                                                                                                                |
+| `.github/pull_request_template.md`       | —          | PR description template with license acknowledgment                                                                                                                   |

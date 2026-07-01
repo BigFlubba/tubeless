@@ -96,7 +96,7 @@ defmodule Pinchflat.MixProject do
     [
       check: "check --config=tooling/.check.exs",
       credo: "credo --config-file=tooling/.credo.exs",
-      setup: ["deps.get", "ecto.setup", "assets.setup", "assets.build"],
+      setup: ["deps.get", "cmd ./tooling/fetch-sqlean.sh", "ecto.setup", "assets.setup", "assets.build"],
       "ecto.setup": ["ecto.create", "ecto.migrate", "run priv/repo/seeds.exs"],
       "ecto.reset": ["ecto.drop", "ecto.setup"],
       test: ["ecto.create --quiet", "ecto.migrate --quiet", "test"],

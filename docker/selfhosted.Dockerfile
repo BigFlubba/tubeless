@@ -31,6 +31,11 @@ COPY priv priv
 COPY lib lib
 COPY assets assets
 
+# Fetch the SQLean SQLite extensions into priv/ (pinned version, not in git) so
+# `mix release` bundles them into the OTP release. ci-base provides curl + unzip.
+COPY tooling/fetch-sqlean.sh tooling/fetch-sqlean.sh
+RUN ./tooling/fetch-sqlean.sh
+
 # Compile assets
 RUN yarn --cwd assets install && mix assets.deploy && mix compile
 
