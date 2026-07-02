@@ -77,6 +77,8 @@ Key workers:
 
 `lib/pinchflat/yt_dlp/` contains the yt-dlp abstraction. The executable path and runner module are injected via application config (`config :pinchflat, yt_dlp_runner: ...`), making it easy to mock in tests. In test, `config/test.exs` points both `yt_dlp_executable` and `apprise_executable` to scripts in `test/scripts/yt-dlp-mocks/`.
 
+`ResponseDecoder` (`lib/pinchflat/yt_dlp/response_decoder.ex`) decodes JSON output from yt-dlp commands, logging the raw response and returning a clean `{:error, binary()}` tuple when it can't be parsed (empty/truncated output after an extractor or yt-dlp behaviour change). It's used by both `Media` and `MediaCollection` so workers fail-and-retry cleanly instead of crashing on `Jason.DecodeError`.
+
 `UnavailableMedia` (`lib/pinchflat/yt_dlp/unavailable_media.ex`) classifies yt-dlp error output for media that can never be downloaded (members-only, private, removed). It's shared by the download path and the source-metadata/indexing path, and is kept distinct from the cookie-recoverable errors in `Downloading.MediaDownloader` so the cookie-retry path always runs first. When the `ignore_unavailable_media` setting is enabled, both paths treat these as permanently unavailable rather than failing/retrying.
 
 ### Other domain areas
