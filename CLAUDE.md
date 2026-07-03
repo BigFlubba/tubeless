@@ -128,7 +128,11 @@ Only `fix:`, `feat:`, and a `!` / `BREAKING CHANGE:` (major) bump the version. E
 
 Prefer `chore(ci):` for CI/build-pipeline changes (rather than a bare `ci:`) so they surface in the Chores changelog section instead of being hidden.
 
-Always run prettier (`prettier . --check --config=.prettierrc.js --ignore-path=.prettierignore --ignore-path=.gitignore --write`) before staging and commiting files to ensure this doesn't fail in CI
+Before staging and committing, always run these two checks in order:
+
+1. `prettier . --check --config=.prettierrc.js --ignore-path=.prettierignore --ignore-path=.gitignore --write` — auto-fixes formatting so CI's prettier check doesn't fail.
+2. `tooling/lint_test.sh` — reproduces `.github/workflows/ci.yml`'s `test` job (compiler, credo, sobelow, ExUnit, prettier check) inside the same pinned ci-base Docker image, so a green run here means a green CI `test` job. Requires Docker. Run this after prettier and before every commit.
+3. If on master branch, create new branch for your commits.
 
 Releases are automated via release-please using semantic versioning (current version tracked in `version.txt`, e.g. `1.2.0`). Merging the release PR cuts a release and publishes Docker images to GHCR and Docker Hub. (`mix version.bump` / `tooling/version_bump.sh` still produce a legacy date-based `YYYY.M.D` version and predate the move to release-please — prefer the release-please flow.)
 
