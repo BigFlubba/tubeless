@@ -92,7 +92,7 @@ Key workers:
 Pinchflat uses two indexing strategies:
 
 1. **Fast indexing** (`lib/pinchflat/fast_indexing/`) — parses YouTube's RSS feed to detect new video IDs cheaply and frequently, then schedules individual downloads.
-2. **Slow indexing** (`lib/pinchflat/slow_indexing/`) — runs full yt-dlp collection fetches on a longer schedule to catch anything RSS misses and update metadata.
+2. **Slow indexing** (`lib/pinchflat/slow_indexing/`) — runs full yt-dlp collection fetches on a longer schedule to catch anything RSS misses and update metadata. YouTube channels are indexed one content tab at a time (`/videos`, `/shorts`, `/streams` — canonical URLs built from the source's `collection_id`) as separate yt-dlp invocations, each with its own download archive filtered to that tab's content type. This is required because `--break-on-existing` aborts the whole yt-dlp process, not just the current tab — a single bare-channel-URL run with an archive would stop at the first known video and never reach the shorts/streams tabs (issue #59). A channel URL that already names a tab is used as-is; playlists and non-YouTube sources are never split. A tab that errors (e.g. the channel has no shorts tab) is skipped; the run only fails if every tab fails.
 
 ### Boot sequence
 
