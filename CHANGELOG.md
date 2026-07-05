@@ -1,5 +1,37 @@
 # Changelog
 
+## [1.3.1](https://github.com/CommunityMaintained/pinchflat/compare/v1.3.0...v1.3.1) (2026-07-05)
+
+
+### Bug Fixes
+
+* auto-refresh Media History on job state changes ([98d654f](https://github.com/CommunityMaintained/pinchflat/commit/98d654fb32736da9948bb1d11ccdf94c43aed537))
+* correct static Size values in sources table on re-sort ([a876bcd](https://github.com/CommunityMaintained/pinchflat/commit/a876bcd817847a87e44bbbc9f50b366202186b0a)), closes [#112](https://github.com/CommunityMaintained/pinchflat/issues/112)
+* handle unparseable yt-dlp source metadata responses gracefully ([813c8ad](https://github.com/CommunityMaintained/pinchflat/commit/813c8adcda43a6885dde19b4e2496526810417f8))
+* index channel tabs separately so new shorts are found on repeat indexes ([13a160a](https://github.com/CommunityMaintained/pinchflat/commit/13a160a0a8b84d2c0f7b7214e73ba305acb58365)), closes [#59](https://github.com/CommunityMaintained/pinchflat/issues/59)
+* label binary byte sizes with IEC units eg. KiB/MiB/GiB ([47fde1f](https://github.com/CommunityMaintained/pinchflat/commit/47fde1f81a992d4b0c8d7634a4c11ba6075330a1))
+* unlock-pro modal button stuck disabled ([#125](https://github.com/CommunityMaintained/pinchflat/issues/125)) ([5c26116](https://github.com/CommunityMaintained/pinchflat/commit/5c261160f79ea9fccaea8cafd3096d1954ddd1c0))
+* warn on malformed output-path templates in the UI ([c4bb94a](https://github.com/CommunityMaintained/pinchflat/commit/c4bb94a0f7af07023d295e8bd9f7a990ab9aa376))
+
+
+### Chores
+
+* add local CI lint/test script ([6b5bc79](https://github.com/CommunityMaintained/pinchflat/commit/6b5bc7926e3037a70417714548db9f05a13e5463))
+* **ci:** bump ci-base image to sha-93af908 ([6d29a27](https://github.com/CommunityMaintained/pinchflat/commit/6d29a276522c034fdf6f824a14e096431488ff35))
+* **ci:** fetch sqlean extensions at build time instead of vendoring ([053064b](https://github.com/CommunityMaintained/pinchflat/commit/053064b8d6abe262a96131715240020da92f2600))
+* **ci:** release config updates ([4bf8cf2](https://github.com/CommunityMaintained/pinchflat/commit/4bf8cf26ea3620eb1330b30cf6afba8ba74a8dad))
+* **deps:** update actions/cache action to v6 ([271b43b](https://github.com/CommunityMaintained/pinchflat/commit/271b43b1de7de7926c7c78636ca590e802d00d80))
+* **deps:** update github actions ([8003703](https://github.com/CommunityMaintained/pinchflat/commit/800370390b385ba5f65b3b5b060d7c49429d5cf4))
+* **deps:** update to 2026-07-01-16-32 ffmpeg build ([93af908](https://github.com/CommunityMaintained/pinchflat/commit/93af908ee245665899331600b464d6f88e462f28))
+* **deps:** use published faker instead of private git fork ([792da4a](https://github.com/CommunityMaintained/pinchflat/commit/792da4abc49c7e55b58081cb10fedbf4f4e57a03))
+* track ci-base pip requirements with Renovate ([8f1194d](https://github.com/CommunityMaintained/pinchflat/commit/8f1194dc50d0484f9bd6fe944e86ed77d039064c))
+
+
+### Documentation
+
+* clarify metadata/NFO toggle labels in media profile form ([7680d06](https://github.com/CommunityMaintained/pinchflat/commit/7680d065ddd5ccb66adf49d03c3a86580110fcb6))
+* update README ([2d2d141](https://github.com/CommunityMaintained/pinchflat/commit/2d2d1416656922f5629172922d40516a8853a9bf))
+
 ## [1.3.0](https://github.com/CommunityMaintained/pinchflat/compare/v1.2.0...v1.3.0) (2026-06-30)
 
 
