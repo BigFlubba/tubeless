@@ -63,8 +63,10 @@
       />
     </section>
 
-    <section x-data={"{ 
-        presets: { 
+    <section x-data={"{
+        tpl: #{Jason.encode!(f[:output_path_template].value || "")},
+        get tplWarnings() { return window.validateOutputTemplate(this.tpl) },
+        presets: {
           default: '#{default_output_template()}',
           media_center: '#{media_center_output_template()}',
           audio: '#{audio_output_template()}',
@@ -77,8 +79,18 @@
         inputclass="font-mono"
         label="Output path template"
         help="Must end with .{{ ext }}. See below for more details. The default is good for most cases (required)"
-        x-init="$watch('selectedPreset', p => p && ($el.value = presets[p]))"
+        x-model="tpl"
+        x-init="$watch('selectedPreset', p => p && (tpl = presets[p]))"
       />
+      <ul
+        x-cloak
+        x-show="tplWarnings.length"
+        class="mt-1 text-sm text-amber-500 list-disc list-inside"
+      >
+        <template x-for="warning in tplWarnings" x-bind:key="warning">
+          <li x-text="warning"></li>
+        </template>
+      </ul>
     </section>
 
     <h3 class="mt-10 text-2xl text-black dark:text-white">

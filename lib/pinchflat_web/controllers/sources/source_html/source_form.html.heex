@@ -170,9 +170,10 @@
       <section
         x-data={
           """
-          { 
+          {
             placeholders: JSON.parse('#{output_path_template_override_placeholders(@media_profiles)}'),
-            inputValue: null
+            inputValue: null,
+            get tplWarnings() { return this.inputValue ? window.validateOutputTemplate(this.inputValue) : [] }
           }
           """
         }
@@ -188,6 +189,15 @@
           x-bind:placeholder="placeholders[mediaProfileId]"
           x-model.fill="inputValue"
         />
+        <ul
+          x-cloak
+          x-show="tplWarnings.length"
+          class="mt-1 text-sm text-amber-500 list-disc list-inside"
+        >
+          <template x-for="warning in tplWarnings" x-bind:key="warning">
+            <li x-text="warning"></li>
+          </template>
+        </ul>
       </section>
     </section>
 
