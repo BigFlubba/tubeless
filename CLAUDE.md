@@ -8,6 +8,26 @@ Pinchflat is a self-hosted Phoenix/Elixir web app that wraps `yt-dlp` to automat
 
 ## Commands
 
+> **On macOS, run tests through Docker, not natively.** The suite needs Linux-only
+> binaries (SQLean `.so`, yt-dlp/ffmpeg/Deno/Apprise) that aren't available on the
+> host, so `mix test` / `mix check` will not work directly. Use the two wrapper
+> scripts below — they run inside the pinned ci-base image and share a warm build
+> cache:
+>
+> - `tooling/test.sh [args…]` — **fast iteration loop.** Passes everything through
+>   to `mix test`, skips the non-test checks and asset builds. This is what you run
+>   after editing code.
+>   - `tooling/test.sh test/path/to/file_test.exs` — one file
+>   - `tooling/test.sh test/path/to/file_test.exs:42` — one test by line
+>   - `tooling/test.sh --failed` / `--stale` — re-run last failures / affected tests
+>   - `tooling/test.sh` (no args) — whole suite
+>   - `tooling/test.sh --clean …` — wipe the cached volumes first
+>   - `tooling/test.sh --shell` — drop into a shell in the container
+> - `tooling/lint_test.sh` — **pre-commit gate.** Full `mix check` (compiler, credo, sobelow, prettier, full ExUnit) inside the same image. Slower; run once before committing, not while iterating. Shares volumes with `test.sh`.
+>
+> The bare `mix …` commands below are the underlying tasks these scripts run; on a
+> Linux dev box (or inside `--shell`) you can call them directly.
+
 ```bash
 # Initial setup
 mix setup               # deps.get + DB create/migrate/seed + asset setup/build
@@ -129,6 +149,9 @@ Use [Conventional Commits](https://www.conventionalcommits.org/):
 Only `fix:`, `feat:`, and a `!` / `BREAKING CHANGE:` (major) bump the version. Every type above is recognized by release-please (see the `changelog-sections` in `release-please-config.json`) and is sorted into the changelog accordingly — `test:` and `ci:` are hidden. Prefer `chore(deps):` for dependency bumps; the legacy `deps:` type is also mapped to the Chores section but is being phased out, so don't use it for new commits.
 
 Prefer `chore(ci):` for CI/build-pipeline changes (rather than a bare `ci:`) so they surface in the Chores changelog section instead of being hidden.
+
+While iterating on a change, run the relevant tests with `tooling/test.sh <path>`
+(see the Commands section) to get fast feedback without the full check suite.
 
 Before staging and committing, always run these two checks in order:
 

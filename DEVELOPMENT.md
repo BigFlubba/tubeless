@@ -28,6 +28,18 @@ mix test test/path/to/file_test.exs:42        # single test by line
 
 Tests mock yt-dlp/apprise via `test/scripts/yt-dlp-mocks/` — no real network calls.
 
+**On macOS** the suite can't run natively (needs the Linux SQLean `.so` extensions
+and the yt-dlp/ffmpeg/Deno/Apprise toolchain). Run tests through Docker instead —
+same pinned ci-base image as CI, with a shared warm build cache:
+
+```bash
+tooling/test.sh                               # whole suite (fast iteration loop)
+tooling/test.sh test/path/to/file_test.exs    # single file — args pass through to `mix test`
+tooling/test.sh test/path/to/file_test.exs:42 # single test by line
+tooling/test.sh --failed                      # re-run only last run's failures
+tooling/lint_test.sh                          # full `mix check` — the pre-commit gate
+```
+
 ## Quality Checks
 
 ```bash
