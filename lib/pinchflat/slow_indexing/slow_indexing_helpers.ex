@@ -302,7 +302,7 @@ defmodule Pinchflat.SlowIndexing.SlowIndexingHelpers do
       |> Enum.map_join("\n", fn media_item -> "youtube #{media_item.media_id}" end)
 
     case File.write(tmpfile, archive_contents) do
-      :ok -> tmpfile
+      :ok -> {:ok, tmpfile}
       err -> err
     end
   end
@@ -340,9 +340,17 @@ defmodule Pinchflat.SlowIndexing.SlowIndexingHelpers do
   defp build_download_archive_options(%Source{last_indexed_at: nil}, _was_forced, _content_type), do: []
   defp build_download_archive_options(_source, true, _content_type), do: []
 
+  # The archive is an optimization, so if the file can't be written we index
+  # without one rather than passing a bad option to yt-dlp or failing the run.
   defp build_download_archive_options(source, _was_forced, content_type) do
-    archive_file = create_download_archive_file(source, content_type)
+    case create_download_archive_file(source, content_type) do
+      {:ok, archive_file} ->
+        [:break_on_existing, download_archive: archive_file]
 
-    [:break_on_existing, download_archive: archive_file]
+      {:error, err} ->
+        Logger.warning("Unable to write download archive file for source ##{source.id}: #{inspect(err)}")
+
+        []
+    end
   end
 end
