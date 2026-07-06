@@ -71,7 +71,7 @@ defmodule PinchflatWeb.MediaItems.MediaItemController do
   def stream(conn, %{"uuid" => uuid}) do
     media_item = Repo.get_by!(MediaItem, uuid: uuid)
 
-    if File.exists?(media_item.media_filepath) do
+    if media_item.media_filepath && File.exists?(media_item.media_filepath) do
       file_size = File.stat!(media_item.media_filepath).size
       mime_type = MIME.from_path(media_item.media_filepath)
 
@@ -117,6 +117,13 @@ defmodule PinchflatWeb.MediaItems.MediaItemController do
   defp validate_range(start_pos, end_pos, file_size) do
     case {Integer.parse(start_pos), Integer.parse(end_pos)} do
       {:error, :error} ->
+        {:error, :invalid_range}
+
+      # Suffix range (eg: "bytes=-500") - serves the last `suffix_length` bytes
+      {:error, {suffix_length, _}} when suffix_length > 0 ->
+        {:ok, {max(file_size - suffix_length, 0), file_size - 1}}
+
+      {:error, _} ->
         {:error, :invalid_range}
 
       {{start_pos, _}, :error} ->

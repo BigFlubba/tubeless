@@ -138,6 +138,13 @@ defmodule PinchflatWeb.MediaItemControllerTest do
       assert conn.status == 404
     end
 
+    test "returns 404 if the media item has no filepath", %{conn: conn} do
+      media_item = media_item_fixture(%{media_filepath: nil})
+      conn = get(conn, ~p"/media/#{media_item.uuid}/stream")
+
+      assert conn.status == 404
+    end
+
     test "automatically sets the content type", %{conn: conn} do
       media_item = media_item_with_attachments()
       conn = get(conn, ~p"/media/#{media_item.uuid}/stream")
@@ -233,6 +240,35 @@ defmodule PinchflatWeb.MediaItemControllerTest do
 
       assert conn.resp_body == expected
     end
+
+    test "supports suffix ranges", %{conn: conn, media_item: media_item} do
+      contents = File.read!(media_item.media_filepath)
+      filesize = File.stat!(media_item.media_filepath).size
+      expected = :binary.part(contents, filesize - 100, 100)
+
+      conn =
+        conn
+        |> put_req_header("range", "bytes=-100")
+        |> get(~p"/media/#{media_item.uuid}/stream")
+
+      assert conn.status == 206
+      assert conn.resp_body == expected
+      assert {"content-range", "bytes #{filesize - 100}-#{filesize - 1}/#{filesize}"} in conn.resp_headers
+    end
+
+    test "supports suffix ranges larger than the file", %{conn: conn, media_item: media_item} do
+      contents = File.read!(media_item.media_filepath)
+      filesize = File.stat!(media_item.media_filepath).size
+
+      conn =
+        conn
+        |> put_req_header("range", "bytes=-#{filesize * 10}")
+        |> get(~p"/media/#{media_item.uuid}/stream")
+
+      assert conn.status == 206
+      assert conn.resp_body == contents
+      assert {"content-range", "bytes 0-#{filesize - 1}/#{filesize}"} in conn.resp_headers
+    end
   end
 
   describe "streaming media when range is invalid or not present" do
@@ -267,6 +303,18 @@ defmodule PinchflatWeb.MediaItemControllerTest do
       conn =
         conn
         |> put_req_header("range", "bytes=-")
+        |> get(~p"/media/#{media_item.uuid}/stream")
+
+      assert conn.status == 200
+      assert conn.resp_body == contents
+    end
+
+    test "doesn't blow up on a zero-length suffix range", %{conn: conn, media_item: media_item} do
+      contents = File.read!(media_item.media_filepath)
+
+      conn =
+        conn
+        |> put_req_header("range", "bytes=-0")
         |> get(~p"/media/#{media_item.uuid}/stream")
 
       assert conn.status == 200
