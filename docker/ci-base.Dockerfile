@@ -17,6 +17,10 @@
 # Drift caveat: ci-base ships ffmpeg into selfhosted's runner, so bumping the ffmpeg
 # pin here changes the ffmpeg binary users get. Consumers should pin to :sha-<...>, not
 # :latest, so any base bump goes through a PR.
+# These three combine into the hexpm/elixir tag (see DEV_IMAGE below). hexpm only
+# publishes specific combos, so Renovate tracks each against the real hexpm/elixir
+# tag list (customManagers in renovate.json) and groups the bumps into one PR — it
+# never proposes a value from a combo that isn't published. Debian stays on trixie-slim.
 ARG ELIXIR_VERSION=1.20.2
 ARG OTP_VERSION=28.5.0.3
 ARG DEBIAN_VERSION=trixie-20260623-slim

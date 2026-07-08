@@ -15,10 +15,50 @@
   "pip_requirements": {
     "managerFilePatterns": ["/(^|/)ci-base\\.requirements\\.txt$/"]
   },
+  "customManagers": [
+    {
+      "customType": "regex",
+      "description": "Elixir version in ci-base image tag — resolved against real hexpm/elixir tags",
+      "managerFilePatterns": ["/(^|/)ci-base\\.Dockerfile$/"],
+      "matchStrings": ["ARG ELIXIR_VERSION=(?<currentValue>\\S+)"],
+      "depNameTemplate": "elixir",
+      "packageNameTemplate": "hexpm/elixir",
+      "datasourceTemplate": "docker",
+      "versioningTemplate": "semver",
+      "extractVersionTemplate": "^(?<version>\\d+\\.\\d+\\.\\d+)-erlang-[\\d.]+-debian-trixie-\\d+-slim$"
+    },
+    {
+      "customType": "regex",
+      "description": "Erlang/OTP version in ci-base image tag — resolved against real hexpm/elixir tags",
+      "managerFilePatterns": ["/(^|/)ci-base\\.Dockerfile$/"],
+      "matchStrings": ["ARG OTP_VERSION=(?<currentValue>\\S+)"],
+      "depNameTemplate": "erlang-otp",
+      "packageNameTemplate": "hexpm/elixir",
+      "datasourceTemplate": "docker",
+      "versioningTemplate": "loose",
+      "extractVersionTemplate": "^\\d+\\.\\d+\\.\\d+-erlang-(?<version>[\\d.]+)-debian-trixie-\\d+-slim$"
+    },
+    {
+      "customType": "regex",
+      "description": "Debian snapshot in ci-base image tag — resolved against real hexpm/elixir tags, stays on trixie-slim",
+      "managerFilePatterns": ["/(^|/)ci-base\\.Dockerfile$/"],
+      "matchStrings": ["ARG DEBIAN_VERSION=(?<currentValue>\\S+)"],
+      "depNameTemplate": "debian",
+      "packageNameTemplate": "hexpm/elixir",
+      "datasourceTemplate": "docker",
+      "versioningTemplate": "regex:^trixie-(?<major>\\d{4})(?<minor>\\d{2})(?<patch>\\d{2})-slim$",
+      "extractVersionTemplate": "^\\d+\\.\\d+\\.\\d+-erlang-[\\d.]+-debian-(?<version>trixie-\\d+-slim)$"
+    }
+  ],
   "packageRules": [
     {
       "matchManagers": ["github-actions"],
       "groupName": "GitHub Actions"
+    },
+    {
+      "description": "Bump Elixir, OTP, and the Debian snapshot together so they land on a published hexpm/elixir combo",
+      "matchPackageNames": ["hexpm/elixir"],
+      "groupName": "Elixir/OTP/Debian base image (hexpm/elixir)"
     }
   ]
 }
