@@ -1,5 +1,48 @@
 # Changelog
 
+## [1.4.0](https://github.com/CommunityMaintained/pinchflat/compare/v1.3.1...v1.4.0) (2026-07-10)
+
+
+### Features
+
+* let templates mark where channel artwork and NFOs are stored ([279bebf](https://github.com/CommunityMaintained/pinchflat/commit/279bebfdc8ce1f3fa4f6d69f772c58ea356c6ac9))
+* requeue stuck jobs from the Diagnostics page instead of cancelling them ([cbabc68](https://github.com/CommunityMaintained/pinchflat/commit/cbabc68414a12ee4c42acecec62c6e0fe08e5cba))
+
+
+### Bug Fixes
+
+* correct pending count for sources with no downloaded media ([8675262](https://github.com/CommunityMaintained/pinchflat/commit/8675262eebc7dad00f229d850fad9f50d3b09ef1))
+* handle suffix Range requests and missing files when streaming media ([e4c5a32](https://github.com/CommunityMaintained/pinchflat/commit/e4c5a3293f7c6cf4fc5e3d13324e8cc27f0606d5))
+* reschedule missing source indexing jobs on boot ([beb6a16](https://github.com/CommunityMaintained/pinchflat/commit/beb6a16ea25a94e9c68d9560bba035debaa5e113))
+* restore the media search box after a LiveView reconnect ([c447d21](https://github.com/CommunityMaintained/pinchflat/commit/c447d21d413fd64875c91a47228ea5b9559fdce6))
+* skip download archive when the archive file cannot be written ([5aac447](https://github.com/CommunityMaintained/pinchflat/commit/5aac4477f36d291b27045434eedf6aaf8f08e246))
+* stop crashing when rendering 404 and 500 error pages ([#154](https://github.com/CommunityMaintained/pinchflat/issues/154)) ([7b0bd7f](https://github.com/CommunityMaintained/pinchflat/commit/7b0bd7f37668a6428172a471c843d6a582cebb36))
+* stop logging YouTube API keys ([515eabf](https://github.com/CommunityMaintained/pinchflat/commit/515eabf1a5a59abffe32c2d18ffc98c47ab1e222))
+* stop losing in-flight source enable toggles on LiveView reconnect ([6d9d184](https://github.com/CommunityMaintained/pinchflat/commit/6d9d184d9d973ffa4fbda4d16d8e4d268018cff2))
+* stop the diagnostics page crashing when job queues aren't running ([779080c](https://github.com/CommunityMaintained/pinchflat/commit/779080c20b1ee0809bbdd770bc3f82fc7002633c))
+* test all YouTube API keys and report which fail ([347f0be](https://github.com/CommunityMaintained/pinchflat/commit/347f0be760933ac546766f24bed689f475d69d6f))
+* throttle job state broadcasts to reduce dashboard query load ([21555ae](https://github.com/CommunityMaintained/pinchflat/commit/21555aef88e33be75b0af3e7ec374a9483a5f2c9))
+
+
+### Chores
+
+* add fast Docker test runner for local iteration ([b976cf2](https://github.com/CommunityMaintained/pinchflat/commit/b976cf2aad014fc6fb43ee9a97a15b57daa18b12))
+* **ci:** bump ci-base image to sha-ba3e559 ([a13ac24](https://github.com/CommunityMaintained/pinchflat/commit/a13ac24d9a81d804234bd024b4a789c793bb0492))
+* **ci:** track hexpm/elixir base image versions with Renovate ([ba3e559](https://github.com/CommunityMaintained/pinchflat/commit/ba3e559ec54cc2e925312e0cec3ee07e18bf88a0))
+* **deps:** bump Erlang/OTP to 28.5.0.3 ([cf681a2](https://github.com/CommunityMaintained/pinchflat/commit/cf681a2962a6247aab5ceafd3e003d7df2db697c))
+* **deps:** update dependency apprise to v1.12.0 ([945105b](https://github.com/CommunityMaintained/pinchflat/commit/945105be5544cfd911b161d560cebac010b91b46))
+* ignore runtime wiring and test support in coverage reporting ([a8f6d76](https://github.com/CommunityMaintained/pinchflat/commit/a8f6d76d4da44a3c44ada129957daaa6090cc78b))
+
+
+### Documentation
+
+* correct boot sequence responsibilities in CLAUDE.md ([241be98](https://github.com/CommunityMaintained/pinchflat/commit/241be98e3c0584f151a5849007378712b11227bc))
+
+
+### Refactors
+
+* remove unused Sources.IndexTableLive module ([ba498c9](https://github.com/CommunityMaintained/pinchflat/commit/ba498c9c227ce9ca8f3340fcbb07bc8bfb3dec2c))
+
 ## [1.3.1](https://github.com/CommunityMaintained/pinchflat/compare/v1.3.0...v1.3.1) (2026-07-05)
 
 
