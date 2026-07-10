@@ -32,7 +32,8 @@ defmodule PinchflatWeb.Sources.MediaItemTableLive do
             <span class="absolute left-2 top-1/2 -translate-y-1/2 flex">
               <.icon name="hero-magnifying-glass" />
             </span>
-            <form phx-change="search_term" phx-submit="search_term">
+            <%!-- The id must be unique because this LiveView renders once per media-state tab --%>
+            <form id={"media-search-form-#{@media_state}"} phx-change="search_term" phx-submit="search_term">
               <input
                 type="text"
                 name="q"
