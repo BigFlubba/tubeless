@@ -23,6 +23,12 @@ defmodule Pinchflat.MixProject do
           PinchflatWeb.Layouts,
           Pinchflat.DataCase,
           Pinchflat.Release,
+          # Runtime wiring with no testable logic
+          Pinchflat.Application,
+          Pinchflat.PromEx,
+          PinchflatWeb.Telemetry,
+          # Test support (like DataCase above)
+          Pinchflat.TestingHelperMethods,
           ~r/Fixtures/,
           ~r/HTML$/
         ]

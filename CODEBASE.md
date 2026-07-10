@@ -143,7 +143,6 @@ esbuild and Tailwind are driven through Mix aliases defined in `mix.exs`, not st
 | `docker/selfhosted.Dockerfile`    | CI/release | Production multi-stage build — builder stage runs on `pinchflat-ci-base` and compiles the OTP release; minimal runtime image with only production deps (ffmpeg/yt-dlp copied from the builder)                        |
 | `docker/docker-run.dev.sh`        | local only | Dev container startup script — installs deps, migrates DB, starts IEX Phoenix server                                                                                                                                  |
 | `docker-compose.yml`              | local only | Local dev environment (builds `dev.Dockerfile`, mounts working dir, exposes port 4008)                                                                                                                                |
-| `docker-compose.ci.yml`           | CI only    | CI test environment — same image, volume-cached deps, runs test suite                                                                                                                                                 |
 
 ---
 
