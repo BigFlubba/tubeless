@@ -1,5 +1,5 @@
 > [!TIP]
-> This is a community-maintained fork of [kieraneglin/pinchflat](https://github.com/kieraneglin/pinchflat). The original project is not actively maintained; this fork exists to continue development and apply community contributions. Docker images are published to `ghcr.io/communitymaintained/pinchflat`. See [Migrating from kieraneglin/pinchflat](#migrating-from-kieraneglinpinchflat). PRs welcome — see [CONTRIBUTING.md](CONTRIBUTING.md).
+> This is a community-maintained fork of [kieraneglin/pinchflat](https://github.com/kieraneglin/pinchflat). The original project is not actively maintained; this fork exists to continue development and apply community contributions. See [Migrating from kieraneglin/pinchflat](#migrating-from-kieraneglinpinchflat). PRs welcome — see [CONTRIBUTING.md](CONTRIBUTING.md). Discord Server [created](https://discord.gg/7jdBJGCrq)!
 
 > [!IMPORTANT]
 > **Volunteers needed:** I started this GitHub org with the intent of providing life support to valuable but unmaintained open-source projects, hoping we could build a small community around it. Pinchflat is Elixir/Phoenix, so that's directly useful here, but the org's needs go beyond any one stack — Docker/GHCR image publishing, GitHub Actions/CI maintenance, release management, issue triage, and documentation all help regardless of what project we take on next. If you're interested in joining or bringing another project in, let me know what you'd like to work on and any relevant experience you have.
@@ -20,9 +20,10 @@
 
 <div align="center">
 
-[![](https://img.shields.io/github/license/CommunityMaintained/pinchflat?style=for-the-badge&color=ee512b)](LICENSE)
 [![](https://img.shields.io/github/v/release/CommunityMaintained/pinchflat?style=for-the-badge&color=purple)](https://github.com/CommunityMaintained/pinchflat/releases)
+[![](https://img.shields.io/static/v1?style=for-the-badge&logo=discord&message=Chat&color=5865F2&label=Discord)](https://discord.gg/7jdBJGCrq)
 [![](https://img.shields.io/github/actions/workflow/status/CommunityMaintained/pinchflat/release-please.yml?style=for-the-badge)](https://github.com/CommunityMaintained/pinchflat/actions/workflows/release-please.yml)
+[![](https://img.shields.io/github/license/CommunityMaintained/pinchflat?style=for-the-badge&color=ee512b)](LICENSE)
 
 </div>
 
@@ -46,8 +47,8 @@
     - [Reverse Proxies](#reverse-proxies)
       - [Caddy Proxy Example](#caddy-proxy-example)
   - [Migrating from kieraneglin/pinchflat](#migrating-from-kieraneglinpinchflat)
-  - [EFF donations](#eff-donations)
   - [Stability disclaimer](#stability-disclaimer)
+  - [Legal Use \& Disclaimer](#legal-use--disclaimer)
   - [License](#license)
 
 ## What it does
@@ -218,21 +219,18 @@ Stop the old container, update the image reference, and start it again. Your `/c
 
 ---
 
-## EFF donations
-
-Prior to 2024-05-10, a portion of all donations were given to the [Electronic Frontier Foundation](https://www.eff.org/). Now, the app doesn't accept donations that go to me personally and instead directs you straight to the EFF. [Here](https://github.com/kieraneglin/pinchflat/issues/234) are some people that have generously donated to the original project.
-
-The EFF defends your online liberties and [backed](https://github.com/github/dmca/blob/9a85e0f021f7967af80e186b890776a50443f06c/2020/11/2020-11-16-RIAA-reversal-effletter.pdf) `youtube-dl` when Google took them down.
-
 ## Stability disclaimer
 
 This software is in active development and anything can break at any time. I make no guarantees about the stability of this software, forward-compatibility of updates, or integrity (both related to and independent of Pinchflat).
 
+## Legal Use & Disclaimer
+
+This project is intended **only** for downloading and managing content you have the legal right to access and copy (e.g., your own uploads, public‑domain works, or content licensed for download). You are responsible for complying with copyright law, platform terms of service, and any applicable regulations.
+
+**Not legal advice.** This repository provides software only. It is not affiliated with YouTube, Plex, Jellyfin, or any other platform. The authors and contributors do not endorse or encourage unauthorized copying, circumvention of access controls, or other unlawful use.
+
+If you plan to use this project publicly, make sure your usage and documentation do **not** promote or facilitate infringement or bypass of technical protection measures.
+
 ## License
 
-See `LICENSE` file
-
-<!-- Images and links -->
-
-[license-badge]: https://img.shields.io/github/license/CommunityMaintained/pinchflat?style=for-the-badge&color=ee512b
-[license-badge-url]: LICENSE
+See [LICENSE](LICENSE) file

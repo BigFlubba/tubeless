@@ -8,6 +8,14 @@ This repo is community-run. There is no single owner; contributions from anyone 
 
 ## How to contribute
 
+### Responsible Use
+
+By contributing, you agree not to add features or documentation that encourage:
+
+- Unauthorized copying of copyrighted content
+- Circumvention of access controls, DRM, or paywalls
+- Misrepresentation of platform affiliation or endorsement
+
 ### Reporting bugs and requesting features
 
 Open an issue. Check for duplicates first. For bugs, include your Docker version, logs, and steps to reproduce.
