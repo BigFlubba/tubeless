@@ -6,15 +6,9 @@
 
 <p align="center">
   <img
-    src="priv/static/images/originals/logo-white-wordmark-with-background.png"
+    src="priv/static/images/logo-white-wordmark-with-background.png"
     width="700"
   />
-</p>
-
-<p align="center">
-  <sup>
-    <em>logo by <a href="https://github.com/hernandito" target="_blank">@hernandito</a></em>
-  </sup>
 </p>
 
 <div align="center">
@@ -41,7 +35,7 @@
     - [Docker](#docker)
     - [Podman](#podman)
     - [IMPORTANT: File permissions](#important-file-permissions)
-    - [ADVANCED: Storing Tubeless config directory on a network share](#advanced-storing-pinchflat-config-directory-on-a-network-share)
+    - [ADVANCED: Storing Tubeless config directory on a network share](#advanced-storing-tubeless-config-directory-on-a-network-share)
     - [Environment variables](#environment-variables)
     - [Reverse Proxies](#reverse-proxies)
       - [Caddy Proxy Example](#caddy-proxy-example)
