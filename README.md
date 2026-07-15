@@ -1,5 +1,5 @@
-> [!TIP]
-> This is a community-maintained fork of [kieraneglin/pinchflat](https://github.com/kieraneglin/pinchflat). The original project is not actively maintained; this fork exists to continue development and apply community contributions. See [Migrating from kieraneglin/pinchflat](#migrating-from-kieraneglinpinchflat). PRs welcome — see [CONTRIBUTING.md](CONTRIBUTING.md). Discord Server [created](https://discord.gg/7jdBJGCrq)!
+> [!IMPORTANT]
+> Tubeless is a rebranded, actively-developed successor to [Pinchflat](https://github.com/kieraneglin/pinchflat). It supports drop-in migration from Pinchflat — both the original `kieraneglin/pinchflat` and the `CommunityMaintained/pinchflat` fork — and from here focuses on shipping new features and usability improvements rather than tracking upstream. Migration is one-way: there is no supported path back to Pinchflat. See [Migrating from Pinchflat](#migrating-from-pinchflat). PRs welcome — see [CONTRIBUTING.md](CONTRIBUTING.md). Discord Server [created](https://discord.gg/7jdBJGCrq)!
 
 > [!IMPORTANT]
 > **Volunteers needed:** I started this GitHub org with the intent of providing life support to valuable but unmaintained open-source projects, hoping we could build a small community around it. Tubeless is Elixir/Phoenix, so that's directly useful here, but the org's needs go beyond any one stack — Docker/GHCR image publishing, GitHub Actions/CI maintenance, release management, issue triage, and documentation all help regardless of what project we take on next. If you're interested in joining or bringing another project in, let me know what you'd like to work on and any relevant experience you have.
@@ -39,7 +39,7 @@
     - [Environment variables](#environment-variables)
     - [Reverse Proxies](#reverse-proxies)
       - [Caddy Proxy Example](#caddy-proxy-example)
-  - [Migrating from kieraneglin/pinchflat](#migrating-from-kieraneglinpinchflat)
+  - [Migrating from Pinchflat](#migrating-from-pinchflat)
   - [Stability disclaimer](#stability-disclaimer)
   - [Legal Use \& Disclaimer](#legal-use--disclaimer)
   - [License](#license)
@@ -198,17 +198,21 @@ home.example.com:443 {
 }
 ```
 
-## Migrating from kieraneglin/pinchflat
+## Migrating from Pinchflat
 
-The data format is identical — no database changes are needed. Just update the image reference in your Docker run command or compose file:
+Tubeless is a drop-in replacement for Pinchflat — the data format is identical, so no database changes are needed. This works whether you're coming from the original `kieraneglin/pinchflat` or the `CommunityMaintained/pinchflat` fork. Just update the image reference in your Docker run command or compose file:
 
 ```text
-ghcr.io/kieraneglin/pinchflat:latest  →  ghcr.io/communitymaintained/tubeless:latest
+ghcr.io/kieraneglin/pinchflat:latest          →  ghcr.io/communitymaintained/tubeless:latest
+ghcr.io/communitymaintained/pinchflat:latest  →  ghcr.io/communitymaintained/tubeless:latest
 ```
 
 Also available on Docker Hub as `communitymaintained/tubeless:latest`.
 
 Stop the old container, update the image reference, and start it again. Your `/config` and `/downloads` volumes carry over unchanged.
+
+> [!NOTE]
+> Migration is one-way. Tubeless develops independently and won't guarantee forward-compatibility with Pinchflat, so there is no supported path back once you've migrated. Back up your `/config` directory before switching if you want a safety net.
 
 ---
 
