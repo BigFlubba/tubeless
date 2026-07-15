@@ -2,7 +2,7 @@ name: CI Base Image
 
 on:
   push:
-    branches: ['master']
+    branches: ['main']
     paths:
       - 'docker/ci-base.Dockerfile'
       - 'docker/ci-base.requirements.txt'

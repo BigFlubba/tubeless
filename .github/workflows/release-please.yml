@@ -2,7 +2,7 @@ name: Release Please
 
 on:
   push:
-    branches: ['master']
+    branches: ['main']
 
 env:
   # Pinned to a smoke-tested ci-base build. Bump via PR after a new ci-base.yml run.
