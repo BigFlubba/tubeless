@@ -34,7 +34,7 @@ fi
 
 # Named volumes keep Linux-built artifacts off the host tree and cached across runs.
 # deps/ is intentionally NOT among these — see the bind-mount note below.
-VOL_PREFIX="pinchflat-lint_test"
+VOL_PREFIX="tubeless-lint_test"
 VOLUMES=(_build node_modules assets_node_modules extensions)
 
 if [[ "${1:-}" == "--clean" ]]; then

@@ -4,7 +4,7 @@ services:
       context: .
       dockerfile: ./docker/dev.Dockerfile
       args:
-        BASE_IMAGE: ghcr.io/communitymaintained/pinchflat-ci-base:latest
+        BASE_IMAGE: ghcr.io/communitymaintained/tubeless-ci-base:latest
     volumes:
       - '.:/app'
     ports:

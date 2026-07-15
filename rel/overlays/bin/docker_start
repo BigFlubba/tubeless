@@ -12,4 +12,4 @@ umask ${UMASK}
 /app/bin/migrate
 
 cd -P -- "$(dirname -- "$0")"
-PHX_SERVER=true exec ./pinchflat start
+PHX_SERVER=true exec ./tubeless start

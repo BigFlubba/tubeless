@@ -8,7 +8,7 @@ env:
   # Pinned to a smoke-tested ci-base build. Bump via PR after a new ci-base.yml run.
   # NOTE: keep this in sync with the test job's container.image — the env context
   # isn't available there, so the SHA is duplicated and must be bumped in both.
-  CI_BASE_IMAGE: ghcr.io/communitymaintained/pinchflat-ci-base:sha-945105b
+  CI_BASE_IMAGE: ghcr.io/communitymaintained/tubeless-ci-base:sha-945105b
 
 jobs:
   test:
@@ -21,7 +21,7 @@ jobs:
     # the workspace into the container, so no compose, no detached keepalive, and
     # no `exec -T` TTY workaround are needed.
     container:
-      image: ghcr.io/communitymaintained/pinchflat-ci-base:sha-945105b
+      image: ghcr.io/communitymaintained/tubeless-ci-base:sha-945105b
       credentials:
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
@@ -112,7 +112,7 @@ jobs:
         uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6
         with:
           images: |
-            docker.io/communitymaintained/pinchflat
+            docker.io/communitymaintained/tubeless
             ghcr.io/${{ github.repository }}
           tags: |
             type=raw,value=${{ steps.version.outputs.value }}

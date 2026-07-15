@@ -39,7 +39,7 @@ fi
 
 # Reuse lint_test.sh's volume prefix so _build/extensions are SHARED between the
 # two scripts — running either keeps the other's compile cache warm.
-VOL_PREFIX="pinchflat-lint_test"
+VOL_PREFIX="tubeless-lint_test"
 VOLUMES=(_build node_modules assets_node_modules extensions)
 
 if [[ "${1:-}" == "--clean" ]]; then

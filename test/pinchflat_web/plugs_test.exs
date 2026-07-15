@@ -27,7 +27,7 @@ defmodule PinchflatWeb.PlugsTest do
       conn = Plugs.maybe_basic_auth(build_conn(), [])
 
       assert conn.status == 401
-      assert {"www-authenticate", "Basic realm=\"Pinchflat\""} in conn.resp_headers
+      assert {"www-authenticate", "Basic realm=\"Tubeless\""} in conn.resp_headers
     end
 
     test "supplying the correct username and password allows access" do
@@ -88,7 +88,7 @@ defmodule PinchflatWeb.PlugsTest do
       conn = Plugs.basic_auth(conn, [])
 
       assert conn.status == 401
-      assert {"www-authenticate", "Basic realm=\"Pinchflat\""} in conn.resp_headers
+      assert {"www-authenticate", "Basic realm=\"Tubeless\""} in conn.resp_headers
     end
 
     test "providing the username and password allows access", %{conn: conn} do

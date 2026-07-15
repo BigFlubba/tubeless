@@ -35,7 +35,7 @@ defmodule Pinchflat.Lifecycle.Notifications.SourceNotifications do
 
   def send_new_media_notification(servers, source, changed_count) do
     opts = [
-      title: "[Pinchflat] New media found",
+      title: "[Tubeless] New media found",
       body: "Found #{changed_count} new media item(s) for #{source.custom_name}. Downloading them now"
     ]
 

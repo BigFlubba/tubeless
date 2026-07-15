@@ -1,4 +1,4 @@
-# Contributing to Pinchflat
+# Contributing to Tubeless
 
 ## Background
 

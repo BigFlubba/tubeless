@@ -25,7 +25,7 @@ defmodule PinchflatWeb.Plugs do
     password = Application.get_env(:pinchflat, :basic_auth_password)
 
     if credential_set?(username) && credential_set?(password) do
-      Plug.BasicAuth.basic_auth(conn, username: username, password: password, realm: "Pinchflat")
+      Plug.BasicAuth.basic_auth(conn, username: username, password: password, realm: "Tubeless")
     else
       conn
     end

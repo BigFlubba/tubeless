@@ -13,7 +13,7 @@ jobs:
         with:
           account: communitymaintained
           token: ${{ secrets.IMG_RETENTION }}
-          image-names: pinchflat-dev
+          image-names: tubeless-dev
           image-tags: 'rc-* pr-*' # target any image that has a tag starting with the word test or dev
           cut-off: 7d
           dry-run: false

@@ -14,4 +14,4 @@ N/A
 
 N/A
 
-- [ ] I am the original author of this code and I am giving it freely to the community and Pinchflat project maintainers
+- [ ] I am the original author of this code and I am giving it freely to the community and Tubeless project maintainers

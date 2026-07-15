@@ -16,8 +16,8 @@ jobs:
       contents: read
       packages: write
     env:
-      IMAGE_REPO: ghcr.io/communitymaintained/pinchflat-ci-base
-      CI_BASE_IMAGE: ghcr.io/communitymaintained/pinchflat-ci-base:latest
+      IMAGE_REPO: ghcr.io/communitymaintained/tubeless-ci-base
+      CI_BASE_IMAGE: ghcr.io/communitymaintained/tubeless-ci-base:latest
 
     steps:
       - name: Checkout
@@ -53,13 +53,13 @@ jobs:
           file: ./docker/ci-base.Dockerfile
           platforms: linux/amd64
           load: true
-          tags: pinchflat-ci-base:smoke
+          tags: tubeless-ci-base:smoke
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
       - name: Smoke test toolchain
         run: |
-          docker run --rm pinchflat-ci-base:smoke sh -c '
+          docker run --rm tubeless-ci-base:smoke sh -c '
             set -eux
             mix --version
             node --version

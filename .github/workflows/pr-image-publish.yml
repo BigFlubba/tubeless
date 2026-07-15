@@ -71,7 +71,7 @@ jobs:
         run: |
           docker load -i image.tar
           tag="ghcr.io/${{ steps.meta.outputs.repo }}-dev:pr-${{ steps.meta.outputs.pr }}-${{ steps.meta.outputs.sha }}"
-          docker tag "pinchflat-pr:${{ steps.meta.outputs.pr }}" "$tag"
+          docker tag "tubeless-pr:${{ steps.meta.outputs.pr }}" "$tag"
           docker push "$tag"
           echo "Pushed $tag"
 

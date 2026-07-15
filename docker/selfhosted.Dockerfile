@@ -2,7 +2,7 @@
 # build-essential, git, curl, node+yarn, hex, rebar, and the pinned ffmpeg binary.
 # Runner stage stays on debian:trixie-slim to keep the production image small.
 ARG DEBIAN_VERSION=trixie-20260610-slim
-ARG CI_BASE_IMAGE="ghcr.io/communitymaintained/pinchflat-ci-base:latest"
+ARG CI_BASE_IMAGE="ghcr.io/communitymaintained/tubeless-ci-base:latest"
 ARG RUNNER_IMAGE="debian:${DEBIAN_VERSION}"
 
 FROM ${CI_BASE_IMAGE} AS builder
@@ -126,7 +126,7 @@ ENV UMASK=022
 EXPOSE ${PORT}
 
 # Only copy the final release from the build stage
-COPY --from=builder /app/_build/${MIX_ENV}/rel/pinchflat ./
+COPY --from=builder /app/_build/${MIX_ENV}/rel/tubeless ./
 
 HEALTHCHECK --interval=30s --start-period=15s \
   CMD curl --fail http://localhost:${PORT}/healthcheck || exit 1

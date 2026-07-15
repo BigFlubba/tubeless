@@ -8,7 +8,7 @@ defmodule Pinchflat.YtDlp.ReleaseLookup do
   """
 
   @repo_api "https://api.github.com/repos/yt-dlp/yt-dlp"
-  @headers [{"User-Agent", "Pinchflat"}, {"Accept", "application/vnd.github+json"}]
+  @headers [{"User-Agent", "Tubeless"}, {"Accept", "application/vnd.github+json"}]
 
   @doc """
   Returns the tag name of the latest stable yt-dlp release.

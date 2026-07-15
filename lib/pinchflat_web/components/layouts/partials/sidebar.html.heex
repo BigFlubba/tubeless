@@ -9,7 +9,7 @@
   <section>
     <div class="flex items-center justify-between gap-2 px-6 py-4">
       <a href={~p"/"} class="flex items-center">
-        <img src={~p"/images/logo-2024-03-20.png"} alt="Pinchflat" class="w-auto" />
+        <img src={~p"/images/logo-2024-03-20.png"} alt="Tubeless" class="w-auto" />
       </a>
 
       <button class="block mt-3 lg:hidden" @click.stop="sidebarVisible = !sidebarVisible">
@@ -46,14 +46,14 @@
           icon="hero-book-open"
           text="Docs"
           target="_blank"
-          href="https://github.com/kieraneglin/pinchflat/wiki"
+          href="https://github.com/CommunityMaintained/tubeless/wiki"
           icon_class="scale-110"
         />
         <.sidebar_item
           icon="si-github"
           text="Github"
           target="_blank"
-          href="https://github.com/CommunityMaintained/pinchflat"
+          href="https://github.com/CommunityMaintained/tubeless"
         />
         <li>
           <span
@@ -73,9 +73,9 @@
             class="group relative flex items-center gap-2.5 px-4 pt-2 text-sm"
             x-on:click={"markVersionAsSeen('#{Application.spec(:pinchflat)[:vsn]}')"}
           >
-            <span>Pinchflat {Application.spec(:pinchflat)[:vsn]}</span>
+            <span>Tubeless {Application.spec(:pinchflat)[:vsn]}</span>
             <a
-              href="https://github.com/CommunityMaintained/pinchflat/releases"
+              href="https://github.com/CommunityMaintained/tubeless/releases"
               target="_blank"
               class="bg-meta-2 text-boxdark px-1.5 rounded-full text-xs"
               x-cloak

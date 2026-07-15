@@ -19,7 +19,7 @@ defmodule PinchflatWeb.Settings.SettingHTML do
   end
 
   def youtube_api_help do
-    url = "https://github.com/kieraneglin/pinchflat/wiki/Generating-a-YouTube-API-key"
+    url = "https://github.com/CommunityMaintained/tubeless/wiki/Generating-a-YouTube-API-key"
 
     ~s(API key for YouTube Data API v3. Greatly improves the accuracy of Fast Indexing. You can add multiple keys separated by commas &mdash; they'll be used in round-robin fashion to spread quota usage. See <a href="#{url}" class="#{help_link_classes()}" target="_blank">here</a> for details on generating an API key)
   end

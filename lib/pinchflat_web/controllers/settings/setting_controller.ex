@@ -53,7 +53,7 @@ defmodule PinchflatWeb.Settings.SettingController do
     log_path = Application.get_env(:pinchflat, :log_path)
 
     if log_path && File.exists?(log_path) do
-      send_download(conn, {:file, log_path}, filename: "pinchflat-logs-#{Date.utc_today()}.txt")
+      send_download(conn, {:file, log_path}, filename: "tubeless-logs-#{Date.utc_today()}.txt")
     else
       conn
       |> put_flash(:error, "Log file couldn't be found")

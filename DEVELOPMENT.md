@@ -59,10 +59,10 @@ yarn run lint:fix      # Prettier auto-fix
 
 ```bash
 # Standard (depends on CI base image)
-docker build -f docker/selfhosted.Dockerfile -t pinchflat:local .
+docker build -f docker/selfhosted.Dockerfile -t tubeless:local .
 
 # Self-contained (no external base image dependency)
-docker build -f selfhosted.og.Dockerfile -t pinchflat:local .
+docker build -f selfhosted.og.Dockerfile -t tubeless:local .
 ```
 
 ## Utility: List Published GHCR Images
@@ -70,13 +70,13 @@ docker build -f selfhosted.og.Dockerfile -t pinchflat:local .
 Requires `gh` CLI auth.
 
 ```bash
-bash tooling/list-images.sh                         # CommunityMaintained/pinchflat
+bash tooling/list-images.sh                         # CommunityMaintained/tubeless
 bash tooling/list-images.sh MyOrg my-image-name    # custom org/image
 ```
 
 ## Indexing System
 
-Pinchflat uses two complementary indexing strategies to detect new media. Together they balance detection latency against API/bandwidth cost.
+Tubeless uses two complementary indexing strategies to detect new media. Together they balance detection latency against API/bandwidth cost.
 
 ### Fast Indexing
 

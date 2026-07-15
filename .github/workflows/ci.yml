@@ -15,7 +15,7 @@ env:
   # Pinned to a smoke-tested ci-base build. Bump via PR after a new ci-base.yml run.
   # NOTE: keep this in sync with the test job's container.image — the env context
   # isn't available there, so the SHA is duplicated and must be bumped in both.
-  CI_BASE_IMAGE: ghcr.io/communitymaintained/pinchflat-ci-base:sha-945105b
+  CI_BASE_IMAGE: ghcr.io/communitymaintained/tubeless-ci-base:sha-945105b
 
 jobs:
   test:
@@ -29,7 +29,7 @@ jobs:
     # workspace into the container, so no compose, no detached keepalive, and no
     # `exec -T` TTY workaround are needed.
     container:
-      image: ghcr.io/communitymaintained/pinchflat-ci-base:sha-945105b
+      image: ghcr.io/communitymaintained/tubeless-ci-base:sha-945105b
       credentials:
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
@@ -133,14 +133,14 @@ jobs:
           platforms: linux/amd64
           load: true
           push: false
-          tags: pinchflat-pr:${{ github.event.pull_request.number }}
+          tags: tubeless-pr:${{ github.event.pull_request.number }}
           build-args: CI_BASE_IMAGE=${{ env.CI_BASE_IMAGE }}
           cache-from: type=gha
           cache-to: type=gha,mode=min
 
       - name: Save image and metadata
         run: |
-          docker save pinchflat-pr:${{ github.event.pull_request.number }} -o image.tar
+          docker save tubeless-pr:${{ github.event.pull_request.number }} -o image.tar
           mkdir -p meta
           echo "${{ github.event.pull_request.number }}" > meta/pr
           echo "${{ steps.meta.outputs.sha }}" > meta/sha

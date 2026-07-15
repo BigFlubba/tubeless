@@ -1,5 +1,5 @@
 {
-  "name": "Pinchflat Dev",
+  "name": "Tubeless Dev",
   "dockerComposeFile": "../docker-compose.yml",
   "service": "phx",
   "workspaceFolder": "/app",

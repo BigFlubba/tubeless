@@ -5,7 +5,7 @@ defmodule Pinchflat.MixProject do
     [
       app: :pinchflat,
       # x-release-please-start-version
-      version: "1.4.0",
+      version: "0.0.0",
       # x-release-please-end-version
       elixir: "~> 1.17",
       elixirc_paths: elixirc_paths(Mix.env()),
@@ -13,6 +13,13 @@ defmodule Pinchflat.MixProject do
       start_permanent: Mix.env() == :prod,
       aliases: aliases(),
       deps: deps(),
+      # The OTP application stays `:pinchflat` (internal), but the release — and
+      # therefore the `bin/` launcher the overlay scripts exec — is named `tubeless`.
+      releases: [
+        tubeless: [
+          applications: [pinchflat: :permanent]
+        ]
+      ],
       preferred_cli_env: [
         check: :test,
         credo: :test

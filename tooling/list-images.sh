@@ -2,7 +2,7 @@
 set -euo pipefail
 
 ORG="${1:-CommunityMaintained}"
-IMAGE="${2:-pinchflat}"
+IMAGE="${2:-tubeless}"
 ORG_LOWER=$(echo "$ORG" | tr '[:upper:]' '[:lower:]')
 TOKEN=$(gh auth token)
 
