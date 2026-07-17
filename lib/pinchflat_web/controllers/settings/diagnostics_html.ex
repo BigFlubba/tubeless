@@ -6,10 +6,6 @@ defmodule PinchflatWeb.Settings.DiagnosticsHTML do
 
   embed_templates "diagnostics_html/*"
 
-  def queue_stats do
-    QueueDiagnostics.get_all_queue_stats()
-  end
-
   def retryable_jobs do
     QueueDiagnostics.get_retryable_jobs(20)
   end
@@ -23,10 +19,6 @@ defmodule PinchflatWeb.Settings.DiagnosticsHTML do
   end
 
   @queue_job_limit 50
-
-  def queue_jobs(queue_name) do
-    QueueDiagnostics.get_jobs_for_queue(queue_name, @queue_job_limit)
-  end
 
   def queue_job_limit, do: @queue_job_limit
 
