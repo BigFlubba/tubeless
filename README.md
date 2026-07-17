@@ -1,8 +1,14 @@
 > [!IMPORTANT]
 > Tubeless is a rebranded, actively-developed successor to [Pinchflat](https://github.com/kieraneglin/pinchflat). It supports drop-in migration from Pinchflat — both the original `kieraneglin/pinchflat` and the `CommunityMaintained/pinchflat` fork — and from here focuses on shipping new features and usability improvements rather than tracking upstream. Migration is one-way: there is no supported path back to Pinchflat. See [Migrating from Pinchflat](#migrating-from-pinchflat). PRs welcome — see [CONTRIBUTING.md](CONTRIBUTING.md). Discord Server [created](https://discord.gg/7jdBJGCrq)!
+>
+> **Pinchflat vs. Tubeless:** Review the options below and carefully chose your own adventure.
 
-> [!IMPORTANT]
-> **Volunteers needed:** I started this GitHub org with the intent of providing life support to valuable but unmaintained open-source projects, hoping we could build a small community around it. Tubeless is Elixir/Phoenix, so that's directly useful here, but the org's needs go beyond any one stack — Docker/GHCR image publishing, GitHub Actions/CI maintenance, release management, issue triage, and documentation all help regardless of what project we take on next. If you're interested in joining or bringing another project in, let me know what you'd like to work on and any relevant experience you have.
+<p align="center">
+  <img
+    src="priv/static/images/pinchflat-vs-tubeless.png"
+    width="700"
+  />
+</p>
 
 <p align="center">
   <img
