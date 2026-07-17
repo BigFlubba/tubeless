@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.0.2](https://github.com/CommunityMaintained/tubeless/compare/v0.0.1...v0.0.2) (2026-07-17)
+
+
+### Bug Fixes
+
+* **deps:** add sctp1 module for otp 29 ([7a520d5](https://github.com/CommunityMaintained/tubeless/commit/7a520d5088c3095669f0b77ad78ebbe4fc18044f))
+
+
+### Chores
+
+* **ci:** bump pinned ci-base image to sha-1629079 ([65789d1](https://github.com/CommunityMaintained/tubeless/commit/65789d1b04a80bb6d80ac3fabf87bd77f60783e1))
+* **deps:** update Debian snapshot to trixie-20260713-slim ([f3a5e12](https://github.com/CommunityMaintained/tubeless/commit/f3a5e12f60d200cc1c03353c879e3658dacf3ead))
+* **deps:** update OTP to 29.0.3 in ci-base image ([1629079](https://github.com/CommunityMaintained/tubeless/commit/1629079b7ffdce615e1e7be8e74183ae1d35fe02))
+* **doc:** reformat CHANGELOG ([9170c6c](https://github.com/CommunityMaintained/tubeless/commit/9170c6c2fb0b00b39182b630493f8683aa7f936b))
+
+
+### Documentation
+
+* add details about tubeless vs pinchflat ([4fb55ed](https://github.com/CommunityMaintained/tubeless/commit/4fb55ed2ebfe224cb0672c444938a2839a0f5408))
+
 ## 0.0.1 (2026-07-15)
 
 
