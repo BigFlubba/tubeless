@@ -59,23 +59,17 @@
         help="Indexing is the process of checking for media to download. For best results, set this to the longest delay you can tolerate for this source"
       />
 
-      <div
-        data-show-upgrade-modal={show_modal("upgrade-modal")}
-        x-on:click="(!proEnabled && !onboarding) && window.liveSocket.execJS($el, $el.dataset.showUpgradeModal)"
-      >
-        <.input
-          field={f[:fast_index]}
-          type="toggle"
-          label="Use Fast Indexing"
-          label_suffix="(pro)"
-          help="Not recommended for playlists. Overrides 'Index Frequency'. See below for more details (seriously, there's a TL;DR that's worth reading)"
-          x-init="
+      <.input
+        field={f[:fast_index]}
+        type="toggle"
+        label="Use Fast Indexing"
+        help="Not recommended for playlists. Overrides 'Index Frequency'. See below for more details (seriously, there's a TL;DR that's worth reading)"
+        x-init="
           // `enabled` is the data attribute that the toggle uses internally
           fastIndexingEnabled = enabled
           $watch('enabled', value => fastIndexingEnabled = !!value)
         "
-        />
-      </div>
+      />
     </section>
 
     <h3 class="mt-8 text-2xl text-black dark:text-white">

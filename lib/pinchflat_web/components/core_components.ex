@@ -243,7 +243,6 @@ defmodule PinchflatWeb.CoreComponents do
   attr :id, :any, default: nil
   attr :name, :any
   attr :label, :string, default: nil
-  attr :label_suffix, :string, default: nil
   attr :value, :any
   attr :help, :string, default: nil
   attr :html_help, :boolean, default: false
@@ -297,7 +296,6 @@ defmodule PinchflatWeb.CoreComponents do
           {@rest}
         />
         {@label}
-        <span :if={@label_suffix} class="text-xs text-bodydark">{@label_suffix}</span>
       </label>
       <.help :if={@help}>{if @html_help, do: Phoenix.HTML.raw(@help), else: @help}</.help>
       <.error :for={msg <- @errors}>{msg}</.error>
@@ -309,7 +307,7 @@ defmodule PinchflatWeb.CoreComponents do
     ~H"""
     <div phx-feedback-for={@name}>
       <.label for={@id}>
-        {@label}<span :if={@label_suffix} class="text-xs text-bodydark">{@label_suffix}</span>
+        {@label}
       </.label>
       <section class="grid grid-cols-1 gap-2 md:grid-cols-2 max-w-prose mb-4 ml-1">
         <div :for={{option_name, option_value} <- @options} class="flex items-center">
@@ -342,7 +340,6 @@ defmodule PinchflatWeb.CoreComponents do
     <div x-data={"{ enabled: #{@checked} }"} class="" phx-update="ignore" id={"#{@id}-wrapper"}>
       <.label :if={@label} for={@id}>
         {@label}
-        <span :if={@label_suffix} class="text-xs text-bodydark">{@label_suffix}</span>
       </.label>
       <div class="relative flex flex-col">
         <input type="hidden" id={@id} name={@name} x-bind:value="enabled" {@rest} />
@@ -369,7 +366,7 @@ defmodule PinchflatWeb.CoreComponents do
     ~H"""
     <div phx-feedback-for={@name}>
       <.label :if={@label} for={@id}>
-        {@label}<span :if={@label_suffix} class="text-xs text-bodydark">{@label_suffix}</span>
+        {@label}
       </.label>
       <div class="flex">
         <select
@@ -399,7 +396,7 @@ defmodule PinchflatWeb.CoreComponents do
     ~H"""
     <div phx-feedback-for={@name}>
       <.label for={@id}>
-        {@label}<span :if={@label_suffix} class="text-xs text-bodydark">{@label_suffix}</span>
+        {@label}
       </.label>
       <textarea
         id={@id}
@@ -424,7 +421,7 @@ defmodule PinchflatWeb.CoreComponents do
     ~H"""
     <div phx-feedback-for={@name}>
       <.label for={@id}>
-        {@label}<span :if={@label_suffix} class="text-xs text-bodydark">{@label_suffix}</span>
+        {@label}
       </.label>
       <div class="flex items-center">
         <input

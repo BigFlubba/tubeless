@@ -10,7 +10,6 @@ defmodule Pinchflat.Settings.Setting do
 
   @allowed_fields [
     :onboarding,
-    :pro_enabled,
     :yt_dlp_version,
     :yt_dlp_update_policy,
     :yt_dlp_pinned_version,
@@ -28,7 +27,6 @@ defmodule Pinchflat.Settings.Setting do
 
   @required_fields [
     :onboarding,
-    :pro_enabled,
     :video_codec_preference,
     :audio_codec_preference,
     :extractor_sleep_interval_seconds
@@ -36,7 +34,6 @@ defmodule Pinchflat.Settings.Setting do
 
   schema "settings" do
     field :onboarding, :boolean, default: true
-    field :pro_enabled, :boolean, default: false
     field :yt_dlp_version, :string
     field :yt_dlp_update_policy, :string, default: "stable"
     field :yt_dlp_pinned_version, :string

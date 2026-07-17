@@ -12,7 +12,6 @@ defmodule Pinchflat.SettingsTest do
   setup do
     # Ensure we have a clean slate
     Settings.set(onboarding: false)
-    Settings.set(pro_enabled: false)
     Settings.set(yt_dlp_version: nil)
 
     :ok

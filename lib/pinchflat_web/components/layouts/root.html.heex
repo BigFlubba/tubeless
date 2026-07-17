@@ -16,24 +16,11 @@
   <body
     x-data={"{
       sidebarVisible: false,
-      proEnabled: #{Settings.get!(:pro_enabled)},
       onboarding: #{Settings.get!(:onboarding)}
     }"}
     class="dark text-bodydark bg-boxdark-2"
     data-socket-path={Path.join(Application.get_env(:pinchflat, :base_route_path), "/live")}
   >
     {@inner_content}
-
-    <.donate_modal conn={@conn} />
-    <%!--
-      Rendered unconditionally (NOT inside an `x-if`) so its nested LiveView
-      (`UpgradeButtonLive`) exists in the DOM when `liveSocket.connect()` scans
-      for views to join. Gating it behind Alpine's `x-if` meant the modal was
-      cloned into the DOM after connect on some environments, so the nested
-      LiveView never joined — leaving the "Unlock Pro" button permanently
-      disabled (issue #125). Visibility is handled by show_modal/hide_modal; the
-      pro triggers only open it while `!proEnabled && !onboarding`.
-    --%>
-    <.upgrade_modal conn={@conn} />
   </body>
 </html>
