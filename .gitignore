@@ -50,3 +50,6 @@ scratchpad.md
 # not committed. Loaded at runtime via config/runtime.exs.
 /priv/repo/extensions/sqlean-linux-x86/
 /priv/repo/extensions/sqlean-linux-arm/
+
+# AGENTS.md is a symlink to CLAUDE.md
+AGENTS.md

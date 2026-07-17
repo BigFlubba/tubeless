@@ -142,6 +142,8 @@ All yt-dlp calls funnel through `YtDlp.CommandRunner.run/5` (`lib/pinchflat/yt_d
 
 **Option building.** A keyword list of options is converted to CLI args by `CliUtils.parse_options/1` (`lib/pinchflat/utils/cli_utils.ex`): atom keys become kebab-cased flags (`:skip_download` → `--skip-download`, `ignore_no_formats_error` → `--ignore-no-formats-error`), and key/value pairs become `--flag value` (`sleep_interval: 2.5` → `--sleep-interval 2.5`). `CommandRunner` concatenates option groups in a fixed order: caller opts → print-to-file → cookies → rate-limit → misc → globals. Globals always applied: `--windows-filenames --quiet --cache-dir <tmp>/yt-dlp-cache`.
 
+**Download quality selection.** `Downloading.QualityOptionBuilder` converts a MediaProfile's resolution, codec, container, and audio-track preferences into yt-dlp `--format` and `--format-sort` options. If `ignore_youtube_super_resolution` is enabled, it adds `[format_note!*=?AI-upscaled]` to every selected stream and fallback branch. The unknown-inclusive `?` keeps formats that do not expose `format_note`; filtering the final `best` fallback prevents it from re-selecting an AI-upscaled video. The option is off by default and affects downloads and predicted output paths, not collection indexing.
+
 **Cross-cutting options** (added by `CommandRunner`, not the callers):
 
 - **Cookies** — `--cookies <extras>/cookies.txt` is added only when the caller passes `use_cookies: true` _and_ a non-empty cookies file exists. Callers decide via `Sources.use_cookies?(source, :metadata | :indexing)`.

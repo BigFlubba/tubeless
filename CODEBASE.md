@@ -7,7 +7,7 @@
 | `lib/pinchflat/`        | Core Elixir business logic — downloading, indexing, media, sources, yt-dlp integration, settings, etc. |
 | `lib/pinchflat_web/`    | Phoenix web layer — controllers, LiveView components, helpers                                          |
 | `test/`                 | Mirror of `lib/` with test files, plus fixtures, support helpers, and test scripts                     |
-| `priv/repo/migrations/` | 79 Ecto database migration files (2024-01 through 2026-06)                                             |
+| `priv/repo/migrations/` | 84 Ecto database migration files (2024-01 through 2026-07)                                             |
 | `priv/gettext/`         | i18n translation templates and English error strings                                                   |
 | `priv/static/`          | Static web assets: favicon, Satoshi fonts (40 files), images, robots.txt                               |
 | `priv/grafana/`         | 6 Grafana dashboard JSON definitions (BEAM, Ecto, Oban, Phoenix, LiveView, Application)                |
@@ -56,6 +56,8 @@
 | ffmpeg / ffprobe | Media processing and probing                                        |
 | Deno             | Required by yt-dlp for certain YouTube downloads (see yt-dlp#14404) |
 | Apprise          | Multi-platform notification dispatch                                |
+
+Download quality preferences are translated into yt-dlp options by `lib/pinchflat/downloading/quality_option_builder.ex`. MediaProfiles can opt out of YouTube Super Resolution formats; the default-off preference adds `[format_note!*=?AI-upscaled]` to all format selector branches when enabled.
 
 ### Frontend
 

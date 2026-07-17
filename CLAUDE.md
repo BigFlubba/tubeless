@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides guidance to Claude Code (claude.ai/code) and Codex (Codex.ai/code) when working with code in this repository.
 
 ## What this project is
 
@@ -100,6 +100,8 @@ Key workers:
 `ResponseDecoder` (`lib/pinchflat/yt_dlp/response_decoder.ex`) decodes JSON output from yt-dlp commands, logging the raw response and returning a clean `{:error, binary()}` tuple when it can't be parsed (empty/truncated output after an extractor or yt-dlp behaviour change). It's used by both `Media` and `MediaCollection` so workers fail-and-retry cleanly instead of crashing on `Jason.DecodeError`.
 
 `UnavailableMedia` (`lib/pinchflat/yt_dlp/unavailable_media.ex`) classifies yt-dlp error output for media that can never be downloaded (members-only, private, removed). It's shared by the download path and the source-metadata/indexing path, and is kept distinct from the cookie-recoverable errors in `Downloading.MediaDownloader` so the cookie-retry path always runs first. When the `ignore_unavailable_media` setting is enabled, both paths treat these as permanently unavailable rather than failing/retrying.
+
+Download format selection is built per MediaProfile by `Downloading.QualityOptionBuilder`. The `ignore_youtube_super_resolution` profile option is off by default; when enabled, every selected stream and fallback gets the yt-dlp filter `[format_note!*=?AI-upscaled]`. The `?` keeps formats without a `format_note`, while formats explicitly identified as YouTube Super Resolution are excluded. Keep the filter on every fallback branch when changing the selector so a trailing `best` cannot select an AI-upscaled format.
 
 ### Other domain areas
 
