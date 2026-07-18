@@ -156,7 +156,7 @@ All yt-dlp calls funnel through `YtDlp.CommandRunner.run/5` (`lib/pinchflat/yt_d
 --simulate --skip-download --ignore-no-formats-error --no-warnings
 ```
 
-`--ignore-no-formats-error` keeps premiere/upcoming videos from aborting the crawl; `--no-warnings` keeps the JSON output clean. For scheduled channel re-indexing it also adds `--break-on-existing --download-archive <tmpfile>`, where the archive is a `youtube <media_id>` list of recent-but-not-newest items (skip the 20 newest, take the next 30) so yt-dlp halts once it reaches known media. The indexing output template captures the fields needed to build a `MediaItem`:
+`--ignore-no-formats-error` keeps premiere/upcoming videos from aborting the crawl; `--no-warnings` keeps the JSON output clean. For scheduled channel re-indexing it also adds `--break-on-existing --download-archive <tmpfile>`, where the archive is a `youtube <media_id>` list of recent-but-not-newest items (skip the 20 newest, take the next 30) so yt-dlp halts once it reaches known media. If the source has an `index_cutoff_date`, each YouTube channel tab additionally gets `--break-match-filters "upload_date >= YYYYMMDD"` plus `--break-match-filters "!upload_date"` (repeated filters are OR'd — break only when a video _has_ an upload date and it's older than the cutoff), aborting the crawl at the cutoff even on first/forced indexes; playlists and non-YouTube sources never get this since their listing order isn't newest-first. The indexing output template captures the fields needed to build a `MediaItem`:
 
 ```
 %(.{id,title,live_status,original_url,description,aspect_ratio,duration,upload_date,timestamp,playlist_index,filename})j
@@ -174,15 +174,16 @@ reusing the same indexing output template. There's no file follower here — it'
 
 ### Per-Source Indexing Settings
 
-| Setting                                         | Default | Description                                                                                        |
-| ----------------------------------------------- | ------- | -------------------------------------------------------------------------------------------------- |
-| `fast_index`                                    | `false` | Enable fast indexing (RSS/API polling every 10 min)                                                |
-| `index_frequency_minutes`                       | `1440`  | Slow indexing interval; `0` = index once and stop; forced to 43,200 (30 d) when `fast_index: true` |
-| `download_media`                                | `true`  | Whether indexed items are added to the download queue                                              |
-| `download_cutoff_date`                          | —       | Skip media uploaded before this date                                                               |
-| `title_filter_regex`                            | —       | Only download media whose title matches this pattern                                               |
-| `min_duration_seconds` / `max_duration_seconds` | —       | Filter by duration                                                                                 |
-| `enabled`                                       | `true`  | When false, indexing tasks are deleted and no downloads run                                        |
+| Setting                                         | Default | Description                                                                                                                                                                 |
+| ----------------------------------------------- | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `fast_index`                                    | `false` | Enable fast indexing (RSS/API polling every 10 min)                                                                                                                         |
+| `index_frequency_minutes`                       | `1440`  | Slow indexing interval; `0` = index once and stop; forced to 43,200 (30 d) when `fast_index: true`                                                                          |
+| `download_media`                                | `true`  | Whether indexed items are added to the download queue                                                                                                                       |
+| `download_cutoff_date`                          | —       | Skip media uploaded before this date                                                                                                                                        |
+| `index_cutoff_date`                             | —       | Stop slow indexing once it reaches videos uploaded before this date (YouTube channels only; set a few days before the download cutoff). Applies to first/forced indexes too |
+| `title_filter_regex`                            | —       | Only download media whose title matches this pattern                                                                                                                        |
+| `min_duration_seconds` / `max_duration_seconds` | —       | Filter by duration                                                                                                                                                          |
+| `enabled`                                       | `true`  | When false, indexing tasks are deleted and no downloads run                                                                                                                 |
 
 ### Global Indexing Settings
 
