@@ -1,0 +1,11 @@
+name: Other
+description: For everything else
+assignees: ['CommunityMaintained']
+body:
+  - type: textarea
+    id: text
+    attributes:
+      label: Text field
+      description: 'If applicable, drag-and-drop screenshots into this field.'
+    validations:
+      required: true
