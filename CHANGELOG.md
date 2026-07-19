@@ -1,5 +1,29 @@
 # Changelog
 
+## [0.1.0](https://github.com/CommunityMaintained/tubeless/compare/v0.0.2...v0.1.0) (2026-07-19)
+
+
+### Features
+
+* add database insights and safe compaction maintenance to the diagnostics page ([ee741db](https://github.com/CommunityMaintained/tubeless/commit/ee741db6c2935299d5f5216a0ee22b6a7e872745))
+* allow SponsorBlock to both remove and mark selected categories ([ba09ff9](https://github.com/CommunityMaintained/tubeless/commit/ba09ff933301d48ae7ed72a54cb901db8955f72a))
+* let media profiles ignore YouTube AI-upscaled videos ([8e2f334](https://github.com/CommunityMaintained/tubeless/commit/8e2f334c4556353bbb12e6addd24f739181a44d8))
+* let sources stop indexing large channels at a cutoff date ([6b6a249](https://github.com/CommunityMaintained/tubeless/commit/6b6a2492fa5d67d48f04f9b13e707ddc4a95ff59))
+* refresh Queue Health on the diagnostics page without a full page reload ([85cea6b](https://github.com/CommunityMaintained/tubeless/commit/85cea6ba0505153b7a79f857fc546561a5ed1f35))
+* remove Pro unlock and Donate button — every feature is available out of the box ([7daad33](https://github.com/CommunityMaintained/tubeless/commit/7daad33ab360962308c3c6a98024b1d0bb9af3ae))
+
+
+### Bug Fixes
+
+* name episode thumbnails to match the media file so Plex displays them ([5d27ea6](https://github.com/CommunityMaintained/tubeless/commit/5d27ea6c03ca8a83ecb8a37190bfb3a90b25c420))
+* stop disabled form fields from flashing white on the dark theme ([c0c3d0f](https://github.com/CommunityMaintained/tubeless/commit/c0c3d0f074ad55d02121bd63a9168e9ad55863fa))
+
+
+### Documentation
+
+* stop labeling Shorts controls as experimental ([29413d9](https://github.com/CommunityMaintained/tubeless/commit/29413d9877490ccd133abb707f731e9d87472a52))
+* update cookie help URL in cookie_file_live.ex from Pinchflat to Tubeless' Wiki ([#32](https://github.com/CommunityMaintained/tubeless/issues/32)) ([0707097](https://github.com/CommunityMaintained/tubeless/commit/07070970b6c18eddc2d31f3b26d279e5587860dd))
+
 ## [0.0.2](https://github.com/CommunityMaintained/tubeless/compare/v0.0.1...v0.0.2) (2026-07-17)
 
 
