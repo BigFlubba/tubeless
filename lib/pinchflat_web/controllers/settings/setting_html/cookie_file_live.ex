@@ -147,7 +147,7 @@ defmodule Pinchflat.Settings.CookieFileLive do
   defp error_to_string(_), do: "Invalid file"
 
   defp cookie_help do
-    url = "https://github.com/kieraneglin/pinchflat/wiki/Cookies"
+    url = "https://github.com/CommunityMaintained/tubeless/wiki/YouTube-Cookies"
 
     ~s(Upload a Netscape-format <span class="font-mono">cookies.txt</span> to let yt-dlp access age-restricted, ) <>
       ~s(members-only, or bot-gated content. See <a href="#{url}" class="underline decoration-bodydark ) <>
