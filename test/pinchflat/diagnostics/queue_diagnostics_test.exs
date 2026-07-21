@@ -217,6 +217,15 @@ defmodule Pinchflat.Diagnostics.QueueDiagnosticsTest do
 
       assert QueueDiagnostics.get_system_stats().total_media_items == 2
     end
+
+    test "sums the on-disk size of downloaded media, excluding pending items" do
+      source = source_fixture()
+      media_item_fixture(%{source_id: source.id, media_filepath: nil, media_size_bytes: 999})
+      media_item_fixture(%{source_id: source.id, media_size_bytes: 1024})
+      media_item_fixture(%{source_id: source.id, media_size_bytes: 1024})
+
+      assert QueueDiagnostics.get_system_stats().library_size_bytes == 2048
+    end
   end
 
   defp set_job_state(job, state, extra_fields \\ []) do

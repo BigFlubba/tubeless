@@ -326,6 +326,7 @@ defmodule Pinchflat.Diagnostics.QueueDiagnostics do
     %{
       total_pending_downloads: count_pending_downloads(),
       total_downloaded: count_downloaded_media(),
+      library_size_bytes: sum_library_size_bytes(),
       total_media_items: count_media_items(),
       total_sources: count_sources()
     }
@@ -361,6 +362,12 @@ defmodule Pinchflat.Diagnostics.QueueDiagnostics do
       where: not is_nil(m.media_filepath)
     )
     |> Repo.aggregate(:count)
+  end
+
+  defp sum_library_size_bytes do
+    MediaQuery.new()
+    |> where(^MediaQuery.downloaded())
+    |> Repo.aggregate(:sum, :media_size_bytes) || 0
   end
 
   defp count_sources do
