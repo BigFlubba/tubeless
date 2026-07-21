@@ -33,6 +33,7 @@
 - [Your next YouTube media manager](#your-next-youtube-media-manager)
   - [Table of contents:](#table-of-contents)
   - [What it does](#what-it-does)
+  - [Pinchflat vs Tubeless](#pinchflat-vs-tubeless)
   - [Features](#features)
   - [Screenshots](#screenshots)
   - [Installation](#installation)
@@ -57,6 +58,36 @@ Tubeless is a self-hosted app for downloading YouTube content built using [yt-dl
 While you can [download individual videos](https://github.com/CommunityMaintained/tubeless/wiki/Frequently-Asked-Questions#how-do-i-download-one-off-videos), Tubeless is best suited for downloading content from channels or playlists. It's also not meant for consuming content in-app - Tubeless downloads content to disk where you can then watch it with a media center app or VLC.
 
 If it doesn't work for your use case, please make a feature request! You can also check out these great alternatives: [Tube Archivist](https://github.com/tubearchivist/tubearchivist), [ytdl-sub](https://github.com/jmbannon/ytdl-sub), and [TubeSync](https://github.com/meeb/tubesync)
+
+## Pinchflat vs Tubeless
+
+| Features                                                       | Pinchflat | Tubeless |
+| -------------------------------------------------------------- | --------- | -------- |
+| Activly maintained                                             | ❌        | ✅       |
+| Apprise notification support                                   | ✅        | ✅       |
+| Automatically delete old content                               | ✅        | ✅       |
+| Automatically download new content from channels and playlists | ✅        | ✅       |
+| Automatically redownload new media after a set period          | ✅        | ✅       |
+| Control yt-dlp updates from Settings                           | ❌        | ✅       |
+| Custom rules for handling YouTube Shorts and livestreams       | ✅        | ✅       |
+| Custom yt-dlp options                                          | ✅        | ✅       |
+| Database compaction                                            | ❌        | ✅       |
+| Database insights                                              | ❌        | ✅       |
+| Download audio only content                                    | ✅        | ✅       |
+| Easy-to-use web interface                                      | ✅        | ✅       |
+| Ignore YouTube AI-upscaled videos                              | ❌        | ✅       |
+| Indexing cutoff date                                           | ❌        | ✅       |
+| Powerful naming system                                         | ✅        | ✅       |
+| Queue visibility and discarded job management in the WebUI     | ❌        | ✅       |
+| Reliable hands-off operation                                   | ✅        | ✅       |
+| Requeue stuck jobs                                             | ❌        | ✅       |
+| RSS feeds for your favorite podcast app                        | ✅        | ✅       |
+| Run custom scripts after downloading/deleting media            | ✅        | ✅       |
+| Self contained                                                 | ✅        | ✅       |
+| Setting cutoff dates and filtering by title                    | ✅        | ✅       |
+| SponsorBlock integration                                       | ✅        | ✅       |
+| SponsorBlock remove and mark selected categories               | ❌        | ✅       |
+| Support for media center apps (Plex, Jellyfin, Emby, & Kodi)   | ✅        | ✅       |
 
 ## Features
 

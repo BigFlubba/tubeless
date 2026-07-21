@@ -6,6 +6,12 @@ body:
     id: text
     attributes:
       label: Text field
-      description: 'If applicable, drag-and-drop screenshots into this field.'
     validations:
       required: true
+  - type: upload
+    id: screenshots
+    attributes:
+      label: Screenshots
+      description: 'If applicable, add screenshots for additional context.'
+    validations:
+      required: false

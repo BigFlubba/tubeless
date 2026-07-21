@@ -35,14 +35,20 @@ body:
     id: context
     attributes:
       label: Additional context
-      description: 'Add any other context about the problem here. If applicable, drag-and-drop screenshots into this field.'
+      description: 'Add any other context about the problem here.'
     validations:
       required: false
   - type: textarea
-    id: diagnostics
+    id: diganostics
     attributes:
       label: Diagnostic info
-      description: 'Go to Config > App Info > Copy Diagnostic Info and paste it here. Attach logs via Config > App Info > Download Logs if applicable.'
+    validations:
+      required: false
+  - type: upload
+    id: screenshots
+    attributes:
+      label: Screenshots
+      description: 'If applicable, add screenshots for additional context.'
     validations:
       required: false
   - type: checkboxes
