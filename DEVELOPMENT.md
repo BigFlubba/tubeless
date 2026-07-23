@@ -65,6 +65,36 @@ docker build -f docker/selfhosted.Dockerfile -t tubeless:local .
 docker build -f selfhosted.og.Dockerfile -t tubeless:local .
 ```
 
+`tooling/docker-build-local.sh` wraps the standard build and adds a run/shell
+loop on top, for smoke-testing the actual release image without pushing a PR:
+
+```bash
+tooling/docker-build-local.sh                # build only, tag tubeless:local
+tooling/docker-build-local.sh --run           # build, then follow its logs (Ctrl-C tears it down)
+tooling/docker-build-local.sh --shell         # build, run detached, then attach a shell
+tooling/docker-build-local.sh --no-cache      # ignore Docker layer cache
+tooling/docker-build-local.sh --tag foo:bar   # build under a different tag
+```
+
+### `docker-build-local.sh` vs. `docker compose up`
+
+They exercise different halves of the project and aren't interchangeable:
+
+|            | `docker compose up`                                            | `tooling/docker-build-local.sh`                                                    |
+| ---------- | -------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| Dockerfile | `docker/dev.Dockerfile`                                        | `docker/selfhosted.Dockerfile` (the real release image, same as `docker-pr` in CI) |
+| Source     | Bind-mounted (`.:/app`) — live edits, no rebuild               | Baked into the image at build time — edit, then rebuild to see changes             |
+| App start  | `mix phx.server` via `docker-run.dev.sh` (compiles on the fly) | The compiled OTP release's `docker_start` entrypoint                               |
+| State      | Whatever's on disk under the repo (DB, downloads live in-tree) | Persisted separately in `tmp/docker-local/{config,downloads,podcasts}`             |
+| Port       | Fixed `4008`                                                   | `PORT` env, default `8945`                                                         |
+| Use case   | Day-to-day feature/bugfix work with fast iteration             | Verifying the shippable image builds and boots correctly before/instead of a PR    |
+
+Rule of thumb: use `docker compose up` while writing code; reach for
+`tooling/docker-build-local.sh --run` (or `--shell` to poke around inside) when
+you want to confirm the actual production image works — e.g. after touching
+the Dockerfile, release config, or anything only the compiled release path
+exercises.
+
 ## Utility: List Published GHCR Images
 
 Requires `gh` CLI auth.
@@ -269,6 +299,44 @@ server {
   }
 }
 ```
+
+## Reconcile
+
+Tools → Reconcile (`/reconciliation`) trues up already-downloaded files after
+path-affecting settings changes — output path templates, the podcast toggle, restricted
+filenames, sidecar toggles — **without re-downloading media**.
+
+Flow: always **Scan and Build Plan first** (a background job builds a persisted, paginated report
+of planned moves/backfills/deletions), then an explicit **Apply This Plan** confirmation. Applying
+pauses all job queues, waits for executing jobs to finish (like database compaction does), moves
+files + updates the DB, then resumes the queues. Saving a Source, Media Profile, or global Setting
+marks any staged (ready) plan **stale**, since those edits can change predicted paths — build a
+fresh plan after changing settings.
+
+Three modes:
+
+- **Local only** — zero network. New paths are rendered by feeding each item's stored metadata
+  blob back to yt-dlp (`--load-info-json`), so yt-dlp applies filename sanitization exactly as a
+  real download would. Moves/renames everything and rebuilds NFO/info.json sidecars from stored
+  metadata.
+- **Online mode** — additionally backfills sidecars that were never downloaded (missing
+  thumbnails/subtitles) with one light yt-dlp fetch per affected video.
+- **Full sync** — everything Online mode does (the full set of move/backfill/delete rows), _plus_
+  schedules a full media re-download for items whose on-disk format no longer matches the profile
+  (an audio-only↔video switch, or a container change). A format-mismatched item gets both: its
+  normal move relocates the existing file offline, and the later re-download replaces it with the
+  correct format at that same path (cleaning up the stale file itself). Detection is purely from the
+  file extension — no JSON parsing — because that reflects the real post-remux file and the
+  clearly-decidable cases; resolution/embed/sponsorblock state can't be judged reliably offline, so
+  those never trigger a re-download. A video profile with no explicit container implies `.mp4`, so
+  files in other containers are flagged. Re-downloads run after the reconcile window closes (reusing
+  the "Redownload Existing" path) and do use bandwidth.
+
+No mode ever uses the YouTube Data API. Sidecar files whose profile toggle is now off are
+**deleted** on apply (the report lists them and the confirmation warns). Collisions (two files
+resolving to the same target, or an occupied target path) are reported and skipped; apply and
+re-run to resolve move chains. Caveat: offline rendering uses metadata as of download time, so a
+video whose title changed on YouTube renders under its old title — consistent with what's on disk.
 
 ## Misc
 

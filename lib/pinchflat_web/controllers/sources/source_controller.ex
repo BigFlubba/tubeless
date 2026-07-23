@@ -5,6 +5,7 @@ defmodule PinchflatWeb.Sources.SourceController do
   alias Pinchflat.Repo
   alias Pinchflat.Tasks
   alias Pinchflat.Sources
+  alias Pinchflat.Reconciliation
   alias Pinchflat.Sources.Source
   alias Pinchflat.Profiles.MediaProfile
   alias Pinchflat.Media.FileSyncingWorker
@@ -89,6 +90,10 @@ defmodule PinchflatWeb.Sources.SourceController do
 
     case Sources.update_source(source, source_params) do
       {:ok, source} ->
+        # Source changes (e.g. an output-path override) can alter predicted paths,
+        # invalidating any staged reconcile plan
+        Reconciliation.mark_ready_plans_stale()
+
         conn
         |> put_flash(:info, "Source updated successfully.")
         |> redirect(to: ~p"/sources/#{source}")

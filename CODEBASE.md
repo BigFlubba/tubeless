@@ -61,6 +61,8 @@ Podcast feeds come in two modes (`lib/pinchflat/podcasts/`): dynamic endpoints s
 
 Download quality preferences are translated into yt-dlp options by `lib/pinchflat/downloading/quality_option_builder.ex`. MediaProfiles can opt out of YouTube Super Resolution formats; the default-off preference adds `[format_note!*=?AI-upscaled]` to all format selector branches when enabled.
 
+File reconciliation (`lib/pinchflat/reconciliation/`) trues up already-downloaded files after path-affecting settings changes without re-downloading: a dry run renders each item's new path offline (stored metadata fed back to yt-dlp via `--load-info-json` — zero network, no YouTube Data API) into a reviewable plan of moves/backfills/deletions, applied on confirmation inside a paused-queues quiet window. Lives in the UI under Tools → Reconcile.
+
 ### Frontend
 
 | Technology   | Role                                                                |

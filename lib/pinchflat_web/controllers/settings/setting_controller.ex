@@ -2,6 +2,7 @@ defmodule PinchflatWeb.Settings.SettingController do
   use PinchflatWeb, :controller
 
   alias Pinchflat.Settings
+  alias Pinchflat.Reconciliation
   alias Pinchflat.Settings.CookieFile
   alias Pinchflat.YtDlp.UpdateWorker
 
@@ -22,6 +23,9 @@ defmodule PinchflatWeb.Settings.SettingController do
         # Podcast-export reconciliation on a URL-base change lives in
         # `Settings.update_setting/2` so every caller triggers it, not just here
         maybe_apply_yt_dlp_policy(setting, updated_setting)
+        # A settings change can alter predicted paths, so any staged reconcile
+        # plan may no longer be accurate — mark it stale so it must be rebuilt
+        Reconciliation.mark_ready_plans_stale()
 
         conn
         |> put_flash(:info, "Settings updated successfully.")

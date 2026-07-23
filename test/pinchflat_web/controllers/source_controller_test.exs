@@ -128,6 +128,15 @@ defmodule PinchflatWeb.SourceControllerTest do
       conn = put(conn, ~p"/sources/#{source}", source: invalid_attrs)
       assert html_response(conn, 200) =~ "Editing \"#{source.custom_name}\""
     end
+
+    test "marks a staged reconcile plan stale", %{conn: conn, source: source, update_attrs: update_attrs} do
+      expect(YtDlpRunnerMock, :run, 1, &runner_function_mock/5)
+      {:ok, plan} = Pinchflat.Reconciliation.create_plan(%{mode: :local, status: :ready})
+
+      put(conn, ~p"/sources/#{source}", source: update_attrs)
+
+      assert Pinchflat.Reconciliation.get_plan!(plan.id).status == :stale
+    end
   end
 
   describe "delete source in all cases" do

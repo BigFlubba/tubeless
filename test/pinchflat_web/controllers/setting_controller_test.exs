@@ -41,6 +41,14 @@ defmodule PinchflatWeb.SettingControllerTest do
       assert redirected_to(conn) == ~p"/settings"
       refute_enqueued(worker: Pinchflat.YtDlp.UpdateWorker)
     end
+
+    test "marks a staged reconcile plan stale", %{conn: conn} do
+      {:ok, plan} = Pinchflat.Reconciliation.create_plan(%{mode: :local, status: :ready})
+
+      put(conn, ~p"/settings", setting: %{apprise_server: "test://server"})
+
+      assert Pinchflat.Reconciliation.get_plan!(plan.id).status == :stale
+    end
   end
 
   describe "download_cookies" do
