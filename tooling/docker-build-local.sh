@@ -21,11 +21,11 @@
 # between runs) and publish the container's PORT (8945 by default) to the same
 # port on localhost.
 #
-# --run attaches to the container's own process (foreground, --rm): Ctrl-C
-# stops it. --shell instead runs the app detached under a fixed container name
-# (tubeless-local) and `docker exec`s a bash shell into it once it's healthy —
-# so you get a live shell alongside the running app, not instead of it. The
-# container is removed automatically once you exit that shell.
+# --run and --shell both start the app detached under a fixed container name
+# (tubeless-local): --run then follows its logs (Ctrl-C to exit), --shell waits
+# for it to become healthy and `docker exec`s a bash shell into it instead — so
+# you get a live shell alongside the running app. Either way, the container is
+# stopped and removed automatically once you exit.
 #
 # Prereqs: Docker running + a one-time `docker login ghcr.io` (the pinned
 # ci-base image the Dockerfile builds FROM is private).
@@ -98,18 +98,20 @@ DOCKER_RUN_ARGS=(
   -e "PODCAST_PATH=/podcasts"
 )
 
-if [[ "${SHELL_AFTER}" -ne 1 ]]; then
-  echo "==> Running ${TAG} on http://localhost:${PORT} (state in ${STATE_DIR})"
-  exec docker run --rm -it "${DOCKER_RUN_ARGS[@]}" "${TAG}"
-fi
-
-# --shell: run the app detached under a stable name (so a stray leftover from
-# a prior run doesn't collide), wait for it to report healthy, then exec a
-# shell into the live container rather than starting a standalone one.
+# Run the app detached under a stable name (so a stray leftover from a prior
+# run doesn't collide), and always tear it down on exit — whether that's
+# Ctrl-C out of --run's log follow or exiting --shell's shell.
 docker rm -f "${CONTAINER_NAME}" >/dev/null 2>&1 || true
+trap 'echo "==> Stopping and removing ${CONTAINER_NAME}..."; docker rm -f "${CONTAINER_NAME}" >/dev/null 2>&1 || true' EXIT
 
 echo "==> Starting ${TAG} detached as ${CONTAINER_NAME} on http://localhost:${PORT} (state in ${STATE_DIR})"
 docker run -d --name "${CONTAINER_NAME}" "${DOCKER_RUN_ARGS[@]}" "${TAG}" >/dev/null
+
+if [[ "${SHELL_AFTER}" -ne 1 ]]; then
+  echo "==> Following ${CONTAINER_NAME} logs — Ctrl-C to exit and tear down the container"
+  docker logs -f "${CONTAINER_NAME}" || true
+  exit 0
+fi
 
 echo "==> Waiting for the app to become healthy..."
 for _ in $(seq 1 60); do
@@ -127,5 +129,3 @@ done
 
 echo "==> Attaching shell to ${CONTAINER_NAME} (container is torn down when you exit)"
 docker exec -it "${CONTAINER_NAME}" bash || true
-echo "==> Exited shell, removing ${CONTAINER_NAME}..."
-docker rm -f "${CONTAINER_NAME}" >/dev/null 2>&1 || true
