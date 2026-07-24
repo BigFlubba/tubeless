@@ -83,6 +83,8 @@ jobs:
     outputs:
       release_created: ${{ steps.release.outputs.release_created }}
       tag_name: ${{ steps.release.outputs.tag_name }}
+      html_url: ${{ steps.release.outputs.html_url }}
+      body: ${{ steps.release.outputs.body }}
     steps:
       - uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7 # v5
         id: release
@@ -149,3 +151,25 @@ jobs:
           build-args: CI_BASE_IMAGE=${{ env.CI_BASE_IMAGE }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+  github-releases-to-discord:
+    name: Publish Release Notification to Discord
+    runs-on: ubuntu-latest
+    needs: [release-please, docker]
+    if: needs.release-please.outputs.release_created == 'true'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - name: GitHub Releases to Discord
+        uses: SethCohen/github-releases-to-discord@24d166886aee4646d448c8a389ff9e1ebcab3682 # v1
+        with:
+          webhook_url: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          color: '2105893'
+          username: 'Releases'
+          avatar_url: 'https://cdn.discordapp.com/avatars/487431320314576937/bd64361e4ba6313d561d54e78c9e7171.png'
+          content: '||@Tubeless Releases||'
+          footer_title: 'Releases'
+          reduce_headings: true
+          release_name: ${{ needs.release-please.outputs.tag_name }}
+          release_body: ${{ needs.release-please.outputs.body }}
+          release_html_url: ${{ needs.release-please.outputs.html_url }}
