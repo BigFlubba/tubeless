@@ -23,6 +23,14 @@ ARCHES="sqlean-linux-x86:sqlean-linux-x86.zip sqlean-linux-arm:sqlean-linux-arm6
 
 # Skip the download when the pinned version is already present (idempotent —
 # safe to call from `mix setup` repeatedly). Pass --force to re-fetch.
+#
+# "Present" means both the version marker AND the actual `sqlean.so` binary
+# exist. The marker alone is not enough: it lives inside a gitignored dir, so a
+# `docker COPY priv priv` (or a git clean that leaves the marker behind) can
+# carry a stale marker into a build with no `.so` files next to it. Trusting the
+# marker by itself made the fetch skip, shipping an image whose extension never
+# loads — every SQLean function (gen_random_uuid, regexp_like, …) then silently
+# goes missing and migrations that use them crash.
 FORCE="${1:-}"
 VERSION_MARKER=".sqlean-version"
 
@@ -30,7 +38,7 @@ for entry in ${ARCHES}; do
   dir="${entry%%:*}"
   asset="${entry##*:}"
   target="${EXT_DIR}/${dir}"
-  if [[ "${FORCE}" != "--force" && -f "${target}/${VERSION_MARKER}" ]] &&
+  if [[ "${FORCE}" != "--force" && -f "${target}/${VERSION_MARKER}" && -f "${target}/sqlean.so" ]] &&
     [[ "$(cat "${target}/${VERSION_MARKER}")" == "${SQLEAN_VERSION}" ]]; then
     echo "sqlean ${SQLEAN_VERSION} already present in ${dir}, skipping"
     continue
