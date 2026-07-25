@@ -11,5 +11,10 @@ umask ${UMASK}
 
 /app/bin/migrate
 
+if [ $? -ne 0 ]; then
+  echo "Database migration failed. Exiting instead of starting the app on a half-migrated schema."
+  exit 1
+fi
+
 cd -P -- "$(dirname -- "$0")"
-PHX_SERVER=true exec ./tubeless start
+PHX_SERVER=true exec ./pinchflat start
