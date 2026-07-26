@@ -60,6 +60,8 @@ defmodule PinchflatWeb.Router do
     post "/diagnostics/reset_job/:id", Settings.DiagnosticsController, :reset_job
     post "/diagnostics/requeue_job/:id", Settings.DiagnosticsController, :requeue_job
     post "/diagnostics/delete_job/:id", Settings.DiagnosticsController, :delete_job
+    post "/diagnostics/delete_orphaned_job/:id", Settings.DiagnosticsController, :delete_orphaned_job
+    post "/diagnostics/delete_orphaned_jobs", Settings.DiagnosticsController, :delete_orphaned_jobs
     post "/diagnostics/vacuum_database", Settings.DiagnosticsController, :vacuum_database
     post "/diagnostics/toggle_scheduled_compaction", Settings.DiagnosticsController, :toggle_scheduled_compaction
 

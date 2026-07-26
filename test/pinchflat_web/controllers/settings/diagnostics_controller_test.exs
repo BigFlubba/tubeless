@@ -2,9 +2,11 @@ defmodule PinchflatWeb.Settings.DiagnosticsControllerTest do
   use PinchflatWeb.ConnCase
 
   import Ecto.Query, warn: false
+  import Pinchflat.SourcesFixtures
 
   alias Pinchflat.Repo
   alias Pinchflat.JobFixtures.TestJobWorker
+  alias Pinchflat.FastIndexing.FastIndexingWorker
 
   describe "show" do
     test "renders the page", %{conn: conn} do
@@ -146,6 +148,48 @@ defmodule PinchflatWeb.Settings.DiagnosticsControllerTest do
       assert redirected_to(conn) == ~p"/diagnostics"
       assert conn.assigns[:flash]["info"] =~ "Scheduled compaction turned off"
       assert Pinchflat.Settings.get!(:database_maintenance_enabled) == false
+    end
+  end
+
+  describe "delete_orphaned_job" do
+    test "deletes a job pointing at a deleted source and redirects", %{conn: conn} do
+      {:ok, job} = Oban.insert(FastIndexingWorker.new(%{"id" => 999_999}))
+
+      conn = post(conn, ~p"/diagnostics/delete_orphaned_job/#{job.id}")
+
+      assert redirected_to(conn) == ~p"/diagnostics"
+      assert conn.assigns[:flash]["info"] =~ "has been deleted"
+      assert Repo.reload(job) == nil
+    end
+
+    test "shows an error when the source still exists", %{conn: conn} do
+      source = source_fixture()
+      {:ok, job} = Oban.insert(FastIndexingWorker.new(%{"id" => source.id}))
+
+      conn = post(conn, ~p"/diagnostics/delete_orphaned_job/#{job.id}")
+
+      assert redirected_to(conn) == ~p"/diagnostics"
+      assert conn.assigns[:flash]["error"] =~ "could not be deleted"
+      assert Repo.reload(job)
+    end
+
+    test "shows an error for a non-numeric job id", %{conn: conn} do
+      conn = post(conn, ~p"/diagnostics/delete_orphaned_job/bogus")
+
+      assert redirected_to(conn) == ~p"/diagnostics"
+      assert conn.assigns[:flash]["error"] =~ "not a valid job ID"
+    end
+  end
+
+  describe "delete_orphaned_jobs" do
+    test "deletes all orphaned jobs and redirects with a count", %{conn: conn} do
+      {:ok, _a} = Oban.insert(FastIndexingWorker.new(%{"id" => 999_998}))
+      {:ok, _b} = Oban.insert(FastIndexingWorker.new(%{"id" => 999_999}))
+
+      conn = post(conn, ~p"/diagnostics/delete_orphaned_jobs")
+
+      assert redirected_to(conn) == ~p"/diagnostics"
+      assert conn.assigns[:flash]["info"] =~ "Deleted 2 orphaned job(s)"
     end
   end
 

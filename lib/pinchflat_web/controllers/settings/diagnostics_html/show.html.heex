@@ -191,12 +191,13 @@
   </div>
 <% end %>
 
-<!-- Failed Jobs -->
+<!-- Job Health -->
 <% retryable = retryable_jobs() %>
 <% discarded = discarded_jobs() %>
+<% orphaned = orphaned_jobs() %>
 <div class="rounded-sm border border-stroke bg-white px-5 py-5 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-7.5">
   <div class="flex justify-between items-center mb-4">
-    <h3 class="text-lg font-semibold text-white">Failed Jobs</h3>
+    <h3 class="text-lg font-semibold text-white">Job Health</h3>
     <%= if length(retryable) > 0 do %>
       <.link
         href={~p"/diagnostics/reset_retryable_jobs"}
@@ -313,6 +314,64 @@
                       method="post"
                       class="text-red-400 hover:underline"
                       data-confirm="Permanently delete this job? This cannot be undone."
+                    >
+                      Delete
+                    </.link>
+                  </td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      <% end %>
+    </:tab>
+
+    <:tab title={"Orphaned (#{length(orphaned)})"} id="orphaned">
+      <%= if length(orphaned) == 0 do %>
+        <p class="text-bodydark">No orphaned jobs. Nothing is pointing at a deleted source.</p>
+      <% else %>
+        <div class="flex justify-between items-start mb-4 gap-4">
+          <p class="text-bodydark text-sm">
+            These jobs are still queued against a source that no longer exists — usually left behind when a source was deleted. They can never do useful work and just clutter the queue. Deleting one here removes only that job (and its task record); no media or files are touched.
+          </p>
+          <.link
+            href={~p"/diagnostics/delete_orphaned_jobs"}
+            method="post"
+            data-confirm="Delete all jobs pointing at deleted sources? No media or files are affected. Continue?"
+          >
+            <.button color="bg-red-600" rounding="rounded-lg" class="text-sm whitespace-nowrap">
+              <.icon name="hero-trash" class="h-4 w-4 mr-1" /> Delete All Orphaned
+            </.button>
+          </.link>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead>
+              <tr class="border-b border-strokedark">
+                <th class="text-left py-2 text-bodydark">ID</th>
+                <th class="text-left py-2 text-bodydark">Queue</th>
+                <th class="text-left py-2 text-bodydark">Worker</th>
+                <th class="text-left py-2 text-bodydark">Missing Source</th>
+                <th class="text-left py-2 text-bodydark">State</th>
+                <th class="text-left py-2 text-bodydark">Queued Since</th>
+                <th class="text-left py-2 text-bodydark">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <%= for job <- orphaned do %>
+                <tr class="border-b border-strokedark/50">
+                  <td class="py-2 text-white">#{job.id}</td>
+                  <td class="py-2 text-white">{job.queue}</td>
+                  <td class="py-2 text-white">{format_worker_name(job.worker)}</td>
+                  <td class="py-2 text-bodydark">Source #{job.args["id"]} (deleted)</td>
+                  <td class="py-2 text-white">{job.state}</td>
+                  <td class="py-2 text-white">{format_datetime(job.inserted_at)}</td>
+                  <td class="py-2">
+                    <.link
+                      href={~p"/diagnostics/delete_orphaned_job/#{job.id}"}
+                      method="post"
+                      class="text-red-400 hover:underline"
+                      data-confirm="Delete this orphaned job? No media or files are affected."
                     >
                       Delete
                     </.link>

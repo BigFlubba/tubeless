@@ -363,4 +363,65 @@ defmodule Pinchflat.Diagnostics.QueueDiagnosticsTest do
       assert {:error, :not_found} = QueueDiagnostics.delete_discarded_job(-1)
     end
   end
+
+  describe "get_orphaned_source_jobs/1 and count_orphaned_source_jobs/0" do
+    test "returns source-keyed jobs whose source no longer exists" do
+      source = source_fixture()
+      {:ok, live} = Oban.insert(FastIndexingWorker.new(%{"id" => source.id}))
+      {:ok, orphan} = Oban.insert(FastIndexingWorker.new(%{"id" => 999_999}))
+
+      assert [%{id: id, args: %{"id" => 999_999}}] = QueueDiagnostics.get_orphaned_source_jobs()
+      assert id == orphan.id
+      assert QueueDiagnostics.count_orphaned_source_jobs() == 1
+      refute id == live.id
+    end
+
+    test "includes orphaned jobs across non-terminal states, even available with retries exhausted" do
+      {:ok, zombie} = Oban.insert(FastIndexingWorker.new(%{"id" => 424_242}))
+      set_job_state(zombie, "available", attempt: 20, max_attempts: 20)
+
+      assert [%{id: id, state: "available"}] = QueueDiagnostics.get_orphaned_source_jobs()
+      assert id == zombie.id
+    end
+
+    test "ignores completed/cancelled history and jobs with no id arg" do
+      {:ok, completed} = Oban.insert(FastIndexingWorker.new(%{"id" => 111}))
+      set_job_state(completed, "completed")
+      {:ok, _no_id} = Oban.insert(FastIndexingWorker.new(%{}))
+
+      assert QueueDiagnostics.get_orphaned_source_jobs() == []
+      assert QueueDiagnostics.count_orphaned_source_jobs() == 0
+    end
+
+    test "does not flag media-download jobs (out of scope)" do
+      {:ok, _dl} = Oban.insert(TestJobWorker.new(%{"id" => 999_999}))
+
+      assert QueueDiagnostics.get_orphaned_source_jobs() == []
+    end
+  end
+
+  describe "delete_orphaned_source_job/1 and delete_all_orphaned_source_jobs/0" do
+    test "deletes a single orphaned job" do
+      {:ok, orphan} = Oban.insert(FastIndexingWorker.new(%{"id" => 999_999}))
+
+      assert {:ok, :deleted} = QueueDiagnostics.delete_orphaned_source_job(orphan.id)
+      assert Repo.get(Oban.Job, orphan.id) == nil
+    end
+
+    test "refuses to delete a job whose source still exists" do
+      source = source_fixture()
+      {:ok, live} = Oban.insert(FastIndexingWorker.new(%{"id" => source.id}))
+
+      assert {:error, :not_found} = QueueDiagnostics.delete_orphaned_source_job(live.id)
+      assert Repo.get(Oban.Job, live.id)
+    end
+
+    test "deletes every orphaned job and returns the count" do
+      {:ok, _a} = Oban.insert(FastIndexingWorker.new(%{"id" => 999_998}))
+      {:ok, _b} = Oban.insert(FastIndexingWorker.new(%{"id" => 999_999}))
+
+      assert QueueDiagnostics.delete_all_orphaned_source_jobs() == 2
+      assert QueueDiagnostics.count_orphaned_source_jobs() == 0
+    end
+  end
 end

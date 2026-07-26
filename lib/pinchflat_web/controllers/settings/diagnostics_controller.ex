@@ -68,6 +68,31 @@ defmodule PinchflatWeb.Settings.DiagnosticsController do
     end
   end
 
+  def delete_orphaned_job(conn, %{"id" => job_id}) do
+    with {:ok, id} <- parse_job_id(job_id),
+         {:ok, :deleted} <- QueueDiagnostics.delete_orphaned_source_job(id) do
+      conn
+      |> put_flash(:info, "Orphaned job ##{job_id} has been deleted.")
+      |> redirect(to: ~p"/diagnostics")
+    else
+      :error ->
+        invalid_job_id(conn, job_id)
+
+      {:error, _reason} ->
+        conn
+        |> put_flash(:error, "Job ##{job_id} could not be deleted. Its source may have reappeared or it already ran.")
+        |> redirect(to: ~p"/diagnostics")
+    end
+  end
+
+  def delete_orphaned_jobs(conn, _params) do
+    count = QueueDiagnostics.delete_all_orphaned_source_jobs()
+
+    conn
+    |> put_flash(:info, "Deleted #{count} orphaned job(s) pointing at deleted sources.")
+    |> redirect(to: ~p"/diagnostics")
+  end
+
   def vacuum_database(conn, _params) do
     case DatabaseMaintenanceWorker.kickoff() do
       {:ok, %Oban.Job{conflict?: true}} ->

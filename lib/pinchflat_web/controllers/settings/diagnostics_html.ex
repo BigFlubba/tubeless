@@ -18,6 +18,10 @@ defmodule PinchflatWeb.Settings.DiagnosticsHTML do
     QueueDiagnostics.get_stuck_jobs(30)
   end
 
+  def orphaned_jobs do
+    QueueDiagnostics.get_orphaned_source_jobs(50)
+  end
+
   @queue_job_limit 50
 
   def queue_job_limit, do: @queue_job_limit
@@ -121,8 +125,8 @@ defmodule PinchflatWeb.Settings.DiagnosticsHTML do
         </span>
         <span class="text-bodydark">
           {if state == "retryable",
-            do: "It will be retried automatically — see Failed Jobs below.",
-            else: "It has exhausted its retries — see the Discarded tab under Failed Jobs below."}
+            do: "It will be retried automatically — see Job Health below.",
+            else: "It has exhausted its retries — see the Discarded tab under Job Health below."}
         </span>
       <% %{state: "executing"} = job -> %>
         <span class="text-blue-400">
@@ -161,6 +165,8 @@ defmodule PinchflatWeb.Settings.DiagnosticsHTML do
   defp format_worker_short_name("MediaCollectionIndexingWorker"), do: "Indexing"
   defp format_worker_short_name("MediaQualityUpgradeWorker"), do: "Quality Upgrade"
   defp format_worker_short_name("SourceMetadataStorageWorker"), do: "Metadata"
+  defp format_worker_short_name("SourceDeletionWorker"), do: "Source Deletion"
+  defp format_worker_short_name("FileSyncingWorker"), do: "File Syncing"
   defp format_worker_short_name(other), do: other
 
   def format_queue_name(queue) do

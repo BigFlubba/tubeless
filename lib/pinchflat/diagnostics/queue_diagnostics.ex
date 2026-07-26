@@ -137,6 +137,100 @@ defmodule Pinchflat.Diagnostics.QueueDiagnostics do
   end
 
   @doc """
+  Returns jobs that are pending against a Source that no longer exists — the
+  "removed source" cruft that accumulates when a deletion cascade or a failed
+  retry-transition leaves a job stranded pointing at a gone source (see the
+  zombie `SourceDeletionWorker` jobs stuck `available` with retries exhausted).
+
+  Deliberately scoped to source-keyed workers only (not media-download jobs,
+  which can orphan in the hundreds when a source is deleted). This keeps the
+  list short and individually actionable, which is the whole point — it's not a
+  bulk queue rebuild. Terminal history (`completed`/`cancelled`) is excluded.
+  """
+  def get_orphaned_source_jobs(limit \\ 50) do
+    orphaned_source_jobs_query()
+    |> order_by([j], asc: j.id)
+    |> limit(^limit)
+    |> select([j], %{
+      id: j.id,
+      queue: j.queue,
+      worker: j.worker,
+      state: j.state,
+      attempt: j.attempt,
+      max_attempts: j.max_attempts,
+      errors: j.errors,
+      args: j.args,
+      inserted_at: j.inserted_at
+    })
+    |> Repo.all()
+  end
+
+  @doc """
+  Counts orphaned source jobs (see `get_orphaned_source_jobs/1`) for the tab badge.
+  """
+  def count_orphaned_source_jobs do
+    orphaned_source_jobs_query()
+    |> Repo.aggregate(:count)
+  end
+
+  @doc """
+  Deletes a single orphaned source job by ID, but only after re-verifying it's
+  genuinely orphaned (right worker, non-terminal state, source really gone) so a
+  stale or crafted ID can't drop a job that's still meant to run. Deleting the
+  `oban_jobs` row cascades its `tasks` row.
+  """
+  def delete_orphaned_source_job(job_id) do
+    query = from(j in orphaned_source_jobs_query(), where: j.id == ^job_id)
+
+    case Repo.one(query) do
+      nil ->
+        {:error, :not_found}
+
+      job ->
+        :ok = Oban.delete_job(job)
+        {:ok, :deleted}
+    end
+  end
+
+  @doc """
+  Deletes every orphaned source job in one pass. Returns the count removed.
+  """
+  def delete_all_orphaned_source_jobs do
+    {count, _} =
+      from(j in orphaned_source_jobs_query())
+      |> Repo.delete_all()
+
+    count
+  end
+
+  # Source-keyed workers whose `args["id"]` points at a Source. A pending job here
+  # is orphaned exactly when that Source is gone. A legitimately-queued
+  # SourceDeletionWorker still has its Source (it deletes it when it runs), so it
+  # won't match until the Source is actually gone.
+  @orphanable_source_workers [
+    "Pinchflat.SlowIndexing.MediaCollectionIndexingWorker",
+    "Pinchflat.FastIndexing.FastIndexingWorker",
+    "Pinchflat.Metadata.SourceMetadataStorageWorker",
+    "Pinchflat.Sources.SourceDeletionWorker",
+    "Pinchflat.Media.FileSyncingWorker"
+  ]
+
+  @orphan_source_states ~w(available scheduled retryable discarded)
+
+  defp orphaned_source_jobs_query do
+    from(j in Oban.Job,
+      where: j.state in @orphan_source_states,
+      where: j.worker in @orphanable_source_workers,
+      where: not is_nil(fragment("json_extract(?, '$.id')", j.args)),
+      where:
+        fragment(
+          "NOT EXISTS (SELECT 1 FROM sources s WHERE s.id = json_extract(?, '$.id'))",
+          j.args
+        )
+    )
+  end
+
+  @doc """
   Resolves an Oban job's worker + args into a human-friendly description of the
   record it's acting on (a Source, MediaItem or MediaProfile).
 
