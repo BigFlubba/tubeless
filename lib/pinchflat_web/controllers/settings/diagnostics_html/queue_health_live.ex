@@ -27,7 +27,7 @@ defmodule Pinchflat.Settings.QueueHealthLive do
         <h3 class="text-lg font-semibold text-white">Queue Health</h3>
         <div class="flex items-center gap-3">
           <span class="text-xs text-bodydark">Updated {format_datetime(@last_refreshed_at)}</span>
-          <.button color="bg-bodydark" rounding="rounded-lg" class="text-sm" phx-click="refresh">
+          <.button color="bg-primary" rounding="rounded-lg" class="text-sm" phx-click="refresh">
             <.icon name="hero-arrow-path" class="h-4 w-4 mr-1" /> Refresh
           </.button>
         </div>
