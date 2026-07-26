@@ -1,4 +1,13 @@
 #!/bin/sh
+# Offline database maintenance mode. Checked before anything else so that
+# nothing — not the permissions check, not the migrator, not the app — touches
+# the database while the operator works on it.
+case "$(echo "${MAINTENANCE_MODE}" | tr '[:upper:]' '[:lower:]')" in
+  1 | true | yes | on)
+    exec /app/bin/maintenance_mode
+    ;;
+esac
+
 /app/bin/check_file_permissions
 
 if [ $? -ne 0 ]; then

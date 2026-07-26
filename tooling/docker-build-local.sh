@@ -15,6 +15,9 @@
 #   tooling/docker-build-local.sh --shell         # build, run it detached, then attach a shell
 #   tooling/docker-build-local.sh --no-cache      # ignore Docker layer cache
 #   tooling/docker-build-local.sh --tag foo:bar   # build under a different tag
+#   tooling/docker-build-local.sh --maintenance --shell
+#                                                 # boot into offline DB maintenance mode
+#                                                 # (app never starts) and attach a shell
 #
 # Both --run and --shell start the image with a local
 # ./tmp/docker-local/{config,downloads,podcasts} bind mount (so state survives
@@ -46,16 +49,15 @@ TAG="tubeless:local"
 NO_CACHE=()
 RUN_AFTER=0
 SHELL_AFTER=0
+MAINTENANCE_MODE=0
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --run) RUN_AFTER=1; shift ;;
     --shell) RUN_AFTER=1; SHELL_AFTER=1; shift ;;
     --no-cache) NO_CACHE=(--no-cache); shift ;;
-    --tag)
-      TAG="$2"
-      shift 2
-      ;;
+    --maintenance) MAINTENANCE_MODE=1; shift;;
+    --tag) TAG="$2"; shift 2;;
     *)
       echo "Unknown argument: $1" >&2
       exit 1
@@ -96,6 +98,7 @@ DOCKER_RUN_ARGS=(
   -v "${STATE_DIR}/podcasts:/podcasts"
   -e "PORT=${PORT}"
   -e "PODCAST_PATH=/podcasts"
+  -e "MAINTENANCE_MODE=${MAINTENANCE_MODE}"
 )
 
 # Run the app detached under a stable name (so a stray leftover from a prior

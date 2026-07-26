@@ -53,7 +53,7 @@ RUN echo "Building for ${TARGETPLATFORM:?}" && \
   apt-get update -qq && \
   apt-get install -y inotify-tools curl git openssh-client jq \
     python3 python3-setuptools python3-wheel python3-dev pipx \
-    python3-mutagen locales procps build-essential graphviz zsh unzip && \
+    python3-mutagen locales procps build-essential graphviz zsh zstd unzip && \
 # Install ffmpeg — pinned build, see issue #347. selfhosted's runner copies these binaries
 # from this image, so the version here is what production ships.
   export FFMPEG_BASE_URL="https://github.com/yt-dlp/FFmpeg-Builds/releases/download/${FFMPEG_RELEASE}/ffmpeg-${FFMPEG_BUILD}" && \

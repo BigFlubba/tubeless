@@ -1,0 +1,18 @@
+#!/bin/sh
+# Opens a raw sqlite3 REPL against the database.
+#
+
+set -e
+
+# shellcheck source=rel/overlays/bin/db_common.sh
+. "$(dirname -- "$0")/db_common.sh"
+
+db_require_sqlite3
+db_require_database
+db_warn_if_app_running
+
+echo "Opening ${DATABASE_PATH} ($(db_file_size "${DATABASE_PATH}"))"
+echo "This shell can write. Take a backup with db_backup first if you haven't."
+echo ""
+
+exec sqlite3 "${DATABASE_PATH}" "$@"

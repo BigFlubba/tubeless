@@ -86,7 +86,9 @@ RUN apt-get update -y && \
       # unzip is needed for Deno
       unzip \
       sqlite3 \
-      procps && \
+      procps \
+      # zstd is used for DB backups
+      zstd && \
     # Install Deno - required for YouTube downloads (See yt-dlp#14404). Pinned to
     # match ci-base via DENO_VERSION above.
     curl -fsSL https://deno.land/install.sh | DENO_INSTALL=/usr/local sh -s -- ${DENO_VERSION} -y --no-modify-path && \

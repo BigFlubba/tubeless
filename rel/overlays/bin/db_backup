@@ -1,0 +1,84 @@
+#!/bin/sh
+# Takes a byte-for-byte backup of the database.
+#
+# Usage: db_backup [--no-compress] [destination]
+#   Default destination: ${CONFIG_PATH}/db/backups/tubeless-<timestamp>.tar.zst
+
+set -e
+
+# shellcheck source=rel/overlays/bin/db_common.sh
+. "$(dirname -- "$0")/db_common.sh"
+
+compress=1
+destination=""
+
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --no-compress)
+      compress=0
+      shift
+      ;;
+    -h | --help)
+      echo "Usage: db_backup [--no-compress] [destination]"
+      exit 0
+      ;;
+    -*)
+      db_die "unknown option: $1"
+      ;;
+    *)
+      if [ -n "${destination}" ]; then
+        db_die "unexpected extra argument: $1"
+      fi
+
+      destination="$1"
+      shift
+      ;;
+  esac
+done
+
+db_require_sqlite3
+db_require_database
+db_warn_if_app_running
+
+# Never fail to take a backup just because the compressor is missing — an
+# uncompressed archive is worth far more than no archive at all
+if [ "${compress}" -eq 1 ] && ! command -v zstd >/dev/null 2>&1; then
+  echo "Warning: zstd is not available — writing an uncompressed archive instead." >&2
+  compress=0
+fi
+
+if [ "${compress}" -eq 1 ]; then
+  extension="tar.zst"
+else
+  extension="tar"
+fi
+
+if [ -z "${destination}" ]; then
+  mkdir -p "${CONFIG_PATH}/db/backups"
+  destination="${CONFIG_PATH}/db/backups/tubeless-$(date -u +%Y%m%d-%H%M%S).${extension}"
+fi
+
+[ -e "${destination}" ] && db_die "${destination} already exists — refusing to overwrite it"
+
+database_directory="$(dirname -- "${DATABASE_PATH}")"
+database_name="$(basename -- "${DATABASE_PATH}")"
+
+members="${database_name}"
+if [ -f "${DATABASE_PATH}-wal" ]; then
+  members="${members} ${database_name}-wal"
+fi
+
+echo "Backing up ${DATABASE_PATH} ($(db_file_size "${DATABASE_PATH}")) to ${destination}"
+echo "Including: ${members}"
+
+# Streamed straight into the archive rather than staged through a temporary
+# copy, so a large database doesn't need twice its size in free space
+# shellcheck disable=SC2086
+if [ "${compress}" -eq 1 ]; then
+  tar -C "${database_directory}" -cf - ${members} | zstd -T0 -q -o "${destination}"
+else
+  tar -C "${database_directory}" -cf "${destination}" ${members}
+fi
+
+echo "Backup complete: ${destination} ($(db_file_size "${destination}"))"
+echo ""

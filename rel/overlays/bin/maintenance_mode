@@ -1,0 +1,62 @@
+#!/bin/sh
+# Offline database maintenance mode.
+#
+# Started by docker_start when MAINTENANCE_MODE is set. Deliberately does
+# almost nothing: no migrations, no Oban, no Phoenix, no Repo — the BEAM is
+# never started, so nothing opens the SQLite file and no WAL writes can race
+# whatever the operator is doing to it. The container stays up so it can be
+# exec'd into.
+
+# shellcheck source=rel/overlays/bin/db_common.sh
+. "$(dirname -- "$0")/db_common.sh"
+
+# Applied so files created by the maintenance scripts (backups especially)
+# get the same permissions as everything else the container writes
+if [ -n "${UMASK}" ]; then
+  umask "${UMASK}"
+fi
+
+cat <<BANNER
+
+  ================================================================
+   Tubeless is in DATABASE MAINTENANCE MODE
+  ================================================================
+
+  The application is NOT running. Nothing is downloading, indexing,
+  or serving feeds, and no process has the database open.
+
+  Database: ${DATABASE_PATH}
+
+  Available commands (run via 'docker exec -it <container> <cmd>'
+  or 'kubectl exec -it <pod> -- <cmd>'):
+
+    /app/bin/db_backup [dest.db]   Write a compact, verified copy
+    /app/bin/db_check  [file.db]   Integrity + foreign key check
+    /app/bin/db_shell  [sql]       Raw sqlite3 shell (can write!)
+
+  The database file can also be copied, replaced, or edited with
+  any external tool while this mode is active.
+
+  To leave maintenance mode, remove MAINTENANCE_MODE from the
+  container's environment and restart it. Pending migrations run
+  on that next normal start.
+
+  ================================================================
+
+BANNER
+
+if command -v python3 >/dev/null 2>&1; then
+  exec python3 "$(dirname -- "$0")/maintenance_server.py"
+fi
+
+# Without python3 there's no health check responder, so the container will be
+# marked unhealthy. Staying alive is still the useful behaviour — an operator
+# can't exec into a container that has exited.
+echo "python3 is unavailable — idling without a health check responder." >&2
+
+trap 'exit 0' TERM INT
+
+while true; do
+  sleep 3600 &
+  wait $!
+done

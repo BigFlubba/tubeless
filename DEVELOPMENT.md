@@ -95,6 +95,66 @@ you want to confirm the actual production image works — e.g. after touching
 the Dockerfile, release config, or anything only the compiled release path
 exercises.
 
+## Offline Database Maintenance Mode
+
+For the times you need to work on the SQLite file itself — take a backup, copy it
+somewhere, check it for corruption, hand-edit a row, or swap in a restored copy —
+Tubeless can boot into a mode where **the application never starts at all**.
+
+Set `MAINTENANCE_MODE` on the container and restart it:
+
+```bash
+docker run -e MAINTENANCE_MODE=true ...   # or add it to your compose/k8s env
+```
+
+`docker_start` checks it before anything else, so in this mode there are **no
+migrations, no Oban, no Phoenix, and no Repo** — the BEAM is never started and
+nothing has the database open. Accepted values are `1`, `true`, `yes`, `on`
+(case-insensitive); anything else boots normally.
+
+The container stays up so you can exec into it, and a tiny Python listener holds
+the port open in the app's place — it answers **200 on every path** (JSON on
+`/healthcheck`) so the Docker `HEALTHCHECK` and Kubernetes liveness/readiness
+probes keep passing while you work. It never touches the database. Anyone who
+loads the UI gets a plain "database maintenance in progress" page.
+
+### Commands
+
+Run them via `docker exec -it <container> <cmd>` or `kubectl exec -it <pod> -- <cmd>`.
+All of them resolve the database path exactly the way `config/runtime.exs` does
+(`DATABASE_PATH`, else `${CONFIG_PATH}/db/pinchflat.db`).
+
+| Command                                     | What it does                                                                                                                                                                              |
+| ------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/app/bin/db_backup [--no-compress] [dest]` | Raw binary backup of the database file + `-wal` sidecar, zstd-compressed. Defaults to `${CONFIG_PATH}/db/backups/tubeless-<UTC timestamp>.tar.zst`. Refuses to overwrite an existing file |
+| `/app/bin/db_check [file]`                  | `PRAGMA integrity_check` + `PRAGMA foreign_key_check`. Defaults to the live database; pass a path to verify a backup. Exits non-zero on any problem                                       |
+| `/app/bin/db_shell [sql]`                   | Raw `sqlite3` REPL against the live database, or a one-shot query if you pass SQL. **This can write** — nothing validates what you run                                                    |
+
+A backup is a single file: `VACUUM INTO` is used rather than `cp` so there are no
+`-wal`/`-shm` sidecars to keep alongside it, it arrives already defragmented, and
+it's written through SQLite so it's always a consistent snapshot.
+
+The scripts also work against a _running_ container (SQLite allows concurrent
+readers, and a `VACUUM INTO` backup is safe there), but they'll warn you first —
+a backup taken mid-download is a snapshot of a moving target.
+
+To restore, replace the database file while in maintenance mode and delete any
+stale `-wal`/`-shm` sidecars next to it:
+
+```bash
+docker exec -it <container> sh -c 'cp /config/db/backups/tubeless-20260726-090000.db /config/db/pinchflat.db && rm -f /config/db/pinchflat.db-wal /config/db/pinchflat.db-shm'
+```
+
+Then run `/app/bin/db_check` to confirm it, remove `MAINTENANCE_MODE`, and restart.
+Pending migrations run on that next normal boot.
+
+### Related: online compaction
+
+Routine `VACUUM`ing doesn't need any of this — Tools → Diagnostics has a "Compact
+Now" button and an opt-in monthly cron (`DatabaseMaintenanceWorker`), which reserve
+a quiet window by pausing the job queues instead of stopping the app. Maintenance
+mode is for the cases where the file has to be touched from outside the app.
+
 ## Utility: List Published GHCR Images
 
 Requires `gh` CLI auth.

@@ -1,0 +1,67 @@
+#!/bin/sh
+# Checks the database for corruption and referential damage.
+#
+# `integrity_check` walks the entire file (pages, indexes, and index/table
+# agreement) and `foreign_key_check` reports rows pointing at parents that no
+# longer exist. Both are read-only. Exits non-zero if either finds a problem,
+# so it can gate a restore or a scripted repair.
+#
+# Usage: db_check [database.db]
+#   Defaults to the live database; pass a path to check a backup instead.
+
+set -e
+
+# shellcheck source=rel/overlays/bin/db_common.sh
+. "$(dirname -- "$0")/db_common.sh"
+
+db_require_sqlite3
+
+target="${1:-${DATABASE_PATH}}"
+
+[ -f "${target}" ] || db_die "no database found at ${target}"
+
+[ "${target}" = "${DATABASE_PATH}" ] && db_warn_if_app_running
+
+failed=0
+
+echo "Checking ${target} ($(db_file_size "${target}"))"
+echo ""
+
+echo "integrity_check:"
+
+# A file damaged badly enough that SQLite can't open it at all fails here
+# rather than reporting corruption — say so plainly instead of dying on `set -e`
+if ! integrity="$(sqlite3 "${target}" "PRAGMA integrity_check" 2>&1)"; then
+  echo "${integrity}" >&2
+  db_die "sqlite3 could not read ${target} — the file may be truncated, encrypted, or not a database"
+fi
+
+echo "${integrity}"
+
+if [ "${integrity}" != "ok" ]; then
+  failed=1
+fi
+
+echo ""
+echo "foreign_key_check:"
+
+if ! foreign_keys="$(sqlite3 "${target}" "PRAGMA foreign_key_check" 2>&1)"; then
+  echo "${foreign_keys}" >&2
+  db_die "sqlite3 could not complete the foreign key check on ${target}"
+fi
+
+if [ -z "${foreign_keys}" ]; then
+  echo "ok"
+else
+  # Columns are: child table, child rowid, parent table, index of the failing constraint
+  echo "${foreign_keys}"
+  failed=1
+fi
+
+echo ""
+
+if [ "${failed}" -ne 0 ]; then
+  db_die "the database reported problems — take a backup with db_backup before attempting any repair"
+fi
+
+echo "No problems found."

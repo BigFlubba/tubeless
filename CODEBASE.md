@@ -154,16 +154,22 @@ esbuild and Tailwind are driven through Mix aliases defined in `mix.exs`, not st
 
 ## Release & Versioning
 
-| File                                      | Used in    | Purpose                                                                                                                                 |
-| ----------------------------------------- | ---------- | --------------------------------------------------------------------------------------------------------------------------------------- |
-| `version.txt`                             | CI/release | Single source of truth for current version, semver (read by CI for Docker image tags)                                                   |
-| `release-please-config.json`              | CI/release | Release-Please config — "simple" release type managing root package                                                                     |
-| `.release-please-manifest.json`           | CI/release | Release-Please version tracking manifest                                                                                                |
-| `CHANGELOG.md`                            | CI/release | Auto-generated release notes                                                                                                            |
-| `tooling/version_bump.sh`                 | local only | Legacy bash script to bump version (YYYY.M.D date format) in `mix.exs` — predates release-please semver; prefer the release-please flow |
-| `rel/overlays/bin/docker_start`           | CI/release | OTP release entrypoint — runs `check_file_permissions`, sets umask, runs `migrate`, starts server                                       |
-| `rel/overlays/bin/migrate`                | CI/release | Runs `Pinchflat.Release.migrate` in OTP release context                                                                                 |
-| `rel/overlays/bin/check_file_permissions` | CI/release | Runs `Pinchflat.Release.check_file_permissions` in OTP release context                                                                  |
+| File                                      | Used in    | Purpose                                                                                                                                                                    |
+| ----------------------------------------- | ---------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `version.txt`                             | CI/release | Single source of truth for current version, semver (read by CI for Docker image tags)                                                                                      |
+| `release-please-config.json`              | CI/release | Release-Please config — "simple" release type managing root package                                                                                                        |
+| `.release-please-manifest.json`           | CI/release | Release-Please version tracking manifest                                                                                                                                   |
+| `CHANGELOG.md`                            | CI/release | Auto-generated release notes                                                                                                                                               |
+| `tooling/version_bump.sh`                 | local only | Legacy bash script to bump version (YYYY.M.D date format) in `mix.exs` — predates release-please semver; prefer the release-please flow                                    |
+| `rel/overlays/bin/docker_start`           | CI/release | OTP release entrypoint — branches into maintenance mode when `MAINTENANCE_MODE` is set, otherwise runs `check_file_permissions`, sets umask, runs `migrate`, starts server |
+| `rel/overlays/bin/migrate`                | CI/release | Runs `Pinchflat.Release.migrate` in OTP release context                                                                                                                    |
+| `rel/overlays/bin/check_file_permissions` | CI/release | Runs `Pinchflat.Release.check_file_permissions` in OTP release context                                                                                                     |
+| `rel/overlays/bin/maintenance_mode`       | CI/release | Offline DB maintenance mode — prints the operator banner and idles; never starts the BEAM, so nothing opens the SQLite file                                                |
+| `rel/overlays/bin/maintenance_server.py`  | CI/release | Stand-in HTTP listener for maintenance mode — answers 200 everywhere (JSON on `/healthcheck`) so probes pass while the app is stopped                                      |
+| `rel/overlays/bin/db_backup`              | CI/release | Raw binary backup — tars the database file + its `-wal` sidecar, zstd-compressed. Works on a damaged database and never discards the artifact                              |
+| `rel/overlays/bin/db_check`               | CI/release | `integrity_check` + `foreign_key_check` against the live database or a backup                                                                                              |
+| `rel/overlays/bin/db_shell`               | CI/release | Raw `sqlite3` REPL (or one-shot query) against the database                                                                                                                |
+| `rel/overlays/bin/db_common.sh`           | CI/release | Sourced helper for the `db_*` scripts — resolves `DATABASE_PATH` the same way `runtime.exs` does                                                                           |
 
 ---
 
