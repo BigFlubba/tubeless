@@ -199,10 +199,62 @@ defmodule PinchflatWeb.Settings.DiagnosticsControllerTest do
     end
   end
 
+  describe "reset_stalled_job" do
+    test "resets a stalled job and redirects", %{conn: conn} do
+      job = stalled_job()
+
+      conn = post(conn, ~p"/diagnostics/reset_stalled_job/#{job.id}")
+
+      assert redirected_to(conn) == ~p"/diagnostics"
+      assert conn.assigns[:flash]["info"] =~ "has been reset"
+      assert %{state: "available", attempt: 0} = Repo.reload(job)
+    end
+
+    test "shows an error when the job is not stalled", %{conn: conn} do
+      job = job_in_state("executing")
+
+      conn = post(conn, ~p"/diagnostics/reset_stalled_job/#{job.id}")
+
+      assert redirected_to(conn) == ~p"/diagnostics"
+      assert conn.assigns[:flash]["error"] =~ "could not be reset"
+      assert %{state: "executing"} = Repo.reload(job)
+    end
+
+    test "shows an error for a non-numeric job id", %{conn: conn} do
+      conn = post(conn, ~p"/diagnostics/reset_stalled_job/bogus")
+
+      assert redirected_to(conn) == ~p"/diagnostics"
+      assert conn.assigns[:flash]["error"] =~ "not a valid job ID"
+    end
+  end
+
+  describe "reset_stalled_jobs" do
+    test "resets all stalled jobs and redirects with a count", %{conn: conn} do
+      stalled_job()
+      stalled_job()
+
+      conn = post(conn, ~p"/diagnostics/reset_stalled_jobs")
+
+      assert redirected_to(conn) == ~p"/diagnostics"
+      assert conn.assigns[:flash]["info"] =~ "Reset 2 stalled job(s)"
+    end
+  end
+
   defp job_in_state(state) do
     {:ok, job} = Oban.insert(TestJobWorker.new(%{}))
     Repo.update_all(from(j in Oban.Job, where: j.id == ^job.id), set: [state: state])
 
     %{job | state: state}
+  end
+
+  defp stalled_job do
+    {:ok, job} = Oban.insert(TestJobWorker.new(%{}))
+
+    Repo.update_all(
+      from(j in Oban.Job, where: j.id == ^job.id),
+      set: [state: "available", attempt: 20, max_attempts: 20]
+    )
+
+    Repo.reload(job)
   end
 end

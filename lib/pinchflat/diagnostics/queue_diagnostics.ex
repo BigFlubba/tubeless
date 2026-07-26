@@ -203,6 +203,109 @@ defmodule Pinchflat.Diagnostics.QueueDiagnostics do
     count
   end
 
+  @doc """
+  Returns jobs that have exhausted their attempt budget (`attempt >= max_attempts`)
+  yet are still in a runnable, non-terminal state — the class of "stalled" job that
+  falls between the Retryable, Discarded and Orphaned checks.
+
+  Oban's SQLite (Lite) engine only ever fetches `available` jobs where
+  `attempt < max_attempts`, so a job that reaches its ceiling without going through
+  the normal failure path is never picked up again — and, never running, is never
+  discarded either. The canonical way in is a job that was `executing` during an
+  ungraceful shutdown: boot recovery flips it `executing -> retryable` without
+  recording an error or bumping the ceiling, the stager moves it to `available`, and
+  it climbs to `attempt == max_attempts` across repeated shutdowns until it can never
+  be fetched. For workers with `unique: [states: :incomplete]` (several cron workers,
+  e.g. media retention) that stuck row also blocks every replacement from being
+  enqueued, silently killing a recurring job for as long as it sits there.
+
+  `executing` is deliberately excluded: a job legitimately on its final attempt sits
+  at `attempt == max_attempts` while it runs, and it is not stuck.
+  """
+  def get_stalled_jobs(limit \\ 50) do
+    stalled_jobs_query()
+    |> order_by([j], asc: j.id)
+    |> limit(^limit)
+    |> select([j], %{
+      id: j.id,
+      queue: j.queue,
+      worker: j.worker,
+      state: j.state,
+      attempt: j.attempt,
+      max_attempts: j.max_attempts,
+      args: j.args,
+      attempted_at: j.attempted_at
+    })
+    |> Repo.all()
+  end
+
+  @doc """
+  Counts stalled jobs (see `get_stalled_jobs/1`) for the tab badge.
+  """
+  def count_stalled_jobs do
+    stalled_jobs_query()
+    |> Repo.aggregate(:count)
+  end
+
+  @doc """
+  Resets a single stalled job (see `get_stalled_jobs/1`) by handing it a fresh attempt
+  budget so Oban will run it again: state -> `available`, `attempt` -> 0, errors
+  cleared, `scheduled_at` -> now.
+
+  Resetting (re-running) is the *only* remedy offered, and that's deliberate — it's the
+  one action that's correct no matter what created the job:
+
+    * A cron job runs and, on completion, leaves the `:incomplete` set so its schedule
+      resumes. A self-perpetuating indexing job runs and schedules its successor,
+      reviving the chain. A one-shot download job simply runs. Discarding would only be
+      safe for jobs something *else* re-creates (cron, boot-time chain revival) and
+      would silently drop one-shot work that nothing re-enqueues.
+    * `attempt` is reset to 0, not 1, so the fix holds for *every* worker regardless of
+      `max_attempts` — including `max_attempts: 1` workers such as `ReconcileWorker`,
+      where an `attempt: 1` reset would still satisfy `attempt >= max_attempts` and
+      leave the job exactly as stuck. A freshly inserted job starts at 0; this mirrors
+      that.
+
+  The update is scoped to the stalled predicate, so a stale id, or a job that changed
+  state since the page rendered, matches nothing — a job that is legitimately running
+  can't be reset out from under itself. Returns the number of rows reset (0 or 1).
+  """
+  def reset_stalled_job(job_id) do
+    {count, _} =
+      from(j in stalled_jobs_query(), where: j.id == ^job_id)
+      |> Repo.update_all(set: stalled_reset_updates())
+
+    count
+  end
+
+  @doc """
+  Resets every stalled job in one pass (see `reset_stalled_job/1`). Returns the count.
+  """
+  def reset_all_stalled_jobs do
+    {count, _} =
+      stalled_jobs_query()
+      |> Repo.update_all(set: stalled_reset_updates())
+
+    count
+  end
+
+  defp stalled_reset_updates do
+    [state: "available", attempt: 0, errors: [], scheduled_at: DateTime.utc_now()]
+  end
+
+  # Jobs that have hit their attempt ceiling but haven't reached a terminal state.
+  # `executing` is excluded (a job on its final attempt runs at attempt == max and
+  # isn't stuck); terminal states (`completed`/`cancelled`/`discarded`) are excluded
+  # because those are resolved, not stalled.
+  @stalled_states ~w(available scheduled retryable)
+
+  defp stalled_jobs_query do
+    from(j in Oban.Job,
+      where: j.state in @stalled_states,
+      where: j.attempt >= j.max_attempts
+    )
+  end
+
   # Source-keyed workers whose `args["id"]` points at a Source. A pending job here
   # is orphaned exactly when that Source is gone. A legitimately-queued
   # SourceDeletionWorker still has its Source (it deletes it when it runs), so it

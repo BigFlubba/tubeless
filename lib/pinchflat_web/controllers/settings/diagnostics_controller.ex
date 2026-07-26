@@ -93,6 +93,31 @@ defmodule PinchflatWeb.Settings.DiagnosticsController do
     |> redirect(to: ~p"/diagnostics")
   end
 
+  def reset_stalled_job(conn, %{"id" => job_id}) do
+    with {:ok, id} <- parse_job_id(job_id),
+         1 <- QueueDiagnostics.reset_stalled_job(id) do
+      conn
+      |> put_flash(:info, "Job ##{job_id} has been reset and will run shortly.")
+      |> redirect(to: ~p"/diagnostics")
+    else
+      :error ->
+        invalid_job_id(conn, job_id)
+
+      0 ->
+        conn
+        |> put_flash(:error, "Job ##{job_id} could not be reset. It may have already run or been cleared.")
+        |> redirect(to: ~p"/diagnostics")
+    end
+  end
+
+  def reset_all_stalled_jobs(conn, _params) do
+    count = QueueDiagnostics.reset_all_stalled_jobs()
+
+    conn
+    |> put_flash(:info, "Reset #{count} stalled job(s). They will run shortly.")
+    |> redirect(to: ~p"/diagnostics")
+  end
+
   def vacuum_database(conn, _params) do
     case DatabaseMaintenanceWorker.kickoff() do
       {:ok, %Oban.Job{conflict?: true}} ->

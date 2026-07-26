@@ -198,6 +198,7 @@
 <% retryable = retryable_jobs() %>
 <% discarded = discarded_jobs() %>
 <% orphaned = orphaned_jobs() %>
+<% stalled = stalled_jobs() %>
 <div class="rounded-sm border border-stroke bg-white px-5 py-5 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-7.5">
   <div class="flex justify-between items-center mb-4">
     <h3 class="text-lg font-semibold text-white">Job Health</h3>
@@ -377,6 +378,66 @@
                       data-confirm="Delete this orphaned job? No media or files are affected."
                     >
                       Delete
+                    </.link>
+                  </td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      <% end %>
+    </:tab>
+
+    <:tab title={"Stalled (#{length(stalled)})"} id="stalled">
+      <%= if length(stalled) == 0 do %>
+        <p class="text-bodydark">No stalled jobs. Every queued job can still be picked up.</p>
+      <% else %>
+        <div class="flex justify-between items-start mb-4 gap-4">
+          <p class="text-bodydark text-sm">
+            These jobs used up every attempt but were never discarded, so the job runner will neither run them nor clear them — they sit here indefinitely. A recurring (cron) job stuck like this also blocks its own replacements from being scheduled, so the underlying task silently stops happening. Resetting gives the job a fresh set of attempts so it runs again; nothing is deleted and no media or files are touched. Jobs landing here repeatedly usually points at unclean shutdowns.
+          </p>
+          <.link
+            href={~p"/diagnostics/reset_stalled_jobs"}
+            method="post"
+            data-confirm="Reset all stalled jobs? Each is given a fresh set of attempts and will run again. No media or files are affected. Continue?"
+          >
+            <.button color="bg-primary" rounding="rounded-lg" class="text-sm whitespace-nowrap">
+              <.icon name="hero-arrow-path" class="h-4 w-4 mr-1" /> Reset All Stalled
+            </.button>
+          </.link>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead>
+              <tr class="border-b border-strokedark">
+                <th class="text-left py-2 text-bodydark">ID</th>
+                <th class="text-left py-2 text-bodydark">Queue</th>
+                <th class="text-left py-2 text-bodydark">Worker</th>
+                <th class="text-left py-2 text-bodydark">Details</th>
+                <th class="text-left py-2 text-bodydark">State</th>
+                <th class="text-left py-2 text-bodydark">Attempts</th>
+                <th class="text-left py-2 text-bodydark">Last Attempt</th>
+                <th class="text-left py-2 text-bodydark">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <%= for job <- stalled do %>
+                <tr class="border-b border-strokedark/50">
+                  <td class="py-2 text-white">#{job.id}</td>
+                  <td class="py-2 text-white">{job.queue}</td>
+                  <td class="py-2 text-white">{format_worker_name(job.worker)}</td>
+                  <td class="py-2"><.job_details worker={job.worker} args={job.args} /></td>
+                  <td class="py-2"><span class={job_state_class(job.state)}>{job.state}</span></td>
+                  <td class="py-2 text-white">{job.attempt} / {job.max_attempts}</td>
+                  <td class="py-2 text-white">{format_datetime(job.attempted_at)}</td>
+                  <td class="py-2">
+                    <.link
+                      href={~p"/diagnostics/reset_stalled_job/#{job.id}"}
+                      method="post"
+                      class="text-primary hover:underline"
+                      data-confirm="Reset this job? It will be given a fresh set of attempts and run again."
+                    >
+                      Reset
                     </.link>
                   </td>
                 </tr>

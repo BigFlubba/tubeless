@@ -183,6 +183,108 @@ defmodule Pinchflat.Diagnostics.QueueDiagnosticsTest do
     end
   end
 
+  describe "get_stalled_jobs/1 and count_stalled_jobs/0" do
+    test "returns non-terminal jobs that have hit their attempt ceiling" do
+      {:ok, stalled} = Oban.insert(TestJobWorker.new(%{"id" => 1}))
+      set_job_state(stalled, "available", attempt: 20, max_attempts: 20)
+
+      assert [%{id: id, state: "available", attempt: 20, max_attempts: 20}] = QueueDiagnostics.get_stalled_jobs()
+      assert id == stalled.id
+      assert QueueDiagnostics.count_stalled_jobs() == 1
+    end
+
+    test "includes retryable and scheduled jobs at their ceiling" do
+      {:ok, retryable} = Oban.insert(TestJobWorker.new(%{}))
+      {:ok, scheduled} = Oban.insert(TestJobWorker.new(%{}))
+      set_job_state(retryable, "retryable", attempt: 20, max_attempts: 20)
+      set_job_state(scheduled, "scheduled", attempt: 20, max_attempts: 20)
+
+      assert QueueDiagnostics.count_stalled_jobs() == 2
+    end
+
+    test "excludes an executing job on its final attempt (it is not stuck)" do
+      {:ok, executing} = Oban.insert(TestJobWorker.new(%{}))
+      set_job_state(executing, "executing", attempt: 20, max_attempts: 20)
+
+      assert QueueDiagnostics.get_stalled_jobs() == []
+    end
+
+    test "excludes jobs that still have attempts left" do
+      {:ok, healthy} = Oban.insert(TestJobWorker.new(%{}))
+      set_job_state(healthy, "available", attempt: 5, max_attempts: 20)
+
+      assert QueueDiagnostics.get_stalled_jobs() == []
+    end
+
+    test "excludes terminal jobs" do
+      {:ok, discarded} = Oban.insert(TestJobWorker.new(%{}))
+      set_job_state(discarded, "discarded", attempt: 20, max_attempts: 20)
+
+      assert QueueDiagnostics.get_stalled_jobs() == []
+    end
+  end
+
+  describe "reset_stalled_job/1" do
+    test "hands a stalled job a fresh attempt budget so it can run again" do
+      {:ok, job} = Oban.insert(TestJobWorker.new(%{}))
+      set_job_state(job, "available", attempt: 20, max_attempts: 20, errors: [%{"error" => "boom"}])
+
+      assert QueueDiagnostics.reset_stalled_job(job.id) == 1
+      assert %{state: "available", attempt: 0, errors: []} = Repo.get(Oban.Job, job.id)
+    end
+
+    test "resets a max_attempts: 1 job to attempt 0 so it is genuinely runnable again" do
+      # attempt: 1 would leave attempt >= max_attempts (1 >= 1) and it would still be
+      # stalled — attempt: 0 is what makes the fix robust for ReconcileWorker-style jobs.
+      {:ok, job} = Oban.insert(TestJobWorker.new(%{}))
+      set_job_state(job, "available", attempt: 1, max_attempts: 1)
+
+      assert QueueDiagnostics.reset_stalled_job(job.id) == 1
+
+      reset = Repo.get(Oban.Job, job.id)
+      assert reset.attempt == 0
+      assert reset.attempt < reset.max_attempts
+    end
+
+    test "does not touch a job that still has attempts left" do
+      {:ok, job} = Oban.insert(TestJobWorker.new(%{}))
+      set_job_state(job, "retryable", attempt: 5, max_attempts: 20)
+
+      assert QueueDiagnostics.reset_stalled_job(job.id) == 0
+      assert %{state: "retryable", attempt: 5} = Repo.get(Oban.Job, job.id)
+    end
+
+    test "does not touch an executing job" do
+      {:ok, job} = Oban.insert(TestJobWorker.new(%{}))
+      set_job_state(job, "executing", attempt: 20, max_attempts: 20)
+
+      assert QueueDiagnostics.reset_stalled_job(job.id) == 0
+      assert %{state: "executing"} = Repo.get(Oban.Job, job.id)
+    end
+
+    test "returns 0 when the job does not exist" do
+      assert QueueDiagnostics.reset_stalled_job(-1) == 0
+    end
+  end
+
+  describe "reset_all_stalled_jobs/0" do
+    test "resets every stalled job and returns the count" do
+      {:ok, one} = Oban.insert(TestJobWorker.new(%{"id" => 1}))
+      {:ok, two} = Oban.insert(TestJobWorker.new(%{"id" => 2}))
+      {:ok, healthy} = Oban.insert(TestJobWorker.new(%{"id" => 3}))
+      set_job_state(one, "available", attempt: 20, max_attempts: 20)
+      set_job_state(two, "retryable", attempt: 20, max_attempts: 20)
+      set_job_state(healthy, "available", attempt: 1, max_attempts: 20)
+
+      assert QueueDiagnostics.reset_all_stalled_jobs() == 2
+
+      assert %{state: "available", attempt: 0} = Repo.get(Oban.Job, one.id)
+      assert %{state: "available", attempt: 0} = Repo.get(Oban.Job, two.id)
+      # untouched
+      assert %{state: "available", attempt: 1} = Repo.get(Oban.Job, healthy.id)
+    end
+  end
+
   describe "get_system_stats/0" do
     test "counts pending and downloaded media items separately" do
       source = source_fixture()

@@ -22,6 +22,10 @@ defmodule PinchflatWeb.Settings.DiagnosticsHTML do
     QueueDiagnostics.get_orphaned_source_jobs(50)
   end
 
+  def stalled_jobs do
+    QueueDiagnostics.get_stalled_jobs(50)
+  end
+
   @queue_job_limit 50
 
   def queue_job_limit, do: @queue_job_limit
