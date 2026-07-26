@@ -56,15 +56,18 @@
 <div class="rounded-sm border border-stroke bg-white px-5 py-5 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-7.5 mb-6">
   <div class="flex justify-between items-center mb-4">
     <h3 class="text-lg font-semibold text-white">Database</h3>
-    <.link
-      href={~p"/diagnostics/vacuum_database"}
-      method="post"
-      data-confirm="Compact the database now? Job queues are paused while any running jobs finish, then the database is compacted and the queues resume on their own. With long-running jobs this can take a while."
-    >
-      <.button color="bg-primary" rounding="rounded-lg" class="text-sm">
-        <.icon name="hero-circle-stack" class="h-4 w-4 mr-1" /> Compact Now
-      </.button>
-    </.link>
+    <div class="flex gap-3 items-center">
+      {live_render(@conn, Pinchflat.Settings.IntegrityCheckLive, id: "integrity-check-live")}
+      <.link
+        href={~p"/diagnostics/vacuum_database"}
+        method="post"
+        data-confirm="Compact the database now? Job queues are paused while any running jobs finish, then the database is compacted and the queues resume on their own. With long-running jobs this can take a while."
+      >
+        <.button color="bg-primary" rounding="rounded-lg" class="text-sm">
+          <.icon name="hero-circle-stack" class="h-4 w-4 mr-1" /> Compact Now
+        </.button>
+      </.link>
+    </div>
   </div>
 
   <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-4">

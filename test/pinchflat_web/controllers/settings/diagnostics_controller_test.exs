@@ -14,6 +14,12 @@ defmodule PinchflatWeb.Settings.DiagnosticsControllerTest do
 
       assert html_response(conn, 200) =~ "Diagnostics"
     end
+
+    test "renders the integrity check button in the database section", %{conn: conn} do
+      conn = get(conn, ~p"/diagnostics")
+
+      assert html_response(conn, 200) =~ "Check Integrity"
+    end
   end
 
   describe "reset_retryable_jobs" do

@@ -398,6 +398,55 @@ resolving to the same target, or an occupied target path) are reported and skipp
 re-run to resolve move chains. Caveat: offline rendering uses metadata as of download time, so a
 video whose title changed on YouTube renders under its old title — consistent with what's on disk.
 
+## Database Integrity Checks
+
+The **Check Integrity** button in the Database section of the diagnostics page runs a SQLite
+integrity check and reports whatever it finds. Two modes:
+
+- **Quick check** (`PRAGMA quick_check`) — verifies the structure of every page, plus the
+  contents of the FTS5 search index. Seconds to a minute on a typical database.
+- **Full check** (`PRAGMA integrity_check`) — everything the quick check does, and additionally
+  cross-checks every index entry against its table. Thorough, and considerably slower.
+
+Both are **read-only** and take only a read transaction, so in WAL mode they never block writers.
+Downloads and indexing keep running while a check is in progress — unlike compaction, no quiet
+window is reserved. The only cost is the I/O of reading the whole database file, which is why the
+check runs in a LiveView behind a spinner rather than a blocking request.
+
+Since SQLite 3.44 an integrity check also calls each virtual table's `xIntegrity` method, so
+damage to the FTS5 search index shows up here too, e.g.:
+
+```
+malformed inverted index for FTS5 table main.media_items_search_index
+```
+
+### Repairs are manual and deliberate
+
+The check never repairs anything, and there is no repair button. Full procedures live in the
+[Database Repair](https://github.com/CommunityMaintained/tubeless/wiki/Database-Repair) wiki page,
+which the findings panel links to. What to do depends entirely on what's damaged, and the safest
+place to do it is with Tubeless stopped:
+
+- **Search index only** (findings naming `media_items_search_index`) — the index is derived
+  entirely from `media_items`, so rebuilding it is lossless:
+
+  ```bash
+  sqlite3 pinchflat.db "INSERT INTO media_items_search_index(media_items_search_index) VALUES('rebuild');"
+  ```
+
+- **Anything else** — corruption in a real table has no in-place repair. Stop the container and
+  restore from a backup. Continuing to write to a damaged database spreads the damage into
+  subsequent backups.
+
+Back up the database file before attempting any repair.
+
+**Restart Tubeless after any repair.** Repairing from a second connection while the app is
+running does not clear the finding for the app itself — its existing pool connections keep
+reporting the old corruption (SQLite caches FTS5 index state per connection). Verified locally:
+after an out-of-band `rebuild`, a fresh `sqlite3` connection reported `ok` while the running app
+still reported `fts5: checksum mismatch`, and only a restart brought the in-app check back to
+green. This is the main practical reason to repair with the app stopped rather than underneath it.
+
 ## Misc
 
 ### Channels with shorts uploaded mulitple times a day
