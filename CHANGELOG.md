@@ -1,5 +1,34 @@
 # Changelog
 
+## [0.3.0](https://github.com/CommunityMaintained/tubeless/compare/v0.2.0...v0.3.0) (2026-07-26)
+
+
+### Features
+
+* add offline database maintenance mode for backups and repairs ([bc81886](https://github.com/CommunityMaintained/tubeless/commit/bc81886a36207760111b338b4b57b35b580c1ec5))
+* add orphaned job to agnostics ([944b1d3](https://github.com/CommunityMaintained/tubeless/commit/944b1d3679385624ecd90ba3534afcb7c5f99b4b))
+* check the database for corruption from the diagnostics page ([ade672b](https://github.com/CommunityMaintained/tubeless/commit/ade672bc6cb7778672d9005c955e901915f95ed1))
+* recover jobs stuck with retries exhausted from diagnostics ([773e6c1](https://github.com/CommunityMaintained/tubeless/commit/773e6c198415e5d8572fb7f93c94d7050d12e458))
+
+
+### Bug Fixes
+
+* **ci:** move discord notification to release-please workflow ([fa8ddfd](https://github.com/CommunityMaintained/tubeless/commit/fa8ddfdc890abe28d249f1c91e138a5463591208))
+* fetch sqlean extension when a stale version marker has no binaries ([e9fe03c](https://github.com/CommunityMaintained/tubeless/commit/e9fe03c4125b391244d641c45fab72f703d976be))
+* match the Queue Health refresh button to the other action buttons ([668999e](https://github.com/CommunityMaintained/tubeless/commit/668999eb346d3ab1650128a915e3a306b69a2366))
+* stop bold+italic text from loading a broken Satoshi font glyph ([49f7fd4](https://github.com/CommunityMaintained/tubeless/commit/49f7fd40843c49dd37bdac27d67d72c912a34345))
+* **tooling:** abort container startup when database migration fails ([3fc0dd9](https://github.com/CommunityMaintained/tubeless/commit/3fc0dd959fce68f7ac0d688639d2a6f00f1fc203))
+
+
+### Chores
+
+* **deps:** bump esbuild and tailwind pinned binary versions ([300478d](https://github.com/CommunityMaintained/tubeless/commit/300478d3cb2fec585f702268d2269a42a03770e3))
+
+
+### Documentation
+
+* refreshed DB schema visualization ([d181df3](https://github.com/CommunityMaintained/tubeless/commit/d181df38eab5f1f1a9a6addb85ab2c67af98629e))
+
 ## [0.2.0](https://github.com/CommunityMaintained/tubeless/compare/v0.1.0...v0.2.0) (2026-07-24)
 
 
