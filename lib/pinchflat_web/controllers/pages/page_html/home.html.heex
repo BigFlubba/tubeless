@@ -49,6 +49,13 @@
         session: %{"media_state" => "downloaded"}
       )}
     </:tab>
+    <:tab title="Queued" id="queued">
+      {live_render(
+        @conn,
+        Pinchflat.Pages.HistoryTableLive,
+        session: %{"media_state" => "queued"}
+      )}
+    </:tab>
     <:tab title="Pending" id="pending">
       {live_render(
         @conn,

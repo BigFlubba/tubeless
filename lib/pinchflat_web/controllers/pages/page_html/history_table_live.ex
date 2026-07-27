@@ -117,10 +117,17 @@ defmodule Pinchflat.Pages.HistoryTableLive do
     |> Repo.preload(:source)
   end
 
+  defp generate_base_query("queued") do
+    MediaQuery.new()
+    |> MediaQuery.require_assoc(:media_profile)
+    |> where(^dynamic(^MediaQuery.pending() and ^MediaQuery.in_download_queue()))
+    |> order_by(desc: :id)
+  end
+
   defp generate_base_query("pending") do
     MediaQuery.new()
     |> MediaQuery.require_assoc(:media_profile)
-    |> where(^dynamic(^MediaQuery.pending()))
+    |> where(^dynamic(^MediaQuery.pending() and not (^MediaQuery.in_download_queue())))
     |> order_by(desc: :id)
   end
 

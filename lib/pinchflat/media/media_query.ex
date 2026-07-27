@@ -137,6 +137,30 @@ defmodule Pinchflat.Media.MediaQuery do
     )
   end
 
+  # True when the media item has a non-terminal (available/scheduled/executing/retryable)
+  # MediaDownloadWorker job attached via a Task - i.e. a download is actually queued or
+  # in flight for it. `pending/0` is only an eligibility predicate and says nothing about
+  # whether a job exists, so this is what separates "queued for download" from
+  # "eligible but nothing scheduled yet". Kept as a self-contained EXISTS so it composes
+  # into `pending/0`-based queries without forcing an outer join.
+  def in_download_queue do
+    dynamic(
+      [mi],
+      fragment(
+        """
+        EXISTS (
+          SELECT 1 FROM tasks t
+          INNER JOIN oban_jobs j ON j.id = t.job_id
+          WHERE t.media_item_id = ?
+            AND j.worker LIKE '%.MediaDownloadWorker'
+            AND j.state IN ('available', 'scheduled', 'executing', 'retryable')
+        )
+        """,
+        mi.id
+      )
+    )
+  end
+
   def upgradeable do
     dynamic(
       [mi, source],
