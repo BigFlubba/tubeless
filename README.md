@@ -73,8 +73,10 @@ If it doesn't work for your use case, please make a feature request! You can als
 | Custom yt-dlp options                                          | ✅        | ✅       |
 | Database compaction                                            | ❌        | ✅       |
 | Database insights                                              | ❌        | ✅       |
+| Database inetgrity check                                       | ❌        | ✅       |
 | Download audio only content                                    | ✅        | ✅       |
 | Easy-to-use web interface                                      | ✅        | ✅       |
+| File reconciliation to update structure or path (bulk)         | ❌        | ✅       |
 | Ignore YouTube AI-upscaled videos                              | ❌        | ✅       |
 | Indexing cutoff date                                           | ❌        | ✅       |
 | Podcast feeds (dynamic, LAN access only)                       | ✅        | ✅       |
@@ -82,7 +84,7 @@ If it doesn't work for your use case, please make a feature request! You can als
 | Powerful naming system                                         | ✅        | ✅       |
 | Queue visibility and discarded job management in the WebUI     | ❌        | ✅       |
 | Reliable hands-off operation                                   | ✅        | ✅       |
-| Requeue stuck jobs                                             | ❌        | ✅       |
+| Job health and recovery dashboard                              | ❌        | ✅       |
 | Run custom scripts after downloading/deleting media            | ✅        | ✅       |
 | Self contained                                                 | ✅        | ✅       |
 | Setting cutoff dates and filtering by title                    | ✅        | ✅       |
