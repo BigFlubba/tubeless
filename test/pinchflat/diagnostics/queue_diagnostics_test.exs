@@ -54,6 +54,50 @@ defmodule Pinchflat.Diagnostics.QueueDiagnosticsTest do
     end
   end
 
+  describe "get_overall_queue_stats/0" do
+    test "uses one summary for the configured queues" do
+      {:ok, _available} = Oban.insert(TestJobWorker.new(%{}))
+      {:ok, retryable} = Oban.insert(TestJobWorker.new(%{}))
+      set_job_state(retryable, "retryable")
+
+      stats = QueueDiagnostics.get_overall_queue_stats()
+
+      assert stats.queue_count == length(QueueDiagnostics.queue_names())
+      assert stats.waiting == 1
+      assert stats.retryable == 1
+      assert stats.executing == 0
+    end
+  end
+
+  describe "count_recent_failures/1" do
+    test "counts only jobs discarded within the window" do
+      {:ok, recent} = Oban.insert(TestJobWorker.new(%{}))
+      {:ok, old} = Oban.insert(TestJobWorker.new(%{}))
+      {:ok, _retryable} = Oban.insert(TestJobWorker.new(%{}))
+
+      set_job_state(recent, "discarded", discarded_at: hours_ago(1))
+      set_job_state(old, "discarded", discarded_at: hours_ago(48))
+
+      assert QueueDiagnostics.count_recent_failures(24) == 1
+    end
+  end
+
+  describe "get_job_attention_counts/0" do
+    test "returns exact counts for each actionable category" do
+      {:ok, retryable} = Oban.insert(TestJobWorker.new(%{}))
+      {:ok, discarded} = Oban.insert(TestJobWorker.new(%{}))
+      {:ok, orphaned} = Oban.insert(FastIndexingWorker.new(%{"id" => 999_999}))
+      {:ok, stalled} = Oban.insert(TestJobWorker.new(%{}))
+
+      set_job_state(retryable, "retryable")
+      set_job_state(discarded, "discarded")
+      set_job_state(orphaned, "available", attempt: 20, max_attempts: 20)
+      set_job_state(stalled, "available", attempt: 20, max_attempts: 20)
+
+      assert %{retryable: 1, discarded: 1, orphaned: 1, stalled: 2} = QueueDiagnostics.get_job_attention_counts()
+    end
+  end
+
   describe "get_retryable_jobs/1" do
     test "returns only retryable jobs" do
       {:ok, retryable} = Oban.insert(TestJobWorker.new(%{"id" => 1}))

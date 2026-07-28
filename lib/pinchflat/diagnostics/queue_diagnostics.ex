@@ -56,6 +56,90 @@ defmodule Pinchflat.Diagnostics.QueueDiagnostics do
   end
 
   @doc """
+  Returns a compact summary of the configured queues.
+
+  This deliberately uses one grouped database query for job counts, rather
+  than calling `get_all_queue_stats/0`, which is optimized for the detailed
+  diagnostics page and queries each queue independently.
+  """
+  def get_overall_queue_stats do
+    queue_names = queue_names()
+
+    queue_counts =
+      case queue_names do
+        [] ->
+          %{}
+
+        _ ->
+          queue_strings = Enum.map(queue_names, &to_string/1)
+
+          from(j in Oban.Job,
+            where: j.queue in ^queue_strings,
+            where: j.state in ["available", "scheduled", "retryable", "executing"],
+            group_by: j.state,
+            select: {j.state, count(j.id)}
+          )
+          |> Repo.all()
+          |> Map.new(fn {state, count} -> {state, count} end)
+      end
+
+    queue_info = Enum.map(queue_names, &Oban.check_queue(queue: &1))
+
+    %{
+      queue_count: length(queue_names),
+      unavailable_queue_count: Enum.count(queue_info, &is_nil/1),
+      paused_queue_count: Enum.count(queue_info, &(not is_nil(&1) and Map.get(&1, :paused, false))),
+      running: queue_info |> Enum.reject(&is_nil/1) |> Enum.flat_map(&Map.get(&1, :running, [])) |> length(),
+      limit: queue_info |> Enum.reject(&is_nil/1) |> Enum.map(&Map.get(&1, :limit, 0)) |> Enum.sum(),
+      waiting: Map.get(queue_counts, "available", 0) + Map.get(queue_counts, "scheduled", 0),
+      retryable: Map.get(queue_counts, "retryable", 0),
+      executing: Map.get(queue_counts, "executing", 0)
+    }
+  end
+
+  @doc """
+  Counts jobs that were discarded (gave up after exhausting their retries)
+  within the last `hours` hours.
+
+  Powers the home-page "N failed" figure: a summary full of green counts
+  shouldn't be able to hide a queue that's quietly erroring out, so recent
+  terminal failures are surfaced alongside the running/queued totals.
+  """
+  def count_recent_failures(hours \\ 24) do
+    cutoff = DateTime.add(DateTime.utc_now(), -hours * 60 * 60, :second)
+
+    from(j in Oban.Job,
+      where: j.state == "discarded",
+      where: j.discarded_at >= ^cutoff
+    )
+    |> Repo.aggregate(:count)
+  end
+
+  @doc """
+  Returns exact counts for the actionable job-health categories.
+
+  Categories deliberately aren't summed by callers: a stalled or orphaned job
+  may also be retryable, so their counts overlap.
+  """
+  def get_job_attention_counts do
+    state_counts =
+      from(j in Oban.Job,
+        where: j.state in ["retryable", "discarded"],
+        group_by: j.state,
+        select: {j.state, count(j.id)}
+      )
+      |> Repo.all()
+      |> Map.new(fn {state, count} -> {state, count} end)
+
+    %{
+      retryable: Map.get(state_counts, "retryable", 0),
+      discarded: Map.get(state_counts, "discarded", 0),
+      orphaned: count_orphaned_source_jobs(),
+      stalled: count_stalled_jobs()
+    }
+  end
+
+  @doc """
   Returns the jobs currently sitting in a queue (executing, available, scheduled
   or retryable), ordered so that what's running/runnable comes first. Capped by
   `limit` so a deep backlog can't blow up the diagnostics page.

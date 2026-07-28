@@ -3,6 +3,20 @@ defmodule PinchflatWeb.PageControllerTest do
 
   alias Pinchflat.Settings
 
+  setup do
+    stub(DiskSpaceCheckerMock, :space_info, fn _path ->
+      {:ok,
+       %{
+         available_bytes: 10 * 1024 * 1024 * 1024,
+         total_bytes: 40 * 1024 * 1024 * 1024,
+         used_percent: 75,
+         mountpoint: "/"
+       }}
+    end)
+
+    :ok
+  end
+
   describe "GET / when testing onboarding" do
     test "sets the onboarding setting to true when onboarding", %{conn: conn} do
       _conn = get(conn, ~p"/")
@@ -28,7 +42,12 @@ defmodule PinchflatWeb.PageControllerTest do
       Settings.set(onboarding: false)
 
       conn = get(conn, ~p"/")
-      assert html_response(conn, 200) =~ "MENU"
+      html = html_response(conn, 200)
+      assert html =~ "MENU"
+      assert html =~ "Sources"
+      assert html =~ "Library"
+      assert html =~ "Activity"
+      assert html =~ "Database"
     end
   end
 end
