@@ -18,13 +18,13 @@
 </div>
 <div
   :if={podcast_missing_url_base?(@source)}
-  class="mb-6 rounded-sm border border-warning bg-warning bg-opacity-10 px-5 py-4 text-warning"
+  class="mb-6 rounded-xs border border-warning bg-warning/10 px-5 py-4 text-warning"
 >
   This source is set to publish as a podcast, but the
   <.subtle_link href={~p"/settings"}>Podcast URL Base setting</.subtle_link>
   is not set — its feed, cover, and OPML files won't be generated until it is.
 </div>
-<div class="rounded-sm border border-stroke bg-white px-5 py-5 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-7.5">
+<div class="rounded-xs border border-stroke bg-white px-5 py-5 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-7.5">
   <div class="max-w-full">
     <.tabbed_layout>
       <:tab_append>

@@ -214,7 +214,7 @@ defmodule PinchflatWeb.CustomComponents.TextComponents do
         ]}
       >
         <span class={[
-          "border-t border-l border-form-strokedark absolute -z-10 h-2 w-2 rotate-45 rounded-sm bg-meta-4",
+          "border-t border-l border-form-strokedark absolute -z-10 h-2 w-2 rotate-45 rounded-xs bg-meta-4",
           @tooltip_arrow_class
         ]}></span>
         <div class="px-3">{@tooltip}</div>

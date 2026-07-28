@@ -1,8 +1,15 @@
-@import 'tailwindcss/base';
-@import 'tailwindcss/components';
-@import 'tailwindcss/utilities';
-
+@import 'tailwindcss';
 @import './satoshi';
+
+/* First-party plugins must be loaded via `@plugin` in v4 — the standalone
+   CLI bundles them, but `require('@tailwindcss/forms')` inside a JS `@config`
+   crashes it (Cannot find module '../dist/babel.cjs'). */
+@plugin '@tailwindcss/forms';
+
+/* Load the rest of the existing JavaScript theme/plugins (colors, custom
+   variants, heroicons/simple-icons). Phase 1 of the v4 upgrade keeps the JS
+   config; a later phase will port this into CSS-first `@theme`/`@plugin`. */
+@config '../tailwind.config.js';
 
 /* This file is for your main application CSS */
 [x-cloak] {
@@ -10,6 +17,17 @@
 }
 
 @layer base {
+  /* v4 changed the default border/divide color from gray-200 to currentColor.
+     Restore the v3 default so the app's many un-colored `border` utilities
+     keep their light-gray look. */
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-gray-200, #e5e7eb);
+  }
+
   body {
     @apply relative z-1 bg-whiten font-satoshi text-base font-normal text-body;
   }

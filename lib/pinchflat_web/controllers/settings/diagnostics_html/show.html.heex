@@ -24,7 +24,7 @@
 </div>
 
 <!-- System Stats -->
-<div class="rounded-sm border border-stroke bg-white px-5 py-5 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-7.5 mb-6">
+<div class="rounded-xs border border-stroke bg-white px-5 py-5 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-7.5 mb-6">
   <h3 class="text-lg font-semibold text-white mb-4">System Overview</h3>
   <% stats = system_stats() %>
   <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
@@ -53,7 +53,7 @@
 
 <!-- Database -->
 <% db = database_stats() %>
-<div class="rounded-sm border border-stroke bg-white px-5 py-5 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-7.5 mb-6">
+<div class="rounded-xs border border-stroke bg-white px-5 py-5 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-7.5 mb-6">
   <div class="flex justify-between items-center mb-4">
     <h3 class="text-lg font-semibold text-white">Database</h3>
     <div class="flex gap-3 items-center">
@@ -143,7 +143,7 @@
 <!-- Stuck Jobs -->
 <% stuck = stuck_jobs() %>
 <%= if length(stuck) > 0 do %>
-  <div class="rounded-sm border border-stroke bg-white px-5 py-5 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-7.5 mb-6">
+  <div class="rounded-xs border border-stroke bg-white px-5 py-5 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-7.5 mb-6">
     <div class="flex justify-between items-center mb-4">
       <h3 class="text-lg font-semibold text-white">
         <.icon name="hero-exclamation-triangle" class="h-5 w-5 text-yellow-500 mr-2" />
@@ -199,7 +199,7 @@
 <% discarded = discarded_jobs() %>
 <% orphaned = orphaned_jobs() %>
 <% stalled = stalled_jobs() %>
-<div class="rounded-sm border border-stroke bg-white px-5 py-5 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-7.5">
+<div class="rounded-xs border border-stroke bg-white px-5 py-5 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-7.5">
   <div class="flex justify-between items-center mb-4">
     <h3 class="text-lg font-semibold text-white">Job Health</h3>
     <%= if length(retryable) > 0 do %>

@@ -1,5 +1,5 @@
 <div class="grid grid-cols-1 gap-4 md:grid-cols-4">
-  <div class="flex flex-col justify-center rounded-sm border px-7.5 py-6 shadow-default border-strokedark bg-boxdark">
+  <div class="flex flex-col justify-center rounded-xs border px-7.5 py-6 shadow-default border-strokedark bg-boxdark">
     <a href={~p"/media_profiles"} class="flex flex-col items-center py-2">
       <span class="text-md font-medium">
         Media <.pluralize count={@media_profile_count} word="Profile" />
@@ -9,7 +9,7 @@
       </h4>
     </a>
   </div>
-  <div class="flex flex-col justify-center rounded-sm border px-7.5 py-6 shadow-default border-strokedark bg-boxdark">
+  <div class="flex flex-col justify-center rounded-xs border px-7.5 py-6 shadow-default border-strokedark bg-boxdark">
     <a href={~p"/sources"} class="flex flex-col items-center py-2">
       <span class="text-md font-medium">
         <.pluralize count={@source_count} word="Source" />
@@ -19,7 +19,7 @@
       </h4>
     </a>
   </div>
-  <div class="flex flex-col justify-center rounded-sm border px-7.5 py-6 shadow-default border-strokedark bg-boxdark">
+  <div class="flex flex-col justify-center rounded-xs border px-7.5 py-6 shadow-default border-strokedark bg-boxdark">
     <span class="flex flex-col items-center py-2">
       <span class="text-md font-medium">
         <.pluralize count={@media_item_count} word="Download" />
@@ -29,7 +29,7 @@
       </h4>
     </span>
   </div>
-  <div class="flex flex-col justify-center rounded-sm border px-7.5 py-6 shadow-default border-strokedark bg-boxdark">
+  <div class="flex flex-col justify-center rounded-xs border px-7.5 py-6 shadow-default border-strokedark bg-boxdark">
     <span class="flex flex-col items-center py-2">
       <span class="text-md font-medium">Library Size</span>
       <h4 class="text-title-md font-bold text-white">
@@ -39,7 +39,7 @@
   </div>
 </div>
 
-<div class="rounded-sm border shadow-default border-strokedark bg-boxdark mt-4 p-5">
+<div class="rounded-xs border shadow-default border-strokedark bg-boxdark mt-4 p-5">
   <span class="text-2xl font-medium mb-4">Media History</span>
   <.tabbed_layout>
     <:tab title="Downloaded" id="downloaded">
@@ -73,7 +73,7 @@
   </.tabbed_layout>
 </div>
 
-<div class="rounded-sm border shadow-default border-strokedark bg-boxdark mt-4 p-5">
+<div class="rounded-xs border shadow-default border-strokedark bg-boxdark mt-4 p-5">
   <span class="text-2xl font-medium mb-4">Active Tasks</span>
   <section class="mt-6 min-h-80">
     {live_render(@conn, Pinchflat.Pages.JobTableLive)}

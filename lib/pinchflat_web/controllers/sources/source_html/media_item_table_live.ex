@@ -39,7 +39,7 @@ defmodule PinchflatWeb.Sources.MediaItemTableLive do
                 name="q"
                 value={@search_term}
                 placeholder="Search in table..."
-                class="w-full bg-transparent pl-9 pr-4 border-0 focus:ring-0 focus:outline-none"
+                class="w-full bg-transparent pl-9 pr-4 border-0 focus:ring-0 focus:outline-hidden"
                 phx-debounce="200"
               />
             </form>

@@ -10,12 +10,12 @@ defmodule PinchflatWeb.CustomComponents.ButtonComponents do
 
   ## Examples
 
-      <.button color="bg-primary" rounding="rounded-sm">
+      <.button color="bg-primary" rounding="rounded-xs">
         <span>Click me</span>
       </.button>
   """
   attr :color, :string, default: "bg-primary"
-  attr :rounding, :string, default: "rounded-sm"
+  attr :rounding, :string, default: "rounded-xs"
   attr :class, :string, default: ""
   attr :type, :string, default: "submit"
   attr :disabled, :boolean, default: false
@@ -30,8 +30,8 @@ defmodule PinchflatWeb.CustomComponents.ButtonComponents do
         "text-center font-medium text-white whitespace-nowrap",
         "#{@rounding} inline-flex items-center justify-center px-8 py-4",
         "#{@color}",
-        "hover:bg-opacity-90 lg:px-8 xl:px-10",
-        "disabled:bg-opacity-50 disabled:cursor-not-allowed disabled:text-grey-5",
+        "hover:opacity-90 lg:px-8 xl:px-10",
+        "disabled:opacity-50 disabled:cursor-not-allowed disabled:text-grey-5",
         @class
       ]}
       type={@type}
@@ -64,7 +64,7 @@ defmodule PinchflatWeb.CustomComponents.ButtonComponents do
         x-on:click.prevent="dropdownOpen = !dropdownOpen"
         class={[
           "cursor-pointer inline-flex gap-2.5 rounded-md bg-primary px-5.5 py-3",
-          "font-medium text-white hover:bg-opacity-95"
+          "font-medium text-white hover:bg-primary/95"
         ]}
       >
         {@text}

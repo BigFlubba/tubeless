@@ -8,7 +8,7 @@ defmodule Pinchflat.Settings.CookieFileLive do
     <div>
       <.label>
         Cookies File
-        <span :if={@present} class="ml-2 rounded-full bg-meta-3 bg-opacity-20 px-3 py-1 text-xs font-medium text-meta-3">
+        <span :if={@present} class="ml-2 rounded-full bg-meta-3/20 px-3 py-1 text-xs font-medium text-meta-3">
           Populated
         </span>
         <span :if={!@present} class="ml-2 rounded-full bg-meta-4 px-3 py-1 text-xs font-medium text-bodydark">
@@ -36,7 +36,7 @@ defmodule Pinchflat.Settings.CookieFileLive do
           <.live_file_input upload={@uploads.cookies} class="hidden" />
         </label>
 
-        <.button :if={@uploads.cookies.entries != []} type="submit" rounding="rounded-lg" class="!px-5 !py-3">
+        <.button :if={@uploads.cookies.entries != []} type="submit" rounding="rounded-lg" class="px-5! py-3!">
           Save File
         </.button>
 

@@ -22,7 +22,7 @@ defmodule Pinchflat.Settings.QueueHealthLive do
 
   def render(assigns) do
     ~H"""
-    <div class="rounded-sm border border-stroke bg-white px-5 py-5 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-7.5 mb-6">
+    <div class="rounded-xs border border-stroke bg-white px-5 py-5 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-7.5 mb-6">
       <div class="flex justify-between items-center mb-4">
         <h3 class="text-lg font-semibold text-white">Queue Health</h3>
         <div class="flex items-center gap-3">

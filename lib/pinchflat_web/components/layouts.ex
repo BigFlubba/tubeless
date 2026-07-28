@@ -55,7 +55,7 @@ defmodule PinchflatWeb.Layouts do
       <span
         class={[
           "font-medium cursor-pointer",
-          "group relative flex items-center justify-between rounded-sm px-4 py-2 duration-300 ease-in-out",
+          "group relative flex items-center justify-between rounded-xs px-4 py-2 duration-300 ease-in-out",
           "duration-300 ease-in-out",
           "hover:bg-meta-4"
         ]}
@@ -99,7 +99,7 @@ defmodule PinchflatWeb.Layouts do
       target={@target}
       class={[
         "font-medium",
-        "group relative flex items-center gap-2.5 rounded-sm px-4 py-2 duration-300 ease-in-out",
+        "group relative flex items-center gap-2.5 rounded-xs px-4 py-2 duration-300 ease-in-out",
         "duration-300 ease-in-out",
         "hover:bg-meta-4",
         @class

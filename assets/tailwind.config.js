@@ -289,7 +289,9 @@ module.exports = {
     }
   },
   plugins: [
-    require('@tailwindcss/forms'),
+    // NOTE: @tailwindcss/forms is loaded via `@plugin` in assets/css/app.css,
+    // not here — requiring it inside a JS @config crashes the v4 standalone CLI.
+    //
     // Allows prefixing tailwind classes with LiveView classes to add rules
     // only when LiveView classes are applied, for example:
     //

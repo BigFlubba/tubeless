@@ -119,9 +119,9 @@ defmodule PinchflatWeb.CoreComponents do
       {@rest}
     >
       <div class={[
-        "flex justify-between w-full border-l-6 bg-opacity-[50%] p-5 shadow-md dark:bg-opacity-40 dark:text-white",
-        @kind == :info && "border-[#34D399] bg-[#34D399]",
-        @kind == :error && "border-[#F87171] bg-[#F87171]"
+        "flex justify-between w-full border-l-6 p-5 shadow-md dark:text-white",
+        @kind == :info && "border-[#34D399] bg-[#34D399]/50 dark:bg-[#34D399]/40",
+        @kind == :error && "border-[#F87171] bg-[#F87171]/50 dark:bg-[#F87171]/40"
       ]}>
         <main>
           <h5 :if={@title} class="mb-2 text-lg font-bold">
@@ -347,9 +347,9 @@ defmodule PinchflatWeb.CoreComponents do
         <input type="hidden" id={@id} name={@name} x-bind:value="enabled" {@rest} />
         <%!-- This triggers a `change` event on the hidden input when the toggle is clicked --%>
         <div class="inline-block cursor-pointer" @click={"enabled = !enabled; dispatchFor('#{@id}', 'change')"}>
-          <div x-bind:class="enabled && '!bg-primary'" class="block h-8 w-14 rounded-full bg-black"></div>
+          <div x-bind:class="enabled && 'bg-primary!'" class="block h-8 w-14 rounded-full bg-black"></div>
           <div
-            x-bind:class="enabled && '!right-1 !translate-x-full'"
+            x-bind:class="enabled && 'right-1! translate-x-full!'"
             class={[
               "absolute left-1 top-1 flex h-6 w-6 items-center justify-center rounded-full bg-white transition",
               @inputclass
@@ -375,9 +375,9 @@ defmodule PinchflatWeb.CoreComponents do
           id={@id}
           name={@name}
           class={[
-            "relative z-20 w-full appearance-none rounded border border-form-strokedark py-3 pl-5 pr-12 outline-none transition",
+            "relative z-20 w-full appearance-none rounded border border-form-strokedark py-3 pl-5 pr-12 outline-hidden transition",
             "focus:border-primary active:border-primary bg-form-input text-black text-white",
-            "disabled:text-opacity-50 disabled:cursor-not-allowed disabled:border-black",
+            "disabled:text-white/50 disabled:cursor-not-allowed disabled:border-black",
             @inputclass
           ]}
           multiple={@multiple}
@@ -433,7 +433,7 @@ defmodule PinchflatWeb.CoreComponents do
           value={Phoenix.HTML.Form.normalize_value(@type, @value)}
           class={[
             "w-full rounded-lg border-[1.5px] px-5 py-3 font-normal border-form-strokedark bg-form-input",
-            "outline-none transition active:border-primary disabled:cursor-default",
+            "outline-hidden transition active:border-primary disabled:cursor-default",
             "disabled:bg-boxdark-2 disabled:text-bodydark2 disabled:border-strokedark",
             "text-white focus:border-primary",
             @inputclass,
