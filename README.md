@@ -1,7 +1,7 @@
 > [!IMPORTANT]
 > Tubeless is a rebranded, actively-developed successor to [Pinchflat](https://github.com/kieraneglin/pinchflat). It supports drop-in migration from Pinchflat — both the original `kieraneglin/pinchflat` and the `CommunityMaintained/pinchflat` fork — and from here focuses on shipping new features and usability improvements rather than tracking upstream. Migration is one-way: there is no supported path back to Pinchflat. See [Migrating from Pinchflat](#migrating-from-pinchflat). PRs welcome — see [CONTRIBUTING.md](CONTRIBUTING.md). Discord Server [created](https://discord.gg/V7grTVkc37)!
 >
-> **Pinchflat vs. Tubeless:** Review the options below and carefully chose your own adventure.
+> **Pinchflat vs. Tubeless:** Review the options below and carefully choose your own adventure.
 
 <p align="center">
   <img
@@ -53,7 +53,7 @@
 
 ## What it does
 
-Tubeless is a self-hosted app for downloading YouTube content built using [yt-dlp](https://github.com/yt-dlp/yt-dlp). It's designed to be lightweight, self-contained, and easy to use. You set up rules for how to download content from YouTube channels or playlists and it'll do the rest, periodically checking for new content. It's perfect for people who want to download content for use with a media center app (Plex, Jellyfin, Kodi) or for those who want to archive media!
+Tubeless is a self-hosted app for downloading YouTube content built using [yt-dlp](https://github.com/yt-dlp/yt-dlp). It's designed to be lightweight, self-contained, and easy to use. You set up rules for how to download content from YouTube channels or playlists, and it'll do the rest, periodically checking for new content. It's perfect for people who want to download content for use with a media center app (Plex, Jellyfin, Kodi) or for those who want to archive media!
 
 While you can [download individual videos](https://github.com/CommunityMaintained/tubeless/wiki/Frequently-Asked-Questions#how-do-i-download-one-off-videos), Tubeless is best suited for downloading content from channels or playlists. It's also not meant for consuming content in-app - Tubeless downloads content to disk where you can then watch it with a media center app or VLC.
 
@@ -152,7 +152,7 @@ services:
 ### Docker
 
 1. Create two directories on your host machine: one for storing config and one for storing downloaded media. Make sure they're both writable by the user running the Docker container.
-2. Prepare the docker image in one of the two ways below:
+2. Prepare the Docker image in one of the two ways below:
    - **From GHCR:** `docker pull ghcr.io/communitymaintained/tubeless:latest`
      - NOTE: also available on Docker Hub at `communitymaintained/tubeless:latest`
    - **Building locally:** `docker build . --file docker/selfhosted.Dockerfile -t ghcr.io/communitymaintained/tubeless:latest`
@@ -172,7 +172,7 @@ docker run \
 
 ### Podman
 
-The Podman setup is similar to Docker but changes a few flags to run under a User Namespace instead of root. To run Tubeless under Podman and use the current user's UID/GID for file access run this:
+The Podman setup is similar to Docker, but changes a few flags to run under a User Namespace instead of root. To run Tubeless under Podman and use the current user's UID/GID for file access, run this:
 
 ```
 podman run \
@@ -185,18 +185,18 @@ podman run \
   ghcr.io/communitymaintained/tubeless:latest
 ```
 
-Using this setup consider creating a new `tubeless` user and giving that user ownership to the config and download directory. See [Podman --userns](https://docs.podman.io/en/v4.6.1/markdown/options/userns.container.html) docs.
+Using this setup, consider creating a new `tubeless` user and giving that user ownership of the config and download directory. See [Podman --userns](https://docs.podman.io/en/v4.6.1/markdown/options/userns.container.html) docs.
 
 ### IMPORTANT: File permissions
 
-You _must_ ensure the host directories you've mounted are writable by the user running the Docker container. If you get a permission error follow the steps it suggests. See [upstream #106](https://github.com/kieraneglin/pinchflat/issues/106) for more.
+You _must_ ensure the host directories you've mounted are writable by the user running the Docker container. If you get a permission error, follow the steps it suggests. See [upstream #106](https://github.com/kieraneglin/pinchflat/issues/106) for more.
 
 > [!IMPORTANT]
 > It's not recommended to run the container as root. Doing so can create permission issues if other apps need to work with the downloaded media.
 
 ### ADVANCED: Storing Tubeless config directory on a network share
 
-As pointed out in [upstream #137](https://github.com/kieraneglin/pinchflat/issues/137), SQLite doesn't like being run in WAL mode on network shares. If you're running Tubeless on a network share, you can disable WAL mode by setting the `JOURNAL_MODE` environment variable to `delete`. This will make Tubeless run in rollback journal mode which is less performant but should work on network shares.
+As pointed out in [upstream #137](https://github.com/kieraneglin/pinchflat/issues/137), SQLite doesn't like being run in WAL mode on network shares. If you're running Tubeless on a network share, you can disable WAL mode by setting the `JOURNAL_MODE` environment variable to `delete`. This will make Tubeless run in rollback journal mode, which is less performant but should work on network shares.
 
 > [!CAUTION]
 > Changing this setting from WAL to `delete` on an existing Tubeless instance could, conceivably, result in data loss. Only change this setting if you know what you're doing, why this is important, and are okay with possible data loss or DB corruption. Backup your database first!
@@ -222,11 +222,11 @@ If you change this setting and it works well for you, please open an issue or le
 
 ### Reverse Proxies
 
-Tubeless makes heavy use of websockets for real-time updates. If you're running Tubeless behind a reverse proxy then you'll need to make sure it's configured to support websockets.
+Tubeless makes heavy use of websockets for real-time updates. If you're running Tubeless behind a reverse proxy, then you'll need to make sure it's configured to support websockets.
 
 #### Caddy Proxy Example
 
-To configure Tubeless behind Caddy set the `BASE_ROUTE_PATH` environment variable to `/tubeless/` then add a stanza like this to the `Caddyfile`:
+To configure Tubeless behind Caddy, set the `BASE_ROUTE_PATH` environment variable to `/tubeless/` then add a stanza like this to the `Caddyfile`:
 
 ```caddyfile
 home.example.com:443 {
@@ -258,7 +258,7 @@ Stop the old container, update the image reference, and start it again. Your `/c
 
 ## Stability disclaimer
 
-This software is in active development and anything can break at any time. I make no guarantees about the stability of this software, forward-compatibility of updates, or integrity (both related to and independent of Tubeless).
+This software is in active development, and anything can break at any time. I make no guarantees about the stability of this software, forward-compatibility of updates, or integrity (both related to and independent of Tubeless).
 
 ## Legal Use & Disclaimer
 
