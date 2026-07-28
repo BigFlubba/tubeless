@@ -1,6 +1,7 @@
 defmodule PinchflatWeb.Pages.HistoryTableLiveTest do
   use PinchflatWeb.ConnCase
 
+  import Ecto.Query
   import Phoenix.LiveViewTest
   import Pinchflat.MediaFixtures
   import Pinchflat.SourcesFixtures
@@ -10,8 +11,9 @@ defmodule PinchflatWeb.Pages.HistoryTableLiveTest do
 
   # Attaches an incomplete (available) MediaDownloadWorker job to a media item via a Task,
   # which is what marks the item as "queued for download".
-  defp attach_download_job(media_item) do
+  defp attach_download_job(media_item, state \\ "available") do
     {:ok, job} = Oban.insert(MediaDownloadWorker.new(%{"id" => media_item.id}))
+    {1, _} = Pinchflat.Repo.update_all(from(j in Oban.Job, where: j.id == ^job.id), set: [state: state])
     Pinchflat.Tasks.create_task(%{job_id: job.id, media_item_id: media_item.id})
   end
 
@@ -68,6 +70,33 @@ defmodule PinchflatWeb.Pages.HistoryTableLiveTest do
       media_item = media_item_fixture(title: "Pending Video", media_filepath: nil)
 
       {:ok, _view, html} = live_isolated(conn, HistoryTableLive, session: %{"media_state" => "queued"})
+
+      refute html =~ media_item.title
+    end
+
+    test "media currently downloading is not shown in the queued tab", %{conn: conn} do
+      media_item = media_item_fixture(title: "Downloading Video", media_filepath: nil)
+      attach_download_job(media_item, "executing")
+
+      {:ok, _view, html} = live_isolated(conn, HistoryTableLive, session: %{"media_state" => "queued"})
+
+      refute html =~ media_item.title
+    end
+
+    test "shows currently-downloading media when the media_state is downloading", %{conn: conn} do
+      media_item = media_item_fixture(title: "Downloading Video", media_filepath: nil)
+      attach_download_job(media_item, "executing")
+
+      {:ok, _view, html} = live_isolated(conn, HistoryTableLive, session: %{"media_state" => "downloading"})
+
+      assert html =~ media_item.title
+    end
+
+    test "media merely queued (not executing) is not shown in the downloading tab", %{conn: conn} do
+      media_item = media_item_fixture(title: "Queued Video", media_filepath: nil)
+      attach_download_job(media_item)
+
+      {:ok, _view, html} = live_isolated(conn, HistoryTableLive, session: %{"media_state" => "downloading"})
 
       refute html =~ media_item.title
     end

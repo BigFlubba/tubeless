@@ -161,6 +161,28 @@ defmodule Pinchflat.Media.MediaQuery do
     )
   end
 
+  # True when the media item has a MediaDownloadWorker job currently `executing` - i.e.
+  # yt-dlp is actively downloading it right now, not merely waiting in the queue. This is
+  # a strict subset of `in_download_queue/0` (which also counts available/scheduled/retryable),
+  # so callers that want "queued but not yet started" compose `in_download_queue and not downloading`.
+  def downloading do
+    dynamic(
+      [mi],
+      fragment(
+        """
+        EXISTS (
+          SELECT 1 FROM tasks t
+          INNER JOIN oban_jobs j ON j.id = t.job_id
+          WHERE t.media_item_id = ?
+            AND j.worker LIKE '%.MediaDownloadWorker'
+            AND j.state = 'executing'
+        )
+        """,
+        mi.id
+      )
+    )
+  end
+
   def upgradeable do
     dynamic(
       [mi, source],
