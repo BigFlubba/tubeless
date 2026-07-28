@@ -1,5 +1,5 @@
 > [!IMPORTANT]
-> Tubeless is a rebranded, actively-developed successor to [Pinchflat](https://github.com/kieraneglin/pinchflat). It supports drop-in migration from Pinchflat — both the original `kieraneglin/pinchflat` and the `CommunityMaintained/pinchflat` fork — and from here focuses on shipping new features and usability improvements rather than tracking upstream. Migration is one-way: there is no supported path back to Pinchflat. See [Migrating from Pinchflat](#migrating-from-pinchflat). PRs welcome — see [CONTRIBUTING.md](CONTRIBUTING.md). Discord Server [created](https://discord.gg/7jdBJGCrq)!
+> Tubeless is a rebranded, actively-developed successor to [Pinchflat](https://github.com/kieraneglin/pinchflat). It supports drop-in migration from Pinchflat — both the original `kieraneglin/pinchflat` and the `CommunityMaintained/pinchflat` fork — and from here focuses on shipping new features and usability improvements rather than tracking upstream. Migration is one-way: there is no supported path back to Pinchflat. See [Migrating from Pinchflat](#migrating-from-pinchflat). PRs welcome — see [CONTRIBUTING.md](CONTRIBUTING.md). Discord Server [created](https://discord.gg/V7grTVkc37)!
 >
 > **Pinchflat vs. Tubeless:** Review the options below and carefully chose your own adventure.
 
@@ -20,7 +20,7 @@
 <div align="center">
 
 [![](https://img.shields.io/github/v/release/CommunityMaintained/tubeless?style=for-the-badge&color=purple)](https://github.com/CommunityMaintained/tubeless/releases)
-[![](https://img.shields.io/static/v1?style=for-the-badge&logo=discord&message=Chat&color=5865F2&label=Discord)](https://discord.gg/7jdBJGCrq)
+[![](https://img.shields.io/static/v1?style=for-the-badge&logo=discord&message=Chat&color=5865F2&label=Discord)](https://discord.gg/V7grTVkc37)
 [![](https://img.shields.io/github/actions/workflow/status/CommunityMaintained/tubeless/release-please.yml?style=for-the-badge)](https://github.com/CommunityMaintained/tubeless/actions/workflows/release-please.yml)
 [![](https://img.shields.io/github/license/CommunityMaintained/tubeless?style=for-the-badge&color=ee512b)](LICENSE)
 
