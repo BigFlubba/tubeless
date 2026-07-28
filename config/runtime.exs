@@ -61,6 +61,9 @@ config :pinchflat, Oban,
     media_fetching: yt_dlp_worker_count,
     remote_metadata: yt_dlp_worker_count,
     local_data: 8,
+    # Reconciliation and database compaction both reserve a full quiet window.
+    # Serializing them here prevents each from waiting for the other to finish.
+    maintenance: 1,
     # Single-concurrency so all podcast export/sweep filesystem mutations
     # serialize — no two runs race on the same directory or OPML document
     podcast_export: 1
