@@ -49,6 +49,37 @@ defmodule Pinchflat.YtDlp.CommandRunnerTest do
     end
   end
 
+  describe "run/4 when a proxy is configured" do
+    test "does not include --proxy in none mode" do
+      Settings.set(proxy_mode: "none")
+
+      assert {:ok, output} = Runner.run(@media_url, :foo, [], "")
+      refute String.contains?(output, "--proxy")
+    end
+
+    test "includes --proxy with the manual URL in manual mode" do
+      Settings.set(proxy_url: "http://user:pass@host:8080")
+      Settings.set(proxy_mode: "manual")
+
+      assert {:ok, output} = Runner.run(@media_url, :foo, [], "")
+      assert String.contains?(output, "--proxy http://user:pass@host:8080")
+    end
+
+    test "includes --proxy built from proxy.json in file mode" do
+      base_dir = Application.get_env(:pinchflat, :extras_directory)
+
+      FilesystemUtils.write_p!(
+        Path.join(base_dir, "proxy.json"),
+        Jason.encode!([%{"host" => "1.2.3.4", "port" => 9000}])
+      )
+
+      Settings.set(proxy_mode: "file")
+
+      assert {:ok, output} = Runner.run(@media_url, :foo, [], "")
+      assert String.contains?(output, "--proxy http://1.2.3.4:9000")
+    end
+  end
+
   describe "run/4 when testing external file options" do
     setup do
       base_dir = Application.get_env(:pinchflat, :extras_directory)

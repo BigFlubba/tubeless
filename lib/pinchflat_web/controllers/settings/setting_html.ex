@@ -34,6 +34,22 @@ defmodule PinchflatWeb.Settings.SettingHTML do
     ~s(The exact yt-dlp version to install and hold, e.g. "2025.12.08". See the <a href="#{url}" class="#{help_link_classes()}" target="_blank">GH releases page</a> for valid versions, or use the check button to validate your entry)
   end
 
+  def proxy_mode_help do
+    url = "https://github.com/CommunityMaintained/tubeless/wiki/Proxy"
+
+    ~s(Route <strong>yt-dlp</strong> network traffic through a proxy. <span class="font-mono">Manual proxy URL</span> uses ) <>
+      ~s(one fixed proxy; <span class="font-mono">Proxy list file</span> picks a random proxy from ) <>
+      ~s(<span class="font-mono">proxy.json</span> file for each request. Applies to all downloads, indexing, and ) <>
+      ~s(yt-dlp self-updates. See <a href="#{url}" class="#{help_link_classes()}" target="_blank">the wiki</a> ) <>
+      ~s(for setup details)
+  end
+
+  def proxy_covers_http_help do
+    ~s(By default only <strong>yt-dlp</strong> traffic is proxied. Enable this to also route Tubeless's own RSS feed and ) <>
+      ~s(YouTube Data API requests through the proxy. Note: only <strong>http proxies</strong> can cover these requests; ) <>
+      ~s(<strong>https and SOCKS proxies</strong> fall back to a direct connection here &mdash; yt-dlp still uses them)
+  end
+
   defp help_link_classes do
     "underline decoration-bodydark decoration-1 hover:decoration-white"
   end

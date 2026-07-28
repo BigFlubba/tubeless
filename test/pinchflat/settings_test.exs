@@ -166,5 +166,28 @@ defmodule Pinchflat.SettingsTest do
       assert %Ecto.Changeset{valid?: true} =
                Settings.change_setting(setting, %{yt_dlp_update_policy: "pinned", yt_dlp_pinned_version: "2025.12.08"})
     end
+
+    test "only allows known proxy modes" do
+      setting = Settings.record()
+
+      assert %Ecto.Changeset{valid?: true} = Settings.change_setting(setting, %{proxy_mode: "none"})
+      assert %Ecto.Changeset{valid?: true} = Settings.change_setting(setting, %{proxy_mode: "file"})
+      assert %Ecto.Changeset{valid?: false} = Settings.change_setting(setting, %{proxy_mode: "bogus"})
+    end
+
+    test "requires a valid proxy URL when the mode is manual" do
+      setting = Settings.record()
+
+      assert %Ecto.Changeset{valid?: false} = Settings.change_setting(setting, %{proxy_mode: "manual"})
+
+      assert %Ecto.Changeset{valid?: false} =
+               Settings.change_setting(setting, %{proxy_mode: "manual", proxy_url: "not a url"})
+
+      assert %Ecto.Changeset{valid?: true} =
+               Settings.change_setting(setting, %{proxy_mode: "manual", proxy_url: "http://user:pass@host:8080"})
+
+      assert %Ecto.Changeset{valid?: true} =
+               Settings.change_setting(setting, %{proxy_mode: "manual", proxy_url: "socks5://host:1080"})
+    end
   end
 end

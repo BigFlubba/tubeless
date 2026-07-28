@@ -24,8 +24,13 @@ defmodule Pinchflat.Settings.Setting do
     :restrict_filenames,
     :ignore_unavailable_media,
     :database_maintenance_enabled,
-    :podcast_url_base
+    :podcast_url_base,
+    :proxy_mode,
+    :proxy_url,
+    :proxy_covers_http
   ]
+
+  @proxy_modes ~w(none manual file)
 
   @required_fields [
     :onboarding,
@@ -54,6 +59,13 @@ defmodule Pinchflat.Settings.Setting do
     # (eg: "http://pods.local"). Tubeless can't know this, so the user sets it
     field :podcast_url_base, :string
 
+    # Proxy configuration for yt-dlp (and optionally RSS/API) network traffic.
+    # proxy_mode: "none" | "manual" | "file". "manual" uses proxy_url verbatim;
+    # "file" picks a random proxy from proxy.json per yt-dlp invocation
+    field :proxy_mode, :string, default: "none"
+    field :proxy_url, :string
+    field :proxy_covers_http, :boolean, default: false
+
     field :video_codec_preference, :string
     field :audio_codec_preference, :string
   end
@@ -67,6 +79,35 @@ defmodule Pinchflat.Settings.Setting do
     |> validate_inclusion(:yt_dlp_update_policy, UpdateManager.policies())
     |> validate_podcast_url_base()
     |> validate_pinned_version()
+    |> validate_inclusion(:proxy_mode, @proxy_modes)
+    |> validate_proxy_url()
+  end
+
+  @doc """
+  The allowed proxy modes.
+  """
+  def proxy_modes, do: @proxy_modes
+
+  # In "manual" mode a proxy URL is required and must be a well-formed proxy URL.
+  # yt-dlp accepts http, https, socks4, and socks5 schemes. In other modes the
+  # field is ignored, so it isn't validated.
+  defp validate_proxy_url(changeset) do
+    if get_field(changeset, :proxy_mode) == "manual" do
+      changeset
+      |> validate_required([:proxy_url])
+      |> validate_change(:proxy_url, fn :proxy_url, value ->
+        case URI.new(value) do
+          {:ok, %URI{scheme: scheme, host: host}}
+          when scheme in ["http", "https", "socks4", "socks5", "socks5h"] and is_binary(host) and host != "" ->
+            []
+
+          _ ->
+            [proxy_url: "must be a valid http(s)/socks proxy URL (eg: http://user:pass@host:8080)"]
+        end
+      end)
+    else
+      changeset
+    end
   end
 
   # The URL base is user-supplied free text that gets concatenated with paths

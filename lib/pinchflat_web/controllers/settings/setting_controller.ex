@@ -4,6 +4,7 @@ defmodule PinchflatWeb.Settings.SettingController do
   alias Pinchflat.Settings
   alias Pinchflat.Reconciliation
   alias Pinchflat.Settings.CookieFile
+  alias Pinchflat.Settings.ProxyFile
   alias Pinchflat.YtDlp.UpdateWorker
 
   @yt_dlp_policy_fields [:yt_dlp_update_policy, :yt_dlp_pinned_version]
@@ -51,6 +52,16 @@ defmodule PinchflatWeb.Settings.SettingController do
     else
       conn
       |> put_flash(:error, "No cookies file has been uploaded")
+      |> redirect(to: ~p"/settings")
+    end
+  end
+
+  def download_proxy_file(conn, _params) do
+    if ProxyFile.present?() do
+      send_download(conn, {:file, ProxyFile.filepath()}, filename: "proxy.json")
+    else
+      conn
+      |> put_flash(:error, "No proxy file has been uploaded")
       |> redirect(to: ~p"/settings")
     end
   end

@@ -32,6 +32,9 @@ config :pinchflat,
   expose_feed_endpoints: false,
   file_watcher_poll_interval: 1000,
   db_maintenance_poll_interval: 15_000,
+  # Lightweight IP-echo endpoint used by the proxy "Test" button to confirm a
+  # proxy is reachable and report its exit IP. Overridden in test.
+  proxy_test_url: "https://api.ipify.org",
   # How many media items reconcile applies in parallel. Only matters for the
   # network-bound online/full backfills (thumbnails/subtitles) — local moves are
   # instant. Kept low by default (and tied to YT_DLP_WORKER_CONCURRENCY at runtime)

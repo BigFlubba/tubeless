@@ -283,6 +283,60 @@ reusing the same indexing output template. There's no file follower here — it'
 | `extractor_sleep_interval_seconds` | Delay between yt-dlp requests (rate limiting, default 0)                                                                          |
 | `ignore_unavailable_media`         | Mark members-only/private/removed videos as permanently unavailable instead of retrying                                           |
 
+## Proxy Support
+
+Tubeless can route yt-dlp network traffic through a proxy. Configured under
+**Settings → Proxy** with three modes:
+
+- **No proxy** — direct connections (default).
+- **Manual proxy URL** — one fixed proxy passed to yt-dlp as `--proxy`. Supports
+  `http`, `https`, `socks4`, and `socks5` schemes (e.g. `http://user:pass@host:8080`).
+  The **Test** button confirms reachability via a lightweight IP-echo request and reports
+  the exit IP.
+- **Proxy list file (`proxy.json`)** — a list of proxies; **one is picked at random for
+  each yt-dlp request**. Managed exactly like the cookies file (upload / download / clear /
+  test) in the separate **Proxy File** box, and stored at `<extras>/proxy.json`.
+
+`proxy.json` format (only `host`, `port`, `protocol`, `username`, `password` are used;
+the rest is informational). An entry needs at least a host and port:
+
+```json
+[
+  {
+    "time": 1.23,
+    "city": "Unknown city",
+    "country": "Germany",
+    "host": "203.0.113.10",
+    "protocol": "http",
+    "port": 8080,
+    "username": "",
+    "password": ""
+  }
+]
+```
+
+### What is proxied
+
+- **Always (when a proxy is set):** every yt-dlp call — source discovery, metadata,
+  slow/fast indexing, availability checks, thumbnails, downloads — plus the yt-dlp
+  **self-update** (it reaches GitHub). The local `yt-dlp --version` check stays direct.
+- **Opt-in (`Also use proxy for RSS & YouTube API requests` toggle):** Tubeless's own RSS-feed and
+  YouTube Data API HTTP calls. These use Erlang `:httpc`, which **can only reach a proxy over
+  plain TCP** — so only plain `http` proxies can cover them. An `https` (TLS-to-proxy) or SOCKS
+  proxy falls back to a direct connection for these requests (yt-dlp still honours it, and the
+  Test button can't auto-verify those either). Leave the toggle off to keep your API-key traffic
+  off third-party proxies.
+
+Settings changes take effect on the next request — no restart. A failed proxy surfaces as
+a normal yt-dlp error and the next Oban retry (in `file` mode) picks a fresh random proxy.
+There is no health-checking or automatic rotation-on-failure.
+
+| Setting             | Default | Description                                                 |
+| ------------------- | ------- | ----------------------------------------------------------- |
+| `proxy_mode`        | `none`  | `none` \| `manual` \| `file`                                |
+| `proxy_url`         | —       | The manual proxy URL (used only in `manual` mode)           |
+| `proxy_covers_http` | `false` | Also route RSS + YouTube Data API traffic through the proxy |
+
 ## Podcast Support
 
 Two delivery modes, sharing the same feed builders (`lib/pinchflat/podcasts/`):

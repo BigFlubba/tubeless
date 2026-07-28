@@ -6,6 +6,7 @@ defmodule Pinchflat.YtDlp.CommandRunner do
   require Logger
 
   alias Pinchflat.Settings
+  alias Pinchflat.Settings.Proxy
   alias Pinchflat.Utils.CliUtils
   alias Pinchflat.Utils.NumberUtils
   alias Pinchflat.YtDlp.YtDlpCommandRunner
@@ -38,7 +39,10 @@ defmodule Pinchflat.YtDlp.CommandRunner do
 
     output_filepath = generate_output_filepath(addl_opts)
     print_to_file_opts = [{:print_to_file, output_template}, output_filepath]
-    user_configured_opts = cookie_file_options(addl_opts) ++ rate_limit_options(addl_opts) ++ misc_options()
+
+    user_configured_opts =
+      cookie_file_options(addl_opts) ++ proxy_options() ++ rate_limit_options(addl_opts) ++ misc_options()
+
     # These must stay in exactly this order, hence why I'm giving it its own variable.
     all_opts = command_opts ++ print_to_file_opts ++ user_configured_opts ++ global_options()
     formatted_command_opts = [url] ++ CliUtils.parse_options(all_opts)
@@ -96,8 +100,10 @@ defmodule Pinchflat.YtDlp.CommandRunner do
   @impl YtDlpCommandRunner
   def update(target) do
     command = backend_executable()
+    # A self-update reaches out to GitHub, so honour the proxy here too.
+    update_args = proxy_update_args() ++ build_update_args(target)
 
-    case CliUtils.wrap_cmd(command, build_update_args(target)) do
+    case CliUtils.wrap_cmd(command, update_args) do
       # A no-URL `--update`/`--update-to` exits with yt-dlp's `_download_retcode`,
       # which stays 0 for a successful update *and* for "already up to date". yt-dlp
       # only ever sets that retcode to 100 from its update error handler (bad/missing
@@ -108,6 +114,13 @@ defmodule Pinchflat.YtDlp.CommandRunner do
 
       {output, _} ->
         {:error, output}
+    end
+  end
+
+  defp proxy_update_args do
+    case Proxy.resolve_url() do
+      nil -> []
+      url -> ["--proxy", url]
     end
   end
 
@@ -154,6 +167,12 @@ defmodule Pinchflat.YtDlp.CommandRunner do
         acc
       end
     end)
+  end
+
+  # Applies the configured proxy (manual URL or a random pick from proxy.json)
+  # to every network-using yt-dlp call funneled through run/5.
+  defp proxy_options do
+    Proxy.ytdlp_option()
   end
 
   defp rate_limit_options(addl_opts) do
