@@ -167,7 +167,7 @@ jobs:
           color: '2105893'
           username: 'Releases'
           avatar_url: 'https://cdn.discordapp.com/avatars/487431320314576937/bd64361e4ba6313d561d54e78c9e7171.png'
-          content: '||@Tubeless Releases||'
+          content: '<@&1529575590557126666>'
           footer_title: 'Releases'
           reduce_headings: true
           release_name: ${{ needs.release-please.outputs.tag_name }}
