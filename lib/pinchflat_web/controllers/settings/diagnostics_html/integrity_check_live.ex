@@ -37,8 +37,9 @@ defmodule Pinchflat.Settings.IntegrityCheckLive do
       <.modal id={@modal_id}>
         <h3 class="text-xl font-bold text-white mb-2">Database Integrity Check</h3>
         <p class="text-sm text-bodydark mb-6">
-          Reads the database and reports any corruption SQLite finds. This is read-only — it
-          changes and repairs nothing, and downloads and indexing keep running while it works.
+          Reads the database and reports any corruption SQLite finds. This is read-only — it 
+          does not change or repair anything. Downloads and indexing continue running while an 
+          integrity check is running.
         </p>
 
         <div class="flex flex-wrap gap-3 mb-3">
