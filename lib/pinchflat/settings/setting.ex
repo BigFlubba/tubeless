@@ -27,10 +27,12 @@ defmodule Pinchflat.Settings.Setting do
     :podcast_url_base,
     :proxy_mode,
     :proxy_url,
-    :proxy_covers_http
+    :proxy_covers_http,
+    :time_format
   ]
 
   @proxy_modes ~w(none manual file)
+  @time_formats ~w(24h 12h)
 
   @required_fields [
     :onboarding,
@@ -66,6 +68,9 @@ defmodule Pinchflat.Settings.Setting do
     field :proxy_url, :string
     field :proxy_covers_http, :boolean, default: false
 
+    # Clock used when rendering timestamps in the UI: "24h" | "12h"
+    field :time_format, :string, default: "24h"
+
     field :video_codec_preference, :string
     field :audio_codec_preference, :string
   end
@@ -80,6 +85,7 @@ defmodule Pinchflat.Settings.Setting do
     |> validate_podcast_url_base()
     |> validate_pinned_version()
     |> validate_inclusion(:proxy_mode, @proxy_modes)
+    |> validate_inclusion(:time_format, @time_formats)
     |> validate_proxy_url()
   end
 
@@ -87,6 +93,11 @@ defmodule Pinchflat.Settings.Setting do
   The allowed proxy modes.
   """
   def proxy_modes, do: @proxy_modes
+
+  @doc """
+  The allowed time formats.
+  """
+  def time_formats, do: @time_formats
 
   # In "manual" mode a proxy URL is required and must be a well-formed proxy URL.
   # yt-dlp accepts http, https, socks4, and socks5 schemes. In other modes the

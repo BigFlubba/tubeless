@@ -73,6 +73,14 @@
         label="Scheduled Database Compaction"
         help="Automatically compact the database once a month to reclaim disk space. Job queues are paused while running jobs finish, then processing resumes. You can always compact manually from the Diagnostics page"
       />
+
+      <.input
+        field={f[:time_format]}
+        type="select"
+        options={[{"24-hour (14:30)", "24h"}, {"12-hour (2:30 PM)", "12h"}]}
+        label="Time Format"
+        help="Clock used when displaying timestamps in the UI"
+      />
     </section>
   </section>
 
