@@ -205,15 +205,15 @@ Run everything with `mix check`. Individual tools: `mix credo`, `mix sobelow`, `
 
 ## Dev Experience
 
-| File                              | Used in    | Purpose                                                                                                                                                                                |
-| --------------------------------- | ---------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `.iex.exs`                        | local only | IEx shell startup — imports common aliases for interactive development                                                                                                                 |
-| `.devcontainer/devcontainer.json` | local only | VS Code Dev Container config — uses `docker-compose.yml`, recommends ElixirLS + Prettier extensions                                                                                    |
-| `config/config.exs`               | both       | Base app config (Repo, Endpoint, Oban, Gettext, Telemetry)                                                                                                                             |
-| `config/dev.exs`                  | local only | Dev env config — local tmp dirs, SQLite at `priv/repo/pinchflat_dev.db`, port 4008, esbuild/Tailwind file watchers                                                                     |
-| `config/test.exs`                 | both       | Test env config — mocked yt-dlp/apprise executables, SQLite at `priv/repo/pinchflat_test.db`, Oban in manual mode                                                                      |
-| `config/prod.exs`                 | CI/release | Production config (asset digest manifest, Swoosh via Finch, info-level logging)                                                                                                        |
-| `config/runtime.exs`              | CI/release | Runtime config — reads env vars (PHX_SERVER, auth, YT_DLP_WORKER_CONCURRENCY, PODCAST_PATH for the static podcast export root), loads SQLean extensions per arch, configures Oban cron |
+| File                              | Used in    | Purpose                                                                                                                                                                                                                                 |
+| --------------------------------- | ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `.iex.exs`                        | local only | IEx shell startup — imports common aliases for interactive development                                                                                                                                                                  |
+| `.devcontainer/devcontainer.json` | local only | VS Code Dev Container config — uses `docker-compose.yml`, recommends ElixirLS + Prettier extensions                                                                                                                                     |
+| `config/config.exs`               | both       | Base app config (Repo, Endpoint, Oban, Gettext, Telemetry)                                                                                                                                                                              |
+| `config/dev.exs`                  | local only | Dev env config — local tmp dirs, SQLite at `priv/repo/pinchflat_dev.db`, port 4008, esbuild/Tailwind file watchers                                                                                                                      |
+| `config/test.exs`                 | both       | Test env config — mocked yt-dlp/apprise executables, SQLite at `priv/repo/pinchflat_test.db`, Oban in manual mode                                                                                                                       |
+| `config/prod.exs`                 | CI/release | Production config (asset digest manifest, Swoosh via Finch, info-level logging)                                                                                                                                                         |
+| `config/runtime.exs`              | CI/release | Runtime config — reads env vars (PHX_SERVER, auth, YT_DLP_WORKER_CONCURRENCY, DATABASE_POOL_SIZE for the Repo connection pool, PODCAST_PATH for the static podcast export root), loads SQLean extensions per arch, configures Oban cron |
 
 ---
 

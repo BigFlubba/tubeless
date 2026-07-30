@@ -74,7 +74,14 @@ defmodule Pinchflat.Reconciliation.PlanBuilder do
   # offline (`--load-info-json`), so we fan them out across schedulers. In network
   # modes the metadata-missing fallback can hit YouTube, so we keep concurrency low
   # to avoid tripping yt-dlp's rate limiting / bot detection.
-  defp prediction_concurrency(%{mode: :local}), do: max(System.schedulers_online(), 4)
+  #
+  # The local ceiling is *capped* at the scheduler count (not floored at 4): each
+  # unit is a CPU-bound external process, and build does NOT pause the Oban queues,
+  # so downloads/indexing are already running their own yt-dlp. Flooring at 4 on a
+  # 2-core box oversubscribed the CPU so badly the BEAM schedulers starved and DB
+  # connections couldn't be released, exhausting the pool (issue #110). A hard cap
+  # keeps total yt-dlp processes near the core count.
+  defp prediction_concurrency(%{mode: :local}), do: min(System.schedulers_online(), 4)
   defp prediction_concurrency(_plan), do: 2
 
   # File extensions that unambiguously indicate an audio-only vs a video file.

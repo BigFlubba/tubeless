@@ -45,10 +45,22 @@ config :pinchflat,
 
 config :pinchflat, Pinchflat.Repo,
   journal_mode: :wal,
+  # Explicit (matches exqlite's default): NORMAL is safe under WAL — only a
+  # transaction can be lost on OS/power loss, never corruption — and avoids a
+  # per-write fsync. Pinned here so a future driver-default change can't regress it.
+  synchronous: :normal,
+  # Bigger page cache and in-memory temp b-trees/sorts. Both are well below the
+  # driver defaults (cache_size ~2 MB, temp_store on disk) — raising them keeps
+  # more of the reconcile working set off the disk (#110). Negative = KiB (~20 MB).
+  cache_size: -20_000,
+  temp_store: :memory,
   # Generous so slow writes on weak hardware (or a database VACUUM) surface as
   # brief waits instead of "database is locked" errors
   busy_timeout: 30_000,
-  pool_size: 5
+  # Small pools starved the LiveView/other jobs while a reconcile held connections
+  # (#110). WAL lets extra readers run without blocking, so a larger pool is cheap.
+  # Overridable at runtime via DATABASE_POOL_SIZE.
+  pool_size: 10
 
 # Configures the endpoint
 config :pinchflat, PinchflatWeb.Endpoint,
