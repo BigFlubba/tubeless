@@ -48,47 +48,52 @@ ARG FFMPEG_BUILD
 
 COPY docker/ci-base.requirements.txt /tmp/ci-base.requirements.txt
 
-RUN echo "Building for ${TARGETPLATFORM:?}" && \
 # Install debian packages
+RUN echo "Building for ${TARGETPLATFORM:?}" && \
   apt-get update -qq && \
   apt-get install -y inotify-tools curl git openssh-client jq \
     python3 python3-setuptools python3-wheel python3-dev pipx \
     python3-mutagen locales procps build-essential graphviz zsh zstd unzip && \
-# Install ffmpeg — pinned build, see issue #347. selfhosted's runner copies these binaries
-# from this image, so the version here is what production ships.
-  export FFMPEG_BASE_URL="https://github.com/yt-dlp/FFmpeg-Builds/releases/download/${FFMPEG_RELEASE}/ffmpeg-${FFMPEG_BUILD}" && \
-  export FFMPEG_DOWNLOAD=$(case ${TARGETPLATFORM:-linux/amd64} in \
-    "linux/amd64")   echo "${FFMPEG_BASE_URL}-linux64-gpl.tar.xz"   ;; \
-    "linux/arm64")   echo "${FFMPEG_BASE_URL}-linuxarm64-gpl.tar.xz" ;; \
-    *)               echo ""        ;; esac) && \
-    curl -L ${FFMPEG_DOWNLOAD} --output /tmp/ffmpeg.tar.xz && \
-    tar -xf /tmp/ffmpeg.tar.xz --strip-components=2 --no-anchored -C /usr/bin/ ffmpeg ffprobe && \
-# Install nodejs, Yarn, Deno, yt-dlp, and Apprise
+  # Install nodejs, Yarn, Deno, yt-dlp, and Apprise
   curl -sL https://deb.nodesource.com/setup_${NODE_MAJOR}.x -o nodesource_setup.sh && \
   bash nodesource_setup.sh && \
   apt-get install -y nodejs && \
   apt-get clean && \
-  rm -f /var/lib/apt/lists/*_* && \
-  npm install -g yarn && \
+  rm -f /var/lib/apt/lists/*_*
+
+# Install ffmpeg — pinned build, see issue #347. selfhosted's runner copies these binaries
+# from this image, so the version here is what production ships.
+RUN export FFMPEG_BASE_URL="https://github.com/yt-dlp/FFmpeg-Builds/releases/download/${FFMPEG_RELEASE}/ffmpeg-${FFMPEG_BUILD}" && \
+    export FFMPEG_DOWNLOAD=$(case ${TARGETPLATFORM:-linux/amd64} in \
+      "linux/amd64")   echo "${FFMPEG_BASE_URL}-linux64-gpl.tar.xz"   ;; \
+      "linux/arm64")   echo "${FFMPEG_BASE_URL}-linuxarm64-gpl.tar.xz" ;; \
+      *)               echo ""        ;; esac) && \
+    curl -L ${FFMPEG_DOWNLOAD} --output /tmp/ffmpeg.tar.xz && \
+    tar -xf /tmp/ffmpeg.tar.xz --strip-components=2 --no-anchored -C /usr/bin/ ffmpeg ffprobe
+
+RUN npm install -g yarn
+
   # Install baseline Elixir packages
-  mix local.hex --force && \
-  mix local.rebar --force && \
+RUN mix local.hex --force && \
+    mix local.rebar --force
   # Install Deno - required for YouTube downloads (See yt-dlp#14404)
-  curl -fsSL https://deno.land/install.sh | DENO_INSTALL=/usr/local sh -s -- ${DENO_VERSION} -y --no-modify-path && \
+RUN curl -fsSL https://deno.land/install.sh | DENO_INSTALL=/usr/local sh -s -- ${DENO_VERSION} -y --no-modify-path && \
   # Download yt-dlp (pinned to latest at base image build time)
   export YT_DLP_DOWNLOAD=$(case ${TARGETPLATFORM:-linux/amd64} in \
   "linux/amd64")   echo "https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_linux"   ;; \
   "linux/arm64")   echo "https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_linux_aarch64" ;; \
   *)               echo "https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_linux"        ;; esac) && \
   curl -L ${YT_DLP_DOWNLOAD} -o /usr/local/bin/yt-dlp && \
-  chmod a+rx /usr/local/bin/yt-dlp && \
+  chmod a+rx /usr/local/bin/yt-dlp
+
   # Install Apprise (version pinned in docker/ci-base.requirements.txt, managed by Renovate)
-  export PIPX_HOME=/opt/pipx && \
+RUN export PIPX_HOME=/opt/pipx && \
   export PIPX_BIN_DIR=/usr/local/bin && \
   pipx install "$(cat /tmp/ci-base.requirements.txt)" && \
-  rm /tmp/ci-base.requirements.txt && \
+  rm /tmp/ci-base.requirements.txt
+
   # Set up ZSH tools
-  chsh -s $(which zsh) && \
+RUN chsh -s $(which zsh) && \
   sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
 
 # Set the locale
