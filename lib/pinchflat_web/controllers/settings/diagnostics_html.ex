@@ -184,8 +184,16 @@ defmodule PinchflatWeb.Settings.DiagnosticsHTML do
   def format_datetime(nil), do: "-"
 
   def format_datetime(datetime) do
-    Calendar.strftime(datetime, "%Y-%m-%d %H:%M:%S")
+    # Oban stores these timestamps in UTC; convert to the configured timezone
+    # (TIMEZONE / TZ env var) before rendering so the page reads in local time.
+    datetime
+    |> to_utc_datetime()
+    |> Timex.Timezone.convert(Application.get_env(:pinchflat, :timezone))
+    |> Calendar.strftime("%Y-%m-%d %H:%M:%S")
   end
+
+  defp to_utc_datetime(%DateTime{} = datetime), do: datetime
+  defp to_utc_datetime(%NaiveDateTime{} = datetime), do: DateTime.from_naive!(datetime, "Etc/UTC")
 
   def extract_last_error(errors) when is_list(errors) and errors != [] do
     errors

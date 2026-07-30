@@ -97,6 +97,7 @@ DOCKER_RUN_ARGS=(
   -v "${STATE_DIR}/downloads:/downloads"
   -v "${STATE_DIR}/podcasts:/podcasts"
   -e "PORT=${PORT}"
+  -e "TZ=US/Central"
   -e "PODCAST_PATH=/podcasts"
   -e "MAINTENANCE_MODE=${MAINTENANCE_MODE}"
 )

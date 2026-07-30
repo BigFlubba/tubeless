@@ -212,11 +212,9 @@ defmodule Pinchflat.Settings.IntegrityCheckLive do
     Enum.any?(findings, &String.contains?(&1, "media_items_search_index"))
   end
 
-  defp format_time(nil), do: "-"
-
-  defp format_time(datetime) do
-    Calendar.strftime(datetime, "%Y-%m-%d %H:%M:%S")
-  end
+  # Delegates to the shared helper so timestamps render in the configured
+  # timezone, consistent with the rest of the diagnostics page.
+  defdelegate format_time(datetime), to: PinchflatWeb.Settings.DiagnosticsHTML, as: :format_datetime
 
   # Findings are pasted into a JS template literal for the copy button, so the
   # three sequences that can break out of one are neutralised.
