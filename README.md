@@ -82,6 +82,7 @@ If it doesn't work for your use case, please make a feature request! You can als
 | Podcast feeds (dynamic, LAN access only)                       | ✅        | ✅       |
 | Podcast feeds (static, suitable for external access)           | ❌        | ✅       |
 | Powerful naming system                                         | ✅        | ✅       |
+| Proxy support                                                  | ❌        | ✅       |
 | Queue visibility and discarded job management in the WebUI     | ❌        | ✅       |
 | Reliable hands-off operation                                   | ✅        | ✅       |
 | Job health and recovery dashboard                              | ❌        | ✅       |
