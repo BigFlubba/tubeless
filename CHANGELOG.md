@@ -1,5 +1,38 @@
 # Changelog
 
+## [0.4.0](https://github.com/CommunityMaintained/tubeless/compare/v0.3.0...v0.4.0) (2026-07-30)
+
+
+### Features
+
+* add proxy support ([8d10c52](https://github.com/CommunityMaintained/tubeless/commit/8d10c529e34710ad799b5c7255deee9a7b18d2ca))
+* add system status summary to the home page ([7019007](https://github.com/CommunityMaintained/tubeless/commit/7019007a045baa75828a60dce1a1a8690b2c073e))
+* separate downloads that are queued from those still pending on the home page ([de1d474](https://github.com/CommunityMaintained/tubeless/commit/de1d474cd1ebd5921a1509e383ab0d2389c25a4d))
+* show live progress while a reconcile plan applies ([87a27c8](https://github.com/CommunityMaintained/tubeless/commit/87a27c82cde86c74a06731f72ef1375acfb19c89))
+* speed up reconcile by fetching online backfills in parallel ([05049fc](https://github.com/CommunityMaintained/tubeless/commit/05049fc7a299fd6b4ad794ab7529a94ea7707b24))
+
+
+### Bug Fixes
+
+* label File Reconciliation jobs in the Active Tasks list ([552de57](https://github.com/CommunityMaintained/tubeless/commit/552de5750acf43d29c219dd21b4124fe76e224fe))
+* recover a reconcile apply interrupted by a restart instead of deadlocking ([221643f](https://github.com/CommunityMaintained/tubeless/commit/221643f82eb767b78e4ceb3990e1a8e902f6c818))
+* serialize quiet-window workers to prevent deadlock situation ([4e7ac31](https://github.com/CommunityMaintained/tubeless/commit/4e7ac3140548e8f92a63dc7ec36ba03898b394b4))
+* stop counting actively-downloading videos as Queued on the dashboard ([172dc5f](https://github.com/CommunityMaintained/tubeless/commit/172dc5f37ac6b9b611b82f43713331a61b333dfe))
+
+
+### Chores
+
+* upgrade Tailwind CSS to v4.3.3 ([97ccb64](https://github.com/CommunityMaintained/tubeless/commit/97ccb64f29147bfde4a8f911c5869734dcac87e6))
+
+
+### Documentation
+
+* Fix formatting in README.md for LOG_LEVEL note ([c780241](https://github.com/CommunityMaintained/tubeless/commit/c78024170cec5ec9125d67b2d9599ab8902f4736))
+* Fix grammatical error in pull request template ([69fa2e4](https://github.com/CommunityMaintained/tubeless/commit/69fa2e48fe977b653cb303dba5b2dcba1747726a))
+* Fix grammatical issues in README.md ([d8eec32](https://github.com/CommunityMaintained/tubeless/commit/d8eec32f1f7f61609681c3d2b33a931b0c6d08e0))
+* update comparison in README ([a6715cb](https://github.com/CommunityMaintained/tubeless/commit/a6715cbb2375e8c06fd0942a4f0cb73ef282138d))
+* Update Discord server link in README to a permant invite pointing to #welcome channel ([1134289](https://github.com/CommunityMaintained/tubeless/commit/1134289fe9b64b5d7616496a126973dc3ea803d9))
+
 ## [0.3.0](https://github.com/CommunityMaintained/tubeless/compare/v0.2.0...v0.3.0) (2026-07-26)
 
 
