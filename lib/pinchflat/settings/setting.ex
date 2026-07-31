@@ -28,11 +28,13 @@ defmodule Pinchflat.Settings.Setting do
     :proxy_mode,
     :proxy_url,
     :proxy_covers_http,
-    :time_format
+    :time_format,
+    :default_cookie_behaviour
   ]
 
   @proxy_modes ~w(none manual file)
   @time_formats ~w(24h 12h)
+  @cookie_behaviours ~w(disabled when_needed all_operations)
 
   @required_fields [
     :onboarding,
@@ -71,6 +73,10 @@ defmodule Pinchflat.Settings.Setting do
     # Clock used when rendering timestamps in the UI: "24h" | "12h"
     field :time_format, :string, default: "24h"
 
+    # The cookie behaviour pre-selected when adding a new source:
+    # "disabled" | "when_needed" | "all_operations"
+    field :default_cookie_behaviour, :string, default: "disabled"
+
     field :video_codec_preference, :string
     field :audio_codec_preference, :string
   end
@@ -86,8 +92,14 @@ defmodule Pinchflat.Settings.Setting do
     |> validate_pinned_version()
     |> validate_inclusion(:proxy_mode, @proxy_modes)
     |> validate_inclusion(:time_format, @time_formats)
+    |> validate_inclusion(:default_cookie_behaviour, @cookie_behaviours)
     |> validate_proxy_url()
   end
+
+  @doc """
+  The allowed cookie behaviours (matching Source.cookie_behaviour).
+  """
+  def cookie_behaviours, do: @cookie_behaviours
 
   @doc """
   The allowed proxy modes.
