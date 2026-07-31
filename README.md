@@ -21,6 +21,7 @@
 
 [![](https://img.shields.io/github/v/release/CommunityMaintained/tubeless?style=for-the-badge&color=purple)](https://github.com/CommunityMaintained/tubeless/releases)
 [![](https://img.shields.io/static/v1?style=for-the-badge&logo=discord&message=Chat&color=5865F2&label=Discord)](https://discord.gg/V7grTVkc37)
+[![](https://img.shields.io/static/v1?style=for-the-badge&logo=reddit&message=Post&color=FF5700&label=Reddit)](https://reddit.com/r/Tubeless)
 [![](https://img.shields.io/github/actions/workflow/status/CommunityMaintained/tubeless/release-please.yml?style=for-the-badge)](https://github.com/CommunityMaintained/tubeless/actions/workflows/release-please.yml)
 [![](https://img.shields.io/github/license/CommunityMaintained/tubeless?style=for-the-badge&color=ee512b)](LICENSE)
 
