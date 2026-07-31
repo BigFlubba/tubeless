@@ -44,7 +44,7 @@ defmodule PinchflatWeb.Pages.PageHTML do
   def storage_free_label(%{available_bytes: nil}), do: "Unavailable"
 
   def storage_free_label(%{available_bytes: bytes, used_percent: percent}) when is_integer(percent) do
-    "#{format_bytes(bytes)} free (#{percent}%)"
+    "#{format_bytes(bytes)} free (#{percent}% used)"
   end
 
   def storage_free_label(%{available_bytes: bytes}), do: "#{format_bytes(bytes)} free"
