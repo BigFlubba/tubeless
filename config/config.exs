@@ -49,14 +49,25 @@ config :pinchflat, Pinchflat.Repo,
   # transaction can be lost on OS/power loss, never corruption — and avoids a
   # per-write fsync. Pinned here so a future driver-default change can't regress it.
   synchronous: :normal,
-  # Bigger page cache and in-memory temp b-trees/sorts. Both are well below the
-  # driver defaults (cache_size ~2 MB, temp_store on disk) — raising them keeps
-  # more of the reconcile working set off the disk (#110). Negative = KiB (~20 MB).
-  cache_size: -20_000,
+  # BEGIN IMMEDIATE for every transaction. The default DEFERRED mode starts as a
+  # read transaction and upgrades to a write on the first write statement — under
+  # WAL that upgrade fails instantly with SQLITE_BUSY (busy_timeout never runs)
+  # whenever another connection committed since the read snapshot was taken, which
+  # is constant under an active queue (Oban's stager does exactly this
+  # select-then-update shape every second). IMMEDIATE takes the write lock at
+  # BEGIN, so contending writers queue on busy_timeout instead of erroring.
+  default_transaction_mode: :immediate,
+  # Explicit (matches ecto_sqlite3's defaults — negative = KiB, so ~64 MB page
+  # cache per connection): keeps the reconcile working set off the disk (#110)
+  # and pins us against a future driver-default change.
+  cache_size: -64_000,
   temp_store: :memory,
   # Generous so slow writes on weak hardware (or a database VACUUM) surface as
   # brief waits instead of "database is locked" errors
   busy_timeout: 30_000,
+  # Must exceed busy_timeout: Ecto's default per-query timeout is 15s, which
+  # would kill a write while it's still legitimately queued on the busy handler
+  timeout: 45_000,
   # Small pools starved the LiveView/other jobs while a reconcile held connections
   # (#110). WAL lets extra readers run without blocking, so a larger pool is cheap.
   # Overridable at runtime via DATABASE_POOL_SIZE.
