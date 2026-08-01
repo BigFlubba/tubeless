@@ -3,15 +3,6 @@ defmodule PinchflatWeb.Settings.SettingHTML do
 
   embed_templates "setting_html/*"
 
-  @doc """
-  Renders a setting form.
-  """
-  attr :conn, Plug.Conn, required: true
-  attr :changeset, Ecto.Changeset, required: true
-  attr :action, :string, required: true
-
-  def setting_form(assigns)
-
   def apprise_server_help do
     url = "https://github.com/caronc/apprise/wiki/URLBasics"
 

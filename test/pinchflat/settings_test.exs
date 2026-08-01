@@ -167,6 +167,17 @@ defmodule Pinchflat.SettingsTest do
                Settings.change_setting(setting, %{yt_dlp_update_policy: "pinned", yt_dlp_pinned_version: "2025.12.08"})
     end
 
+    test "validates the download throughput limit format" do
+      setting = Settings.record()
+
+      assert %Ecto.Changeset{valid?: true} = Settings.change_setting(setting, %{download_throughput_limit: "50K"})
+      assert %Ecto.Changeset{valid?: true} = Settings.change_setting(setting, %{download_throughput_limit: "4.2M"})
+      assert %Ecto.Changeset{valid?: true} = Settings.change_setting(setting, %{download_throughput_limit: "500"})
+      assert %Ecto.Changeset{valid?: true} = Settings.change_setting(setting, %{download_throughput_limit: ""})
+      assert %Ecto.Changeset{valid?: false} = Settings.change_setting(setting, %{download_throughput_limit: "100KB"})
+      assert %Ecto.Changeset{valid?: false} = Settings.change_setting(setting, %{download_throughput_limit: "fast"})
+    end
+
     test "only allows known proxy modes" do
       setting = Settings.record()
 

@@ -13,7 +13,7 @@ defmodule Pinchflat.Settings.ProxyLive do
 
   def render(assigns) do
     ~H"""
-    <form phx-submit="save">
+    <form id="proxy-settings-form" phx-change="save">
       <.input
         type="select"
         id="setting_proxy_mode"
@@ -23,7 +23,6 @@ defmodule Pinchflat.Settings.ProxyLive do
         label="Proxy Mode"
         help={SettingHTML.proxy_mode_help()}
         html_help={true}
-        phx-change="mode_changed"
       />
 
       <.input
@@ -37,9 +36,16 @@ defmodule Pinchflat.Settings.ProxyLive do
         help="Passed to yt-dlp as --proxy. Supports http, https, socks4, and socks5 (eg: http://user:pass@host:8080)"
         inputclass="font-mono text-sm mr-4"
         placeholder="http://user:pass@host:8080"
-        phx-change="url_changed"
+        phx-debounce="blur"
       >
         <:input_append>
+          <span
+            :if={@saved}
+            class="ml-3 flex shrink-0 items-center gap-1 whitespace-nowrap text-sm font-medium text-meta-3"
+            role="status"
+          >
+            <.icon name="hero-check-circle" class="h-5 w-5" /> Saved
+          </span>
           <.icon_button
             icon_name={@icon_name}
             class={"h-12 w-12 disabled:opacity-50 disabled:cursor-not-allowed#{if @testing, do: " animate-spin"}"}
@@ -67,13 +73,6 @@ defmodule Pinchflat.Settings.ProxyLive do
           html_help={true}
         />
       </div>
-
-      <div class="mt-4 flex items-center gap-3">
-        <.button type="submit" rounding="rounded-lg" class="px-6! py-3!">
-          Save Proxy Settings
-        </.button>
-        <span :if={@saved} class="text-sm font-medium text-meta-3">Saved</span>
-      </div>
     </form>
     """
   end
@@ -82,12 +81,18 @@ defmodule Pinchflat.Settings.ProxyLive do
     {:ok, assign_from_settings(socket)}
   end
 
-  def handle_event("mode_changed", %{"proxy_mode" => mode}, socket) do
-    {:noreply, assign(socket, %{mode: mode, saved: false})}
+  # Switching *to* manual with no URL yet isn't something we can persist (the URL
+  # is required), so just reveal the field and wait for the URL to be entered.
+  def handle_event("save", %{"_target" => ["proxy_mode"], "proxy_mode" => "manual"} = params, socket) do
+    if blank?(params["proxy_url"]) do
+      {:noreply, assign(socket, mode: "manual", proxy_url: params["proxy_url"], saved: false)}
+    else
+      persist(build_attrs(params), socket)
+    end
   end
 
-  def handle_event("url_changed", %{"proxy_url" => url}, socket) do
-    {:noreply, assign(socket, %{proxy_url: url, saved: false})}
+  def handle_event("save", params, socket) do
+    persist(build_attrs(params), socket)
   end
 
   def handle_event("test_proxy", _params, %{assigns: assigns} = socket) do
@@ -112,34 +117,6 @@ defmodule Pinchflat.Settings.ProxyLive do
       end)
 
       {:noreply, assign(socket, %{testing: true, icon_name: "hero-arrow-path", tooltip: "Testing…"})}
-    end
-  end
-
-  def handle_event("save", params, socket) do
-    attrs = %{
-      "proxy_mode" => params["proxy_mode"],
-      "proxy_covers_http" => params["proxy_covers_http"] || "false"
-    }
-
-    # proxy_url is only rendered (and submitted) in manual mode; when absent we
-    # leave the stored value untouched rather than clearing it.
-    attrs = if Map.has_key?(params, "proxy_url"), do: Map.put(attrs, "proxy_url", params["proxy_url"]), else: attrs
-
-    case Settings.update_setting(Settings.record(), attrs) do
-      {:ok, _setting} ->
-        Process.send_after(self(), :reset_saved, 4_000)
-        {:noreply, socket |> assign_from_settings() |> assign(saved: true)}
-
-      {:error, changeset} ->
-        # Reflect what they submitted so the offending field (and its error) stays visible.
-        assigns = %{
-          mode: params["proxy_mode"] || socket.assigns.mode,
-          proxy_url: Map.get(params, "proxy_url", socket.assigns.proxy_url),
-          errors: field_errors(changeset),
-          saved: false
-        }
-
-        {:noreply, assign(socket, assigns)}
     end
   end
 
@@ -176,6 +153,37 @@ defmodule Pinchflat.Settings.ProxyLive do
 
   def handle_info(:reset_saved, socket) do
     {:noreply, assign(socket, saved: false)}
+  end
+
+  defp persist(attrs, socket) do
+    case Settings.update_setting(Settings.record(), attrs) do
+      {:ok, _setting} ->
+        Process.send_after(self(), :reset_saved, 4_000)
+        {:noreply, socket |> assign_from_settings() |> assign(saved: true)}
+
+      {:error, changeset} ->
+        # Reflect what they submitted so the offending field (and its error) stays visible.
+        assigns = %{
+          mode: attrs["proxy_mode"] || socket.assigns.mode,
+          proxy_url: Map.get(attrs, "proxy_url", socket.assigns.proxy_url),
+          covers_http: (attrs["proxy_covers_http"] || to_string(socket.assigns.covers_http)) == "true",
+          errors: field_errors(changeset),
+          saved: false
+        }
+
+        {:noreply, assign(socket, assigns)}
+    end
+  end
+
+  # proxy_url is only rendered (and submitted) in manual mode; when absent we
+  # leave the stored value untouched rather than clearing it.
+  defp build_attrs(params) do
+    attrs = %{
+      "proxy_mode" => params["proxy_mode"],
+      "proxy_covers_http" => params["proxy_covers_http"] || "false"
+    }
+
+    if Map.has_key?(params, "proxy_url"), do: Map.put(attrs, "proxy_url", params["proxy_url"]), else: attrs
   end
 
   defp assign_from_settings(socket) do

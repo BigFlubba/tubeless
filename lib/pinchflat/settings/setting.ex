@@ -87,6 +87,7 @@ defmodule Pinchflat.Settings.Setting do
     |> cast(attrs, @allowed_fields)
     |> validate_required(@required_fields)
     |> validate_number(:extractor_sleep_interval_seconds, greater_than_or_equal_to: 0)
+    |> validate_throughput_limit()
     |> validate_inclusion(:yt_dlp_update_policy, UpdateManager.policies())
     |> validate_podcast_url_base()
     |> validate_pinned_version()
@@ -147,6 +148,20 @@ defmodule Pinchflat.Settings.Setting do
 
         _ ->
           [podcast_url_base: "must be an absolute http(s) URL with no query string or fragment"]
+      end
+    end)
+  end
+
+  # The throughput limit is passed verbatim to yt-dlp's `--limit-rate`, which
+  # accepts a number with an optional K/M/G suffix (eg: "50K", "4.2M"). Without
+  # validation a typo like "100KB" is stored happily and only fails at download
+  # time, far from where it was entered. Blank disables the limit.
+  defp validate_throughput_limit(changeset) do
+    validate_change(changeset, :download_throughput_limit, fn :download_throughput_limit, value ->
+      cond do
+        value in [nil, ""] -> []
+        Regex.match?(~r/^\d+(\.\d+)?[KMGkmg]?$/, String.trim(value)) -> []
+        true -> [download_throughput_limit: ~s|must be a number with an optional K/M/G suffix (eg: "50K" or "4.2M")|]
       end
     end)
   end

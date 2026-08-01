@@ -11,7 +11,11 @@ defmodule Pinchflat.Settings.DefaultCookieBehaviourLive do
 
   def render(assigns) do
     ~H"""
-    <form phx-submit="save" class="mt-6 border-t border-stroke pt-6 dark:border-strokedark">
+    <form
+      id="default-cookie-behaviour-form"
+      phx-change="save"
+      class="mt-6 border-t border-stroke pt-6 dark:border-strokedark"
+    >
       <.input
         type="select"
         id="setting_default_cookie_behaviour"
@@ -21,13 +25,6 @@ defmodule Pinchflat.Settings.DefaultCookieBehaviourLive do
         label="Default Cookie Behavior for New Sources"
         help="The Cookie Behavior pre-selected when adding a new source. Doesn't change existing sources"
       />
-
-      <div class="mt-4 flex items-center gap-3">
-        <.button type="submit" rounding="rounded-lg" class="px-6! py-3!">
-          Save
-        </.button>
-        <span :if={@saved} class="text-sm font-medium text-meta-3">Saved</span>
-      </div>
     </form>
     """
   end
@@ -36,26 +33,19 @@ defmodule Pinchflat.Settings.DefaultCookieBehaviourLive do
     {:ok, assign_from_settings(socket)}
   end
 
+  # A select persisting its chosen value is its own confirmation, so — like the
+  # other selects/toggles on the Settings page — there's no "Saved" indicator.
   def handle_event("save", %{"default_cookie_behaviour" => behaviour}, socket) do
     case Settings.update_setting(Settings.record(), %{default_cookie_behaviour: behaviour}) do
-      {:ok, _setting} ->
-        Process.send_after(self(), :reset_saved, 4_000)
-        {:noreply, socket |> assign_from_settings() |> assign(saved: true)}
-
-      {:error, _changeset} ->
-        {:noreply, assign(socket, %{behaviour: behaviour, saved: false})}
+      {:ok, _setting} -> {:noreply, assign_from_settings(socket)}
+      {:error, _changeset} -> {:noreply, assign(socket, behaviour: behaviour)}
     end
-  end
-
-  def handle_info(:reset_saved, socket) do
-    {:noreply, assign(socket, saved: false)}
   end
 
   defp assign_from_settings(socket) do
     assign(socket, %{
       behaviour: Settings.record().default_cookie_behaviour || "disabled",
-      options: @options,
-      saved: false
+      options: @options
     })
   end
 end

@@ -7,12 +7,12 @@ defmodule PinchflatWeb.Settings.ProxyLiveTest do
   alias Pinchflat.Settings.ProxyLive
 
   describe "initial rendering" do
-    test "renders the mode select and coverage toggle", %{conn: conn} do
+    test "renders the mode select and coverage toggle with no save button", %{conn: conn} do
       {:ok, _view, html} = live_isolated(conn, ProxyLive)
 
       assert html =~ ~s(name="proxy_mode")
       assert html =~ ~s(name="proxy_covers_http")
-      assert html =~ "Save Proxy Settings"
+      refute html =~ "Save Proxy Settings"
     end
 
     test "hides the manual URL input in none mode", %{conn: conn} do
@@ -38,27 +38,58 @@ defmodule PinchflatWeb.Settings.ProxyLiveTest do
 
       refute has_element?(view, "input[name='proxy_url']")
 
-      render_change(view, "mode_changed", %{"proxy_mode" => "manual"})
+      render_change(view, "save", %{"_target" => ["proxy_mode"], "proxy_mode" => "manual"})
 
       assert has_element?(view, "input[name='proxy_url']")
     end
-  end
 
-  describe "saving" do
-    test "persists the mode and coverage toggle", %{conn: conn} do
+    test "does not persist when switching to manual before a URL is entered", %{conn: conn} do
       {:ok, view, _html} = live_isolated(conn, ProxyLive)
 
-      html = render_submit(element(view, "form"), %{"proxy_mode" => "file", "proxy_covers_http" => "true"})
+      render_change(view, "save", %{"_target" => ["proxy_mode"], "proxy_mode" => "manual"})
 
-      assert html =~ "Saved"
+      assert Settings.get!(:proxy_mode) == "none"
+    end
+  end
+
+  describe "auto-saving" do
+    test "persists the mode and coverage toggle on change", %{conn: conn} do
+      {:ok, view, _html} = live_isolated(conn, ProxyLive)
+
+      render_change(view, "save", %{
+        "_target" => ["proxy_mode"],
+        "proxy_mode" => "file",
+        "proxy_covers_http" => "true"
+      })
+
       assert Settings.get!(:proxy_mode) == "file"
       assert Settings.get!(:proxy_covers_http) == true
     end
 
-    test "shows an error for an invalid manual URL", %{conn: conn} do
+    test "confirms a saved manual URL with an inline Saved indicator", %{conn: conn} do
+      {:ok, view, _html} = live_isolated(conn, ProxyLive)
+      render_change(view, "save", %{"_target" => ["proxy_mode"], "proxy_mode" => "manual"})
+
+      html =
+        render_change(view, "save", %{
+          "_target" => ["proxy_url"],
+          "proxy_mode" => "manual",
+          "proxy_url" => "http://host:8080"
+        })
+
+      assert html =~ "Saved"
+      assert Settings.get!(:proxy_url) == "http://host:8080"
+    end
+
+    test "shows an error for an invalid manual URL and doesn't persist", %{conn: conn} do
       {:ok, view, _html} = live_isolated(conn, ProxyLive)
 
-      html = render_submit(element(view, "form"), %{"proxy_mode" => "manual", "proxy_url" => "not a url"})
+      html =
+        render_change(view, "save", %{
+          "_target" => ["proxy_url"],
+          "proxy_mode" => "manual",
+          "proxy_url" => "not a url"
+        })
 
       assert html =~ "must be a valid"
       assert Settings.get!(:proxy_mode) == "none"
@@ -68,7 +99,7 @@ defmodule PinchflatWeb.Settings.ProxyLiveTest do
   describe "test button" do
     test "is disabled when the URL is blank", %{conn: conn} do
       {:ok, view, _html} = live_isolated(conn, ProxyLive)
-      render_change(view, "mode_changed", %{"proxy_mode" => "manual"})
+      render_change(view, "save", %{"_target" => ["proxy_mode"], "proxy_mode" => "manual"})
 
       assert has_element?(view, "[phx-click=test_proxy][disabled]")
     end
@@ -88,8 +119,13 @@ defmodule PinchflatWeb.Settings.ProxyLiveTest do
 
     test "reports a humanized failure for an unreachable proxy", %{conn: conn} do
       {:ok, view, _html} = live_isolated(conn, ProxyLive)
-      render_change(view, "mode_changed", %{"proxy_mode" => "manual"})
-      render_change(view, "url_changed", %{"proxy_url" => "http://127.0.0.1:1"})
+      render_change(view, "save", %{"_target" => ["proxy_mode"], "proxy_mode" => "manual"})
+
+      render_change(view, "save", %{
+        "_target" => ["proxy_url"],
+        "proxy_mode" => "manual",
+        "proxy_url" => "http://127.0.0.1:1"
+      })
 
       # The async result eventually flips the icon to the error state and reports
       # a readable reason (connection refused), not a raw inspected term.

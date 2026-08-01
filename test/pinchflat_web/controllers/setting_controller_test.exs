@@ -11,46 +11,6 @@ defmodule PinchflatWeb.SettingControllerTest do
     end
   end
 
-  describe "update settings" do
-    test "saves and redirects when data is valid", %{conn: conn} do
-      update_attrs = %{apprise_server: "test://server"}
-
-      conn = put(conn, ~p"/settings", setting: update_attrs)
-      assert redirected_to(conn) == ~p"/settings"
-
-      conn = get(conn, ~p"/settings")
-      assert html_response(conn, 200) =~ update_attrs[:apprise_server]
-    end
-
-    test "re-renders the form when data is invalid", %{conn: conn} do
-      conn = put(conn, ~p"/settings", setting: %{yt_dlp_update_policy: "bogus"})
-
-      assert html_response(conn, 200) =~ "Settings"
-    end
-
-    test "kicks off a yt-dlp update when the update policy changes", %{conn: conn} do
-      conn = put(conn, ~p"/settings", setting: %{yt_dlp_update_policy: "nightly"})
-
-      assert redirected_to(conn) == ~p"/settings"
-      assert_enqueued(worker: Pinchflat.YtDlp.UpdateWorker, args: %{"apply_policy" => true})
-    end
-
-    test "does not kick off a yt-dlp update when unrelated settings change", %{conn: conn} do
-      conn = put(conn, ~p"/settings", setting: %{apprise_server: "test://server"})
-
-      assert redirected_to(conn) == ~p"/settings"
-      refute_enqueued(worker: Pinchflat.YtDlp.UpdateWorker)
-    end
-
-    test "marks a staged reconcile plan stale", %{conn: conn} do
-      {:ok, plan} = Pinchflat.Reconciliation.create_plan(%{mode: :local, status: :ready})
-
-      put(conn, ~p"/settings", setting: %{apprise_server: "test://server"})
-
-      assert Pinchflat.Reconciliation.get_plan!(plan.id).status == :stale
-    end
-  end
-
   describe "download_cookies" do
     setup do
       base_dir =

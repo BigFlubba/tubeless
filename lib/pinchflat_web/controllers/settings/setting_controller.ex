@@ -1,49 +1,14 @@
 defmodule PinchflatWeb.Settings.SettingController do
   use PinchflatWeb, :controller
 
-  alias Pinchflat.Settings
-  alias Pinchflat.Reconciliation
   alias Pinchflat.Settings.CookieFile
   alias Pinchflat.Settings.ProxyFile
-  alias Pinchflat.YtDlp.UpdateWorker
 
-  @yt_dlp_policy_fields [:yt_dlp_update_policy, :yt_dlp_pinned_version]
-
+  # The settings form is a self-saving LiveView (`MainSettingsLive`), so there is
+  # no `update` action — this controller only renders the shell and handles the
+  # file downloads that can't be done from a LiveView.
   def show(conn, _params) do
-    setting = Settings.record()
-    changeset = Settings.change_setting(setting)
-
-    render(conn, "show.html", changeset: changeset)
-  end
-
-  def update(conn, %{"setting" => setting_params}) do
-    setting = Settings.record()
-
-    case Settings.update_setting(setting, setting_params) do
-      {:ok, updated_setting} ->
-        # Podcast-export reconciliation on a URL-base change lives in
-        # `Settings.update_setting/2` so every caller triggers it, not just here
-        maybe_apply_yt_dlp_policy(setting, updated_setting)
-        # A settings change can alter predicted paths, so any staged reconcile
-        # plan may no longer be accurate — mark it stale so it must be rebuilt
-        Reconciliation.mark_ready_plans_stale()
-
-        conn
-        |> put_flash(:info, "Settings updated successfully.")
-        |> redirect(to: ~p"/settings")
-
-      {:error, %Ecto.Changeset{} = changeset} ->
-        render(conn, "show.html", changeset: changeset)
-    end
-  end
-
-  # Performs the one-shot yt-dlp update (jump to the chosen channel/version) only
-  # when the policy or pinned version actually changed, so saving unrelated
-  # settings doesn't trigger an update.
-  defp maybe_apply_yt_dlp_policy(old_setting, new_setting) do
-    changed? = Enum.any?(@yt_dlp_policy_fields, &(Map.get(old_setting, &1) != Map.get(new_setting, &1)))
-
-    if changed?, do: UpdateWorker.kickoff_apply()
+    render(conn, "show.html")
   end
 
   def download_cookies(conn, _params) do

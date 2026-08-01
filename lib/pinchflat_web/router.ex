@@ -47,7 +47,7 @@ defmodule PinchflatWeb.Router do
     resources "/media_profiles", MediaProfiles.MediaProfileController
     resources "/search", Searches.SearchController, only: [:show], singleton: true
 
-    resources "/settings", Settings.SettingController, only: [:show, :update], singleton: true
+    resources "/settings", Settings.SettingController, only: [:show], singleton: true
     get "/settings/cookies", Settings.SettingController, :download_cookies
     get "/settings/proxy-file", Settings.SettingController, :download_proxy_file
     get "/download_logs", Settings.SettingController, :download_logs

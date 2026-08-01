@@ -5,28 +5,75 @@
     </h2>
   </div>
 </div>
-<div class="rounded-xs border border-stroke bg-white px-5 py-5 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-7.5">
-  <div class="max-w-full">
-    <.setting_form conn={@conn} changeset={@changeset} action={~p"/settings"} />
-  </div>
-</div>
-<div class="mt-6 rounded-xs border border-stroke bg-white px-5 py-5 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-7.5">
-  <div class="max-w-full">
-    <h3 class="text-2xl text-black dark:text-white mb-2">
-      Proxy
-    </h3>
-    {live_render(@conn, Pinchflat.Settings.ProxyLive, id: "proxy-live")}
-    <div class="mt-6 border-t border-stroke pt-6 dark:border-strokedark">
-      {live_render(@conn, Pinchflat.Settings.ProxyFileLive, id: "proxy-file-live")}
+
+<div class="space-y-6">
+  <section class="rounded-xs border border-stroke bg-white px-5 py-5 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-7.5">
+    <h3 class="text-2xl text-black dark:text-white mb-2">Connection</h3>
+
+    <div class="mt-4">
+      <h4 class="text-lg font-medium text-black dark:text-white">Proxy</h4>
+      {live_render(@conn, Pinchflat.Settings.ProxyLive, id: "proxy-live")}
+      <div class="mt-6 border-t border-stroke pt-6 dark:border-strokedark">
+        {live_render(@conn, Pinchflat.Settings.ProxyFileLive, id: "proxy-file-live")}
+      </div>
     </div>
-  </div>
-</div>
-<div class="mt-6 rounded-xs border border-stroke bg-white px-5 py-5 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-7.5">
-  <div class="max-w-full">
-    <h3 class="text-2xl text-black dark:text-white mb-2">
-      Cookies
-    </h3>
+
+    <div class="mt-8 border-t border-stroke pt-6 dark:border-strokedark">
+      <h4 class="text-lg font-medium text-black dark:text-white">Throttling</h4>
+      {live_render(@conn, Pinchflat.Settings.MainSettingsLive,
+        id: "settings-throttling",
+        session: %{"section" => "throttling"}
+      )}
+    </div>
+  </section>
+
+  <section class="rounded-xs border border-stroke bg-white px-5 py-5 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-7.5">
+    <h3 class="text-2xl text-black dark:text-white mb-2">Credentials and Access</h3>
+
     {live_render(@conn, Pinchflat.Settings.CookieFileLive, id: "cookie-file-live")}
     {live_render(@conn, Pinchflat.Settings.DefaultCookieBehaviourLive, id: "default-cookie-behaviour-live")}
-  </div>
+
+    <div class="mt-6 border-t border-stroke pt-6 dark:border-strokedark">
+      {live_render(@conn, Pinchflat.Settings.MainSettingsLive,
+        id: "settings-credentials",
+        session: %{"section" => "credentials"}
+      )}
+    </div>
+  </section>
+
+  <section class="rounded-xs border border-stroke bg-white px-5 py-5 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-7.5">
+    <h3 class="text-2xl text-black dark:text-white mb-2">Media Output</h3>
+
+    {live_render(@conn, Pinchflat.Settings.MainSettingsLive,
+      id: "settings-media-output",
+      session: %{"section" => "media_output"}
+    )}
+  </section>
+
+  <section class="rounded-xs border border-stroke bg-white px-5 py-5 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-7.5">
+    <h3 class="text-2xl text-black dark:text-white mb-2">Library</h3>
+
+    {live_render(@conn, Pinchflat.Settings.MainSettingsLive,
+      id: "settings-library",
+      session: %{"section" => "library"}
+    )}
+  </section>
+
+  <section class="rounded-xs border border-stroke bg-white px-5 py-5 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-7.5">
+    <h3 class="text-2xl text-black dark:text-white mb-2">Integrations</h3>
+
+    {live_render(@conn, Pinchflat.Settings.MainSettingsLive,
+      id: "settings-integrations",
+      session: %{"section" => "integrations"}
+    )}
+  </section>
+
+  <section class="rounded-xs border border-stroke bg-white px-5 py-5 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-7.5">
+    <h3 class="text-2xl text-black dark:text-white mb-2">System</h3>
+
+    {live_render(@conn, Pinchflat.Settings.MainSettingsLive,
+      id: "settings-system",
+      session: %{"section" => "system"}
+    )}
+  </section>
 </div>
