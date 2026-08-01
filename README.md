@@ -35,7 +35,6 @@
   - [Table of contents:](#table-of-contents)
   - [What it does](#what-it-does)
   - [Pinchflat vs Tubeless](#pinchflat-vs-tubeless)
-  - [Features](#features)
   - [Screenshots](#screenshots)
   - [Installation](#installation)
     - [Unraid](#unraid)
@@ -62,60 +61,46 @@ If it doesn't work for your use case, please make a feature request! You can als
 
 ## Pinchflat vs Tubeless
 
-| Features                                                       | Pinchflat | Tubeless |
-| -------------------------------------------------------------- | --------- | -------- |
-| Activly maintained                                             | ❌        | ✅       |
-| Apprise notification support                                   | ✅        | ✅       |
-| Automatically delete old content                               | ✅        | ✅       |
-| Automatically download new content from channels and playlists | ✅        | ✅       |
-| Automatically redownload new media after a set period          | ✅        | ✅       |
-| Control yt-dlp updates from Settings                           | ❌        | ✅       |
-| Custom rules for handling YouTube Shorts and livestreams       | ✅        | ✅       |
-| Custom yt-dlp options                                          | ✅        | ✅       |
-| Database compaction                                            | ❌        | ✅       |
-| Database insights                                              | ❌        | ✅       |
-| Database inetgrity check                                       | ❌        | ✅       |
-| Download audio only content                                    | ✅        | ✅       |
-| Easy-to-use web interface                                      | ✅        | ✅       |
-| File reconciliation to update structure or path (bulk)         | ❌        | ✅       |
-| Ignore YouTube AI-upscaled videos                              | ❌        | ✅       |
-| Indexing cutoff date                                           | ❌        | ✅       |
-| Podcast feeds (dynamic, LAN access only)                       | ✅        | ✅       |
-| Podcast feeds (static, suitable for external access)           | ❌        | ✅       |
-| Powerful naming system                                         | ✅        | ✅       |
-| Proxy support                                                  | ❌        | ✅       |
-| Queue visibility and discarded job management in the WebUI     | ❌        | ✅       |
-| Reliable hands-off operation                                   | ✅        | ✅       |
-| Job health and recovery dashboard                              | ❌        | ✅       |
-| Run custom scripts after downloading/deleting media            | ✅        | ✅       |
-| Self contained                                                 | ✅        | ✅       |
-| Setting cutoff dates and filtering by title                    | ✅        | ✅       |
-| SponsorBlock integration                                       | ✅        | ✅       |
-| SponsorBlock remove and mark selected categories               | ❌        | ✅       |
-| Support for media center apps (Plex, Jellyfin, Emby, & Kodi)   | ✅        | ✅       |
-
-## Features
-
-- Self-contained - just one Docker container with no external dependencies
-- Powerful naming system so content is stored where and how you want it
-- Easy-to-use web interface with presets to get you started right away
-- First-class support for media center apps like Plex, Jellyfin, and Kodi ([docs](https://github.com/CommunityMaintained/tubeless/wiki/Frequently-Asked-Questions#how-do-i-get-media-into-plexjellyfinkodi))
-- Supports serving RSS feeds to your favourite podcast app ([docs](https://github.com/CommunityMaintained/tubeless/wiki/Podcast-RSS-Feeds))
-- Automatically downloads new content from channels and playlists
-  - Uses a novel approach to download new content more quickly than other apps
-- Supports downloading audio content
-- Custom rules for handling YouTube Shorts and livestreams
-- Apprise support for notifications
-- Allows automatically redownloading new media after a set period
-  - This can help improve the download quality of new content or improve SponsorBlock tags
-- Optionally automatically delete old content ([docs](https://github.com/CommunityMaintained/tubeless/wiki/Automatically-Delete-Media))
-- Advanced options like setting cutoff dates and filtering by title ([docs](https://github.com/CommunityMaintained/tubeless/wiki/Frequently-Asked-Questions#i-only-want-certain-videos-from-a-source---how-can-i-only-download-those))
-- Reliable hands-off operation
-- Can pass cookies to YouTube to download your private playlists ([docs](https://github.com/CommunityMaintained/tubeless/wiki/YouTube-Cookies))
-- Sponsorblock integration
-- \[Advanced\] control how `yt-dlp` updates from Settings - track stable or nightly, pin an exact version, or temporarily ride nightly and auto-return to stable once the fix lands there
-- \[Advanced\] allows custom `yt-dlp` options ([docs](https://github.com/CommunityMaintained/tubeless/wiki/%5BAdvanced%5D-Custom-yt%E2%80%90dlp-options))
-- \[Advanced\] supports running custom scripts after downloading/deleting media (alpha - [docs](https://github.com/CommunityMaintained/tubeless/wiki/%5BAdvanced%5D-Custom-lifecycle-scripts))
+| Features                                                                                                                                                                               | Pinchflat | Tubeless |
+| -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- | -------- |
+| Activly maintained                                                                                                                                                                     | ❌        | ✅       |
+| Advanced filtering ([docs](https://github.com/CommunityMaintained/tubeless/wiki/Frequently-Asked-Questions#i-only-want-certain-videos-from-a-source---how-can-i-only-download-those))  | ❌        | ✅       |
+| Apprise notification support                                                                                                                                                           | ✅        | ✅       |
+| Automatically delete old content ([docs](https://github.com/CommunityMaintained/tubeless/wiki/Automatically-Delete-Media))                                                             | ✅        | ✅       |
+| Automatically download new content from channels and playlists                                                                                                                         | ✅        | ✅       |
+| Automatically redownload new media after a set period                                                                                                                                  | ✅        | ✅       |
+| Control yt-dlp updates from Settings ([docs](https://github.com/CommunityMaintained/tubeless/wiki/Frequently-Asked-Questions#how-do-i-update-yt-dlp-independently-from-tubeless))      | ❌        | ✅       |
+| Cookie support ([docs](https://github.com/CommunityMaintained/tubeless/wiki/YouTube-Cookies))                                                                                          | ✅        | ✅       |
+| Custom rules for handling YouTube Shorts and livestreams                                                                                                                               | ✅        | ✅       |
+| Custom yt-dlp options ([docs](https://github.com/CommunityMaintained/tubeless/wiki/%5BAdvanced%5D-Custom-yt%E2%80%90dlp-options))                                                      | ✅        | ✅       |
+| Cutoff date support ([docs](https://github.com/CommunityMaintained/tubeless/wiki/Frequently-Asked-Questions#i-only-want-certain-videos-from-a-source---how-can-i-only-download-those)) | ❌        | ✅       |
+| Database compaction                                                                                                                                                                    | ❌        | ✅       |
+| Database insights                                                                                                                                                                      | ❌        | ✅       |
+| Database integrity check                                                                                                                                                               | ❌        | ✅       |
+| Database repair ([docs](https://github.com/CommunityMaintained/tubeless/wiki/Database-Repair))                                                                                         | ❌        | ✅       |
+| Download audio only content                                                                                                                                                            | ✅        | ✅       |
+| Easy-to-use web interface                                                                                                                                                              | ✅        | ✅       |
+| Fast indexing ([docs](https://github.com/CommunityMaintained/tubeless/wiki/Frequently-Asked-Questions#what-is-fast-indexing))                                                          | ❌        | ✅       |
+| File reconciliation to update structure or path (bulk)                                                                                                                                 | ❌        | ✅       |
+| HTTP Basic Authentication support ([docs](https://github.com/CommunityMaintained/tubeless/wiki/Username-and-Password))                                                                 | ✅        | ✅       |
+| Ignore YouTube AI-upscaled videos                                                                                                                                                      | ❌        | ✅       |
+| Indexing cutoff date                                                                                                                                                                   | ❌        | ✅       |
+| Podcast feeds (dynamic, LAN access only ([docs](https://github.com/CommunityMaintained/tubeless/wiki/Podcast-RSS-Feeds#option-b-dynamic-feeds-served-by-tubeless))                     | ✅        | ✅       |
+| Podcast feeds (static, suitable for external access ([docs](https://github.com/CommunityMaintained/tubeless/wiki/Podcast-RSS-Feeds#option-a-static-podcast-library-serve-in-place))    | ❌        | ✅       |
+| Powerful naming system                                                                                                                                                                 | ✅        | ✅       |
+| Prometheus and Grafana metrics ([docs](https://github.com/CommunityMaintained/tubeless/wiki/Prometheus-and-Grafana))                                                                   | ✅        | ✅       |
+| Proxy support ([docs](https://github.com/CommunityMaintained/tubeless/wiki/Proxy))                                                                                                     | ❌        | ✅       |
+| Queue visibility and discarded job management in the WebUI                                                                                                                             | ❌        | ✅       |
+| Reliable hands-off operation                                                                                                                                                           | ✅        | ✅       |
+| Job health and recovery dashboard                                                                                                                                                      | ❌        | ✅       |
+| Run custom scripts after downloading/deleting media (alpha - [docs](https://github.com/CommunityMaintained/tubeless/wiki/%5BAdvanced%5D-Custom-lifecycle-scripts))                     | ✅        | ✅       |
+| Self contained                                                                                                                                                                         | ✅        | ✅       |
+| Setting cutoff dates and filtering by title                                                                                                                                            | ✅        | ✅       |
+| SponsorBlock integration                                                                                                                                                               | ✅        | ✅       |
+| SponsorBlock remove and mark selected categories                                                                                                                                       | ❌        | ✅       |
+| Support for media center apps (Plex, Jellyfin, Emby, & Kodi) ([docs](https://github.com/CommunityMaintained/tubeless/wiki/Media-Center-integration))                                   | ✅        | ✅       |
+| YouTube API key support ([docs](https://github.com/CommunityMaintained/tubeless/wiki/Generating-a-YouTube-API-key))                                                                    | ✅        | ✅       |
+| YT-DLP plugin support ([docs](https://github.com/CommunityMaintained/tubeless/wiki/%5BAdvanced%5D-yt%E2%80%90dlp-plugins))                                                             | ✅        | ✅       |
 
 ## Screenshots
 
