@@ -15,9 +15,11 @@ defmodule Pinchflat.Application do
     # See https://hexdocs.pm/elixir/Supervisor.html
     # for other strategies and supported options
     [
+      Pinchflat.DatabaseTelemetry,
       Pinchflat.PromEx,
       PinchflatWeb.Telemetry,
-      Pinchflat.Repo,
+      {DBConnection.TelemetryListener, name: Pinchflat.DatabaseTelemetry.ConnectionListener},
+      {Pinchflat.Repo, connection_listeners: {[Pinchflat.DatabaseTelemetry.ConnectionListener], Pinchflat.Repo}},
       # Must be before startup tasks
       Pinchflat.Boot.PreJobStartupTasks,
       {Oban, Application.fetch_env!(:pinchflat, Oban)},

@@ -6,12 +6,14 @@ defmodule Pinchflat.PromEx do
   use PromEx, otp_app: :pinchflat
 
   alias PromEx.Plugins
+  alias Pinchflat.PromEx.Plugins.Database
 
   @impl true
   def plugins do
     [
       Plugins.Application,
       Plugins.Beam,
+      Database,
       {Plugins.Phoenix, router: PinchflatWeb.Router, endpoint: PinchflatWeb.Endpoint},
       Plugins.Ecto,
       Plugins.Oban,
@@ -34,7 +36,9 @@ defmodule Pinchflat.PromEx do
       {:prom_ex, "phoenix.json"},
       {:prom_ex, "ecto.json"},
       {:prom_ex, "oban.json"},
-      {:prom_ex, "phoenix_live_view.json"}
+      {:prom_ex, "phoenix_live_view.json"},
+      # Custom dashboard for the Database plugin (lives in this app's priv/grafana)
+      {:pinchflat, "grafana/database.json"}
     ]
   end
 end

@@ -10,7 +10,7 @@
 | `priv/repo/migrations/` | 84 Ecto database migration files (2024-01 through 2026-07)                                             |
 | `priv/gettext/`         | i18n translation templates and English error strings                                                   |
 | `priv/static/`          | Static web assets: favicon, Satoshi fonts (40 files), images, robots.txt                               |
-| `priv/grafana/`         | 6 Grafana dashboard JSON definitions (BEAM, Ecto, Oban, Phoenix, LiveView, Application)                |
+| `priv/grafana/`         | 7 Grafana dashboard JSON definitions (BEAM, Ecto, Oban, Phoenix, LiveView, Application, Database)      |
 | `assets/js/`            | Frontend JS — Alpine.js app entry, helpers, tabs, topbar vendor lib                                    |
 | `assets/css/`           | App CSS + Satoshi font CSS                                                                             |
 
@@ -78,12 +78,13 @@ File reconciliation (`lib/pinchflat/reconciliation/`) trues up already-downloade
 
 ### Observability
 
-| Technology                                     | Role                                                                                         |
-| ---------------------------------------------- | -------------------------------------------------------------------------------------------- |
-| PromEx                                         | Prometheus metrics exporter for the BEAM, Ecto, Oban, Phoenix, and LiveView                  |
-| Telemetry / TelemetryMetrics / TelemetryPoller | Instrumentation and metric aggregation                                                       |
-| Phoenix LiveDashboard                          | Built-in runtime dashboard (process info, memory, etc.)                                      |
-| Grafana                                        | 6 pre-built dashboards in `priv/grafana/` (BEAM, Ecto, Oban, Phoenix, LiveView, Application) |
+| Technology                                     | Role                                                                                                                                                                                                                                                                                          |
+| ---------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| PromEx                                         | Prometheus metrics exporter for the BEAM, Ecto, Oban, Phoenix, and LiveView                                                                                                                                                                                                                   |
+| Custom `Database` PromEx plugin                | SQLite/pool telemetry: classified query errors (busy/locked/…), slow-query & transaction-duration, connection pool ready/queue-length gauges, WAL sidecar size, and Oban plugin (Stager) exceptions — see `lib/pinchflat/database_telemetry.ex` + `lib/pinchflat/prom_ex/plugins/database.ex` |
+| Telemetry / TelemetryMetrics / TelemetryPoller | Instrumentation and metric aggregation                                                                                                                                                                                                                                                        |
+| Phoenix LiveDashboard                          | Built-in runtime dashboard (process info, memory, etc.)                                                                                                                                                                                                                                       |
+| Grafana                                        | 7 pre-built dashboards in `priv/grafana/` (BEAM, Ecto, Oban, Phoenix, LiveView, Application, Database)                                                                                                                                                                                        |
 
 ### Elixir Libraries (notable)
 
