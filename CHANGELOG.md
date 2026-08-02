@@ -1,5 +1,45 @@
 # Changelog
 
+## [0.5.0](https://github.com/CommunityMaintained/tubeless/compare/v0.4.0...v0.5.0) (2026-08-02)
+
+
+### Features
+
+* add a Time Format setting to switch between 12h and 24h ([cd91c46](https://github.com/CommunityMaintained/tubeless/commit/cd91c465cef8c834c9bbc35aaff8ab1bf0cc18a0))
+* add SQLite and connection pool telemetry ([876a904](https://github.com/CommunityMaintained/tubeless/commit/876a904f9cdef921fca82dbdc761670969f10f17))
+* let new sources default to a configurable Cookie Behavior ([42f2245](https://github.com/CommunityMaintained/tubeless/commit/42f224503d52ea69facb11c90b20d38373dd791d))
+* reorganize settings into task-based cards that auto-save inline ([223a038](https://github.com/CommunityMaintained/tubeless/commit/223a03868bf625086d38d0f9d88a3f31f3ac4856))
+
+
+### Bug Fixes
+
+* add link in Cookie Behaviour help to the YouTube Cookies wiki page ([2c1f9cf](https://github.com/CommunityMaintained/tubeless/commit/2c1f9cf97bd6103cbba2095d34dc9cf6a2acb7fc))
+* clarify main page storage usage ([b0cdcad](https://github.com/CommunityMaintained/tubeless/commit/b0cdcada979182a46695c6f852d05a50bcd6075b))
+* further db access optimizations ([0a9990c](https://github.com/CommunityMaintained/tubeless/commit/0a9990c9485cb91b87e31618cf9680f954292573))
+* increase db conn pool and cache to help with reconcile responsivity ([cd55489](https://github.com/CommunityMaintained/tubeless/commit/cd55489049625681940e15119886c7f2d8257785))
+* show log timestamps in the configured timezone ([af8e3a7](https://github.com/CommunityMaintained/tubeless/commit/af8e3a74ef02f29b8dcc9dd1fa931ba1f70419bf))
+* show time using the configured timezone ([fba9c3c](https://github.com/CommunityMaintained/tubeless/commit/fba9c3c78cc1e353ac4a49077fa9cb96711ebcf4))
+
+
+### Chores
+
+* **ci:** break out ci-build into phases ([2060ab9](https://github.com/CommunityMaintained/tubeless/commit/2060ab956abcc97cc4b9d11c517ca6a81f45ab9f))
+* **ci:** use ci-build image sha-2060ab9 ([129609d](https://github.com/CommunityMaintained/tubeless/commit/129609dd2cb5cccbc17f202685451a0133569f49))
+* **deps:** bump elixir deps ([e31b3ab](https://github.com/CommunityMaintained/tubeless/commit/e31b3abb802510ceaafdaab67a1eef6f87977362))
+* **deps:** bump ffmpeg build ([de3f25a](https://github.com/CommunityMaintained/tubeless/commit/de3f25a040f52bccabe1be54436a3ae28c02c822))
+* **deps:** bump otp to 29.0.4 ([c623288](https://github.com/CommunityMaintained/tubeless/commit/c623288d3edae4fa0090fe60fe460fbbb41cba6d))
+* drop unused settings_backup table ([1bc6c28](https://github.com/CommunityMaintained/tubeless/commit/1bc6c280b4107a5ee11977e8e44cf70be179d9a3))
+
+
+### Documentation
+
+* Add Subreddit to README ([77db710](https://github.com/CommunityMaintained/tubeless/commit/77db7108aea0d0fe978862ce312ff3cd2da50e99))
+* Clarify database integrity check description ([02d0d94](https://github.com/CommunityMaintained/tubeless/commit/02d0d947ce2e147c33b1ad986622a9bc9797c6ce))
+* Update Discord webhook avatar URL to GitHub logo ([31f308e](https://github.com/CommunityMaintained/tubeless/commit/31f308eec72b495864cbcebfc5577ee70b8af13a))
+* Update Discord webhook mention role id ([6da398e](https://github.com/CommunityMaintained/tubeless/commit/6da398ee137589dce0dcbfb9537d1034a0c2c61c))
+* update README ([7391a7f](https://github.com/CommunityMaintained/tubeless/commit/7391a7fc0e343ee1c4929c3d844f125ea291716c))
+* Update README ([#130](https://github.com/CommunityMaintained/tubeless/issues/130)) ([1da0995](https://github.com/CommunityMaintained/tubeless/commit/1da0995719c327982c67783a93b6f2bc383be40f))
+
 ## [0.4.0](https://github.com/CommunityMaintained/tubeless/compare/v0.3.0...v0.4.0) (2026-07-30)
 
 
