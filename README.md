@@ -63,6 +63,7 @@ If it doesn't work for your use case, please make a feature request! You can als
 
 | Features                                                                                                                                                                               | Pinchflat | Tubeless |
 | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- | -------- |
+| 12/24hr time switch                                                                                                                                                                    | ❌        | ✅       |
 | Activly maintained                                                                                                                                                                     | ❌        | ✅       |
 | Advanced filtering ([docs](https://github.com/CommunityMaintained/tubeless/wiki/Frequently-Asked-Questions#i-only-want-certain-videos-from-a-source---how-can-i-only-download-those))  | ❌        | ✅       |
 | Apprise notification support                                                                                                                                                           | ✅        | ✅       |
@@ -78,6 +79,8 @@ If it doesn't work for your use case, please make a feature request! You can als
 | Database insights                                                                                                                                                                      | ❌        | ✅       |
 | Database integrity check                                                                                                                                                               | ❌        | ✅       |
 | Database repair ([docs](https://github.com/CommunityMaintained/tubeless/wiki/Database-Repair))                                                                                         | ❌        | ✅       |
+| Database telemetry                                                                                                                                                                     | ❌        | ✅       |
+| Default cookie behavior                                                                                                                                                                | ❌        | ✅       |
 | Download audio only content                                                                                                                                                            | ✅        | ✅       |
 | Easy-to-use web interface                                                                                                                                                              | ✅        | ✅       |
 | Fast indexing ([docs](https://github.com/CommunityMaintained/tubeless/wiki/Frequently-Asked-Questions#what-is-fast-indexing))                                                          | ❌        | ✅       |
