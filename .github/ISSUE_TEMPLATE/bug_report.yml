@@ -1,6 +1,6 @@
 name: Bug Report
 description: Report a bug
-title: '[Triage] <your title here> '
+title: '[Triage] <your title here>'
 labels: ['triage']
 assignees: ['CommunityMaintained']
 body:
@@ -39,11 +39,12 @@ body:
     validations:
       required: false
   - type: textarea
-    id: diganostics
+    id: diagnostics
     attributes:
       label: Diagnostic info
+      description: 'Go to the Diagnostics tab, click the Copy Diagnostics Info button, & paste the information here.'
     validations:
-      required: false
+      required: true
   - type: upload
     id: screenshots
     attributes:
