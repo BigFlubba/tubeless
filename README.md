@@ -67,6 +67,7 @@ If it doesn't work for your use case, please make a feature request! You can als
 | Activly maintained                                                                                                                                                                     | ❌        | ✅       |
 | Advanced filtering ([docs](https://github.com/CommunityMaintained/tubeless/wiki/Frequently-Asked-Questions#i-only-want-certain-videos-from-a-source---how-can-i-only-download-those))  | ❌        | ✅       |
 | Apprise notification support                                                                                                                                                           | ✅        | ✅       |
+| Audio & video codec preference                                                                                                                                                         | ✅        | ✅       |
 | Automatically delete old content ([docs](https://github.com/CommunityMaintained/tubeless/wiki/Automatically-Delete-Media))                                                             | ✅        | ✅       |
 | Automatically download new content from channels and playlists                                                                                                                         | ✅        | ✅       |
 | Automatically redownload new media after a set period                                                                                                                                  | ✅        | ✅       |
