@@ -1,4 +1,39 @@
 <div class="flex flex-col min-w-max">
+  <div class="flex flex-wrap items-center justify-end gap-x-6 gap-y-3 px-4 py-3">
+    <label :if={@profile_options != []} class="flex items-center gap-2 text-sm text-white">
+      <span class="whitespace-nowrap text-bodydark">Media Profile</span>
+      <form id="source-profile-filter" phx-change="profile_filter_change">
+        <select
+          name="profile_filter"
+          class="appearance-none rounded border border-form-strokedark bg-form-input py-1.5 pl-3 pr-8 text-sm text-white outline-hidden transition focus:border-primary"
+        >
+          <option value="" selected={is_nil(@profile_filter)}>All</option>
+          <option :for={{name, id} <- @profile_options} value={id} selected={@profile_filter == id}>
+            {name}
+          </option>
+        </select>
+      </form>
+    </label>
+
+    <label class="flex items-center gap-2 text-sm text-white">
+      <span class="whitespace-nowrap text-bodydark">Show</span>
+      <form id="source-per-page" phx-change="per_page_change">
+        <select
+          name="per_page"
+          class="appearance-none rounded border border-form-strokedark bg-form-input py-1.5 pl-3 pr-8 text-sm text-white outline-hidden transition focus:border-primary"
+        >
+          <option
+            :for={{label, value} <- per_page_select_options()}
+            value={value}
+            selected={to_string(@per_page) == to_string(value)}
+          >
+            {label}
+          </option>
+        </select>
+      </form>
+    </label>
+  </div>
+
   <.table rows={@sources} table_class="text-white" sort_key={@sort_key} sort_direction={@sort_direction}>
     <:col :let={source} label="Name" sort_key="custom_name" class="truncate max-w-xs">
       <.subtle_link href={~p"/sources/#{source.id}"}>

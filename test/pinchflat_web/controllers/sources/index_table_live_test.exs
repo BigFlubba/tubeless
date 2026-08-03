@@ -188,6 +188,84 @@ defmodule PinchflatWeb.Sources.SourceLive.IndexTableLiveTest do
     end
   end
 
+  describe "when filtering by media profile" do
+    test "limits the rows to sources using the selected profile", %{conn: conn} do
+      profile1 = media_profile_fixture(name: "Profile One")
+      profile2 = media_profile_fixture(name: "Profile Two")
+      source1 = source_fixture(custom_name: "Source_One", media_profile_id: profile1.id)
+      source2 = source_fixture(custom_name: "Source_Two", media_profile_id: profile2.id)
+
+      {:ok, view, _html} = live_isolated(conn, IndexTableLive, session: create_session())
+
+      view
+      |> element("form[phx-change=profile_filter_change]")
+      |> render_change(%{profile_filter: profile1.id})
+
+      assert render_element(view, "tbody") =~ source1.custom_name
+      refute render_element(view, "tbody") =~ source2.custom_name
+    end
+
+    test "selecting All clears the filter", %{conn: conn} do
+      profile1 = media_profile_fixture(name: "Profile One")
+      source1 = source_fixture(custom_name: "Source_One", media_profile_id: profile1.id)
+      source2 = source_fixture(custom_name: "Source_Two")
+
+      {:ok, view, _html} = live_isolated(conn, IndexTableLive, session: create_session())
+
+      view
+      |> element("form[phx-change=profile_filter_change]")
+      |> render_change(%{profile_filter: profile1.id})
+
+      refute render_element(view, "tbody") =~ source2.custom_name
+
+      view
+      |> element("form[phx-change=profile_filter_change]")
+      |> render_change(%{profile_filter: ""})
+
+      assert render_element(view, "tbody") =~ source1.custom_name
+      assert render_element(view, "tbody") =~ source2.custom_name
+    end
+  end
+
+  describe "when changing results per page" do
+    test "showing All lists every source on one page", %{conn: conn} do
+      source1 = source_fixture(custom_name: "Source_A")
+      source2 = source_fixture(custom_name: "Source_B")
+
+      session = Map.merge(create_session(), %{"results_per_page" => 1})
+      {:ok, view, _html} = live_isolated(conn, IndexTableLive, session: session)
+
+      refute render_element(view, "tbody") =~ source2.custom_name
+
+      view
+      |> element("form[phx-change=per_page_change]")
+      |> render_change(%{per_page: "all"})
+
+      assert render_element(view, "tbody") =~ source1.custom_name
+      assert render_element(view, "tbody") =~ source2.custom_name
+    end
+  end
+
+  describe "when applying the table density setting" do
+    test "uses compact row spacing by default", %{conn: conn} do
+      source_fixture()
+
+      {:ok, _view, html} = live_isolated(conn, IndexTableLive, session: create_session())
+
+      assert html =~ "py-2.5"
+      refute html =~ "py-5"
+    end
+
+    test "uses roomier row spacing when the setting is normal", %{conn: conn} do
+      source_fixture()
+      Pinchflat.Settings.set(table_density: "normal")
+
+      {:ok, _view, html} = live_isolated(conn, IndexTableLive, session: create_session())
+
+      assert html =~ "py-5"
+    end
+  end
+
   describe "when testing the enable toggle" do
     test "updates the source's enabled status", %{conn: conn} do
       source = source_fixture(enabled: true)

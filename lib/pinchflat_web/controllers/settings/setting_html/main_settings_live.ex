@@ -39,6 +39,11 @@ defmodule Pinchflat.Settings.MainSettingsLive do
     {"Pin a specific version", "pinned"}
   ]
 
+  @table_density_options [
+    {"Compact", "compact"},
+    {"Comfortable", "normal"}
+  ]
+
   def render(%{section: "throttling"} = assigns) do
     ~H"""
     <form id="settings-throttling-form" phx-change="save" phx-submit="save">
@@ -249,6 +254,50 @@ defmodule Pinchflat.Settings.MainSettingsLive do
     """
   end
 
+  def render(%{section: "appearance"} = assigns) do
+    ~H"""
+    <form id="settings-appearance-form" phx-change="save" phx-submit="save">
+      <.input
+        type="select"
+        id="setting_table_density"
+        name="setting[table_density]"
+        value={@table_density}
+        options={@table_density_options}
+        label="Table Density"
+        help="Row spacing for data tables throughout the app. Compact fits more rows on screen; Comfortable adds more breathing room"
+      />
+
+      <div x-data={"{ is12h: #{@time_format == "12h"} }"} phx-update="ignore" id="time-format-wrapper" class="mt-5">
+        <.label for="setting_time_format">Time Format</.label>
+        <div class="relative flex flex-col">
+          <input
+            type="hidden"
+            id="setting_time_format"
+            name="setting[time_format]"
+            x-bind:value="is12h ? '12h' : '24h'"
+          />
+          <div
+            class="inline-flex items-center gap-3 cursor-pointer"
+            @click="is12h = !is12h; dispatchFor('setting_time_format', 'change')"
+          >
+            <span x-bind:class="!is12h ? 'text-black dark:text-white' : 'opacity-50'">24hr</span>
+            <div class="relative h-8 w-14">
+              <div x-bind:class="is12h && 'bg-primary!'" class="block h-8 w-14 rounded-full bg-black"></div>
+              <div
+                x-bind:class="is12h && 'right-1! translate-x-full!'"
+                class="absolute left-1 top-1 flex h-6 w-6 items-center justify-center rounded-full bg-white transition"
+              >
+              </div>
+            </div>
+            <span x-bind:class="is12h ? 'text-black dark:text-white' : 'opacity-50'">12hr</span>
+          </div>
+          <.help>Clock used when displaying timestamps in the UI</.help>
+        </div>
+      </div>
+    </form>
+    """
+  end
+
   def render(%{section: "system"} = assigns) do
     ~H"""
     <form id="settings-system-form" phx-change="save" phx-submit="save">
@@ -298,34 +347,6 @@ defmodule Pinchflat.Settings.MainSettingsLive do
           />
         </:input_append>
       </.input>
-
-      <div x-data={"{ is12h: #{@time_format == "12h"} }"} phx-update="ignore" id="time-format-wrapper" class="mt-5">
-        <.label for="setting_time_format">Time Format</.label>
-        <div class="relative flex flex-col">
-          <input
-            type="hidden"
-            id="setting_time_format"
-            name="setting[time_format]"
-            x-bind:value="is12h ? '12h' : '24h'"
-          />
-          <div
-            class="inline-flex items-center gap-3 cursor-pointer"
-            @click="is12h = !is12h; dispatchFor('setting_time_format', 'change')"
-          >
-            <span x-bind:class="!is12h ? 'text-black dark:text-white' : 'opacity-50'">24hr</span>
-            <div class="relative h-8 w-14">
-              <div x-bind:class="is12h && 'bg-primary!'" class="block h-8 w-14 rounded-full bg-black"></div>
-              <div
-                x-bind:class="is12h && 'right-1! translate-x-full!'"
-                class="absolute left-1 top-1 flex h-6 w-6 items-center justify-center rounded-full bg-white transition"
-              >
-              </div>
-            </div>
-            <span x-bind:class="is12h ? 'text-black dark:text-white' : 'opacity-50'">12hr</span>
-          </div>
-          <.help>Clock used when displaying timestamps in the UI</.help>
-        </div>
-      </div>
     </form>
     """
   end
@@ -350,6 +371,7 @@ defmodule Pinchflat.Settings.MainSettingsLive do
       |> assign(%{
         section: session["section"] || "throttling",
         policy_options: @policy_options,
+        table_density_options: @table_density_options,
         errors: %{},
         saved_field: nil,
         apprise_icon: "hero-paper-airplane",
@@ -500,6 +522,7 @@ defmodule Pinchflat.Settings.MainSettingsLive do
       ignore_unavailable_media: setting.ignore_unavailable_media,
       database_maintenance_enabled: setting.database_maintenance_enabled,
       time_format: setting.time_format || "24h",
+      table_density: setting.table_density || "compact",
       yt_dlp_update_policy: setting.yt_dlp_update_policy || "stable",
       yt_dlp_pinned_version: setting.yt_dlp_pinned_version,
       podcast_url_base: setting.podcast_url_base,

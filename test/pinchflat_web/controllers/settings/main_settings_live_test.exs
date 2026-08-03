@@ -63,6 +63,25 @@ defmodule PinchflatWeb.Settings.MainSettingsLiveTest do
     end
   end
 
+  describe "appearance section" do
+    test "renders the table density and time format controls", %{conn: conn} do
+      {:ok, _view, html} = mount_section(conn, "appearance")
+
+      assert html =~ ~s(name="setting[table_density]")
+      assert html =~ "Compact"
+      assert html =~ "Comfortable"
+      assert html =~ ~s(name="setting[time_format]")
+    end
+
+    test "persists the table density on change", %{conn: conn} do
+      {:ok, view, _html} = mount_section(conn, "appearance")
+
+      change(view, :table_density, "normal")
+
+      assert Settings.get!(:table_density) == "normal"
+    end
+  end
+
   describe "yt-dlp policy" do
     test "kicks off a yt-dlp update when the policy changes", %{conn: conn} do
       {:ok, view, _html} = mount_section(conn, "system")
@@ -73,7 +92,7 @@ defmodule PinchflatWeb.Settings.MainSettingsLiveTest do
     end
 
     test "does not kick off an update for unrelated changes", %{conn: conn} do
-      {:ok, view, _html} = mount_section(conn, "system")
+      {:ok, view, _html} = mount_section(conn, "appearance")
 
       change(view, :time_format, "12h")
 

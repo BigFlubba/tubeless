@@ -8,6 +8,15 @@
 
 <div class="space-y-6">
   <section class="rounded-xs border border-stroke bg-white px-5 py-5 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-7.5">
+    <h3 class="text-2xl text-black dark:text-white mb-2">Appearance</h3>
+
+    {live_render(@conn, Pinchflat.Settings.MainSettingsLive,
+      id: "settings-appearance",
+      session: %{"section" => "appearance"}
+    )}
+  </section>
+
+  <section class="rounded-xs border border-stroke bg-white px-5 py-5 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-7.5">
     <h3 class="text-2xl text-black dark:text-white mb-2">Connection</h3>
 
     <div class="mt-4">

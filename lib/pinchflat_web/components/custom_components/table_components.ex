@@ -5,6 +5,8 @@ defmodule PinchflatWeb.CustomComponents.TableComponents do
   import PinchflatWeb.CoreComponents
   import PinchflatWeb.CustomComponents.TextComponents
 
+  alias Pinchflat.Settings
+
   @doc """
   Renders a table component with the given rows and columns.
 
@@ -19,6 +21,11 @@ defmodule PinchflatWeb.CustomComponents.TableComponents do
   attr :sort_key, :string, default: nil
   attr :sort_direction, :string, default: nil
 
+  attr :density, :string,
+    default: nil,
+    values: ~w(normal compact) ++ [nil],
+    doc: "row spacing; defaults to the user's `table_density` setting when not given"
+
   attr :row_item, :any,
     default: &Function.identity/1,
     doc: "the function for mapping each row before calling the :col and :action slots"
@@ -30,13 +37,20 @@ defmodule PinchflatWeb.CustomComponents.TableComponents do
   end
 
   def table(assigns) do
+    assigns = assign(assigns, :density, assigns.density || Settings.get!(:table_density))
+
     ~H"""
     <table class={["w-full table-auto bg-boxdark", @table_class]}>
       <thead>
         <tr class="text-left bg-meta-4">
           <th
             :for={col <- @col}
-            class={["px-4 py-4 font-medium text-white", col[:sort_key] && "cursor-pointer"]}
+            class={[
+              "px-4 font-medium text-white",
+              @density == "compact" && "py-2.5",
+              @density == "normal" && "py-4",
+              col[:sort_key] && "cursor-pointer"
+            ]}
             phx-click={col[:sort_key] && "sort_update"}
             phx-value-sort_key={col[:sort_key]}
           >
@@ -56,7 +70,9 @@ defmodule PinchflatWeb.CustomComponents.TableComponents do
           <td
             :for={col <- @col}
             class={[
-              "px-4 py-5",
+              "px-4",
+              @density == "compact" && "py-2.5",
+              @density == "normal" && "py-5",
               col[:class]
             ]}
           >

@@ -29,11 +29,13 @@ defmodule Pinchflat.Settings.Setting do
     :proxy_url,
     :proxy_covers_http,
     :time_format,
+    :table_density,
     :default_cookie_behaviour
   ]
 
   @proxy_modes ~w(none manual file)
   @time_formats ~w(24h 12h)
+  @table_densities ~w(compact normal)
   @cookie_behaviours ~w(disabled when_needed all_operations)
 
   @required_fields [
@@ -73,6 +75,9 @@ defmodule Pinchflat.Settings.Setting do
     # Clock used when rendering timestamps in the UI: "24h" | "12h"
     field :time_format, :string, default: "24h"
 
+    # Row spacing used when rendering data tables in the UI: "compact" | "normal"
+    field :table_density, :string, default: "compact"
+
     # The cookie behaviour pre-selected when adding a new source:
     # "disabled" | "when_needed" | "all_operations"
     field :default_cookie_behaviour, :string, default: "disabled"
@@ -93,6 +98,7 @@ defmodule Pinchflat.Settings.Setting do
     |> validate_pinned_version()
     |> validate_inclusion(:proxy_mode, @proxy_modes)
     |> validate_inclusion(:time_format, @time_formats)
+    |> validate_inclusion(:table_density, @table_densities)
     |> validate_inclusion(:default_cookie_behaviour, @cookie_behaviours)
     |> validate_proxy_url()
   end
@@ -111,6 +117,11 @@ defmodule Pinchflat.Settings.Setting do
   The allowed time formats.
   """
   def time_formats, do: @time_formats
+
+  @doc """
+  The allowed table densities.
+  """
+  def table_densities, do: @table_densities
 
   # In "manual" mode a proxy URL is required and must be a well-formed proxy URL.
   # yt-dlp accepts http, https, socks4, and socks5 schemes. In other modes the
