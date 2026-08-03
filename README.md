@@ -262,3 +262,13 @@ If you plan to use this project publicly, make sure your usage and documentation
 ## License
 
 See [LICENSE](LICENSE) file
+
+## Star History
+
+<a href="https://www.star-history.com/?repos=CommunityMaintained%2Ftubeless&type=date&legend=top-left">
+ <picture>
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=CommunityMaintained/tubeless&type=date&theme=dark&legend=top-left&sealed_token=sguZKqTf_XmZn1aegAYXT3xN_SoYM417DNDOKJMfvDOKOS12fBQsI5hk3YFSWaqezA-H4AD1KcFJ6kIOaf_j7xs9n4IpTD-WLM0z41Ad6f1iMEXUJnUTOt62ZggIliKfoMGf-jlGE3N3m5OPPVY3E5RAp3l7WknaTO__-YDXpe6aB3ymMoXAmmjsg9v4" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=CommunityMaintained/tubeless&type=date&legend=top-left&sealed_token=sguZKqTf_XmZn1aegAYXT3xN_SoYM417DNDOKJMfvDOKOS12fBQsI5hk3YFSWaqezA-H4AD1KcFJ6kIOaf_j7xs9n4IpTD-WLM0z41Ad6f1iMEXUJnUTOt62ZggIliKfoMGf-jlGE3N3m5OPPVY3E5RAp3l7WknaTO__-YDXpe6aB3ymMoXAmmjsg9v4" />
+   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=CommunityMaintained/tubeless&type=date&legend=top-left&sealed_token=sguZKqTf_XmZn1aegAYXT3xN_SoYM417DNDOKJMfvDOKOS12fBQsI5hk3YFSWaqezA-H4AD1KcFJ6kIOaf_j7xs9n4IpTD-WLM0z41Ad6f1iMEXUJnUTOt62ZggIliKfoMGf-jlGE3N3m5OPPVY3E5RAp3l7WknaTO__-YDXpe6aB3ymMoXAmmjsg9v4" />
+ </picture>
+</a>
