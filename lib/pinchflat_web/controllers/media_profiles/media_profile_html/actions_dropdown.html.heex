@@ -1,41 +1,75 @@
-<.button_dropdown text="Actions" class="justify-center w-full sm:w-50">
-  <:option>
-    <span x-data="{ copied: false }" x-on:click={~s"
+<div x-data="{ open: false }" class="relative">
+  <button
+    type="button"
+    x-on:click="open = !open"
+    class="flex h-11 w-11 items-center justify-center rounded-lg border-2 border-strokedark bg-form-input text-stroke hover:border-form-strokedark hover:bg-meta-4"
+    aria-label="More actions"
+  >
+    <.icon name="hero-ellipsis-horizontal" />
+  </button>
+
+  <div
+    x-show="open"
+    x-on:click.outside="open = false"
+    x-transition
+    class="absolute right-0 top-full z-40 mt-2 w-max max-w-[90vw] overflow-hidden rounded-md bg-black py-2 shadow-card"
+    style="display: none"
+  >
+    <p class="px-4 pb-1 pt-2 text-xs font-semibold uppercase tracking-wide text-bodydark2">Profile</p>
+    <.action_item
+      href={~p"/media_profiles/new?template_id=#{@media_profile}"}
+      icon="hero-document-duplicate"
+      title="Create new profile from this one"
+      description="Opens the form pre-filled with these settings"
+    />
+    <%!--
+      Not an `action_item`: this copies client-side instead of navigating, and
+      shows a transient check when it does. Styled to match one.
+    --%>
+    <span
+      x-data="{ copied: false }"
+      role="button"
+      tabindex="0"
+      x-on:click={~s"
         copyWithCallbacks(
           String.raw`#{Jason.Formatter.pretty_print(Phoenix.json_library().encode!(@media_profile))}`,
-          () => copied = true, 
+          () => copied = true,
           () => copied = false
         )
-      "}>
-      Copy JSON
-      <span x-show="copied" x-transition.duration.150ms><.icon name="hero-check" class="ml-2 h-4 w-4" /></span>
+      "}
+      class="flex cursor-pointer items-start gap-3 px-4 py-2.5 text-bodydark2 hover:bg-meta-4 hover:text-white"
+    >
+      <.icon name="hero-code-bracket" class="mt-0.5 h-5 w-5 shrink-0" />
+      <span class="flex flex-col">
+        <span class="flex items-center whitespace-nowrap font-medium text-white">
+          Copy JSON
+          <span x-show="copied" x-transition.duration.150ms>
+            <.icon name="hero-check" class="ml-2 h-4 w-4" />
+          </span>
+        </span>
+        <span class="whitespace-nowrap text-sm text-bodydark2">This profile's raw settings, for issue reports</span>
+      </span>
     </span>
-  </:option>
-  <:option>
-    <.link href={~p"/media_profiles/new?template_id=#{@media_profile}"} method="get">
-      Use as Template
-    </.link>
-  </:option>
-  <:option>
-    <div class="h-px w-full bg-bodydark2"></div>
-  </:option>
-  <:option>
-    <.link
+
+    <div class="my-2 h-px bg-bodydark2/30"></div>
+    <p class="px-4 pb-1 pt-1 text-xs font-semibold uppercase tracking-wide text-danger">Danger zone</p>
+    <.action_item
       href={~p"/media_profiles/#{@media_profile}"}
       method="delete"
-      data-confirm="Are you sure you want to delete this profile and all its sources (leaving files in place)? This cannot be undone."
-    >
-      Delete Profile
-    </.link>
-  </:option>
-  <:option>
-    <.link
+      variant="danger"
+      icon="hero-trash"
+      title="Delete profile"
+      description="Also deletes its sources, but leaves files on disk"
+      confirm="Are you sure you want to delete this profile and all its sources (leaving files in place)? This cannot be undone."
+    />
+    <.action_item
       href={~p"/media_profiles/#{@media_profile}?delete_files=true"}
       method="delete"
-      data-confirm="Are you sure you want to delete this profile, all its sources, and its files on disk? This cannot be undone."
-      class="mt-5 md:mt-0"
-    >
-      Delete Profile + Files
-    </.link>
-  </:option>
-</.button_dropdown>
+      variant="danger"
+      icon="hero-trash"
+      title="Delete profile + files"
+      description="Also deletes its sources and every downloaded file"
+      confirm="Are you sure you want to delete this profile, all its sources, and its files on disk? This cannot be undone."
+    />
+  </div>
+</div>

@@ -74,6 +74,24 @@ defmodule Pinchflat.Downloading.DownloadOptionBuilder do
     quality_options(media_profile)
   end
 
+  @doc """
+  Builds the subset of yt-dlp options a media profile determines entirely on its
+  own — everything that doesn't depend on a specific media item (so no output
+  paths, thumbnail destination, or per-source config file).
+
+  Powers the read-only "Effective yt-dlp options" preview on the media profile
+  page, so what the preview shows can't drift from what a real download passes.
+
+  Returns [Keyword.t() | atom()]
+  """
+  def build_profile_options(%MediaProfile{} = media_profile) do
+    subtitle_options(media_profile) ++
+      profile_thumbnail_options(media_profile) ++
+      metadata_options(media_profile) ++
+      quality_options(media_profile) ++
+      sponsorblock_options(media_profile)
+  end
+
   defp default_options(override_opts) do
     overwrite_behaviour = Keyword.get(override_opts, :overwrite_behaviour, :force_overwrites)
 
@@ -115,22 +133,30 @@ defmodule Pinchflat.Downloading.DownloadOptionBuilder do
     end)
   end
 
+  # The profile decides *whether* to write/embed a thumbnail and what format it
+  # ends up in; only the save location needs the media item. Splitting it that way
+  # lets `build_profile_options/1` report the same flags a download really passes
+  # instead of keeping a second, drift-prone list of them.
   defp thumbnail_options(media_item_with_preloads) do
     media_profile = media_item_with_preloads.source.media_profile
+
+    Enum.flat_map(profile_thumbnail_options(media_profile), fn
+      :write_thumbnail ->
+        [:write_thumbnail, output: "thumbnail:#{determine_thumbnail_location(media_item_with_preloads)}"]
+
+      option ->
+        [option]
+    end)
+  end
+
+  defp profile_thumbnail_options(media_profile) do
     mapped_struct = Map.from_struct(media_profile)
 
     Enum.reduce(mapped_struct, [], fn attr, acc ->
       case attr do
-        {:download_thumbnail, true} ->
-          thumbnail_save_location = determine_thumbnail_location(media_item_with_preloads)
-
-          acc ++ [:write_thumbnail, convert_thumbnail: "jpg", output: "thumbnail:#{thumbnail_save_location}"]
-
-        {:embed_thumbnail, true} ->
-          acc ++ [:embed_thumbnail, convert_thumbnail: "jpg"]
-
-        _ ->
-          acc
+        {:download_thumbnail, true} -> acc ++ [:write_thumbnail, convert_thumbnail: "jpg"]
+        {:embed_thumbnail, true} -> acc ++ [:embed_thumbnail, convert_thumbnail: "jpg"]
+        _ -> acc
       end
     end)
   end

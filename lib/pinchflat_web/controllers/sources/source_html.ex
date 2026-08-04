@@ -45,35 +45,6 @@ defmodule PinchflatWeb.Sources.SourceHTML do
   def collection_type_icon(_), do: "hero-question-mark-circle"
 
   @doc """
-  A single item in the source Actions menu: an icon, a title, and a one-line
-  description. Renders as a `.link` so it supports POST/DELETE actions with an
-  optional confirmation dialog.
-  """
-  attr :href, :string, required: true
-  attr :method, :string, default: "get"
-  attr :icon, :string, required: true
-  attr :title, :string, required: true
-  attr :description, :string, required: true
-  attr :confirm, :string, default: nil
-
-  def action_item(assigns) do
-    ~H"""
-    <.link
-      href={@href}
-      method={@method}
-      data-confirm={@confirm}
-      class="flex items-start gap-3 px-4 py-2.5 text-bodydark2 hover:bg-meta-4 hover:text-white"
-    >
-      <.icon name={@icon} class="mt-0.5 h-5 w-5 shrink-0" />
-      <span class="flex flex-col">
-        <span class="font-medium text-white whitespace-nowrap">{@title}</span>
-        <span class="text-sm text-bodydark2 whitespace-nowrap">{@description}</span>
-      </span>
-    </.link>
-    """
-  end
-
-  @doc """
   Renders the Details tab: the grouped source info panel and the internal-fields
   box. Read-only — editing happens on the `/sources/:id/edit` form.
   """
@@ -274,65 +245,6 @@ defmodule PinchflatWeb.Sources.SourceHTML do
       <div :if={!@url && @unavailable != []} class="mt-3 rounded-md border border-warning/40 bg-warning/5 px-3 py-2">
         <p class="max-w-prose text-sm text-warning">{render_slot(@unavailable)}</p>
       </div>
-    </div>
-    """
-  end
-
-  @doc """
-  A client-side-only switch bound to an Alpine boolean, styled to match the
-  form toggle in `CoreComponents.input/1` at a smaller scale. Unlike that one
-  this has no form field behind it — the real checkbox is visually hidden and
-  drives the Alpine state, which keeps the label clickable and the control
-  reachable by keyboard.
-  """
-  attr :model, :string, required: true, doc: "the Alpine expression to bind (e.g. \"showUnset\")"
-  attr :label, :string, required: true
-
-  def switch(assigns) do
-    ~H"""
-    <label class="group flex cursor-pointer select-none items-center gap-2.5 text-sm text-bodydark hover:text-black dark:hover:text-white">
-      <input type="checkbox" x-model={@model} class="peer sr-only" />
-      <span class="relative inline-block h-5 w-9 shrink-0">
-        <span
-          class="block h-full w-full rounded-full bg-stroke transition peer-focus-visible:ring-2 peer-focus-visible:ring-primary dark:bg-strokedark"
-          x-bind:class={"#{@model} && 'bg-primary! dark:bg-primary!'"}
-        ></span>
-        <span
-          class="absolute left-0.5 top-0.5 h-4 w-4 rounded-full bg-white shadow transition"
-          x-bind:class={"#{@model} && 'translate-x-4'"}
-        ></span>
-      </span>
-      {@label}
-    </label>
-    """
-  end
-
-  @doc """
-  A compact two-or-more-option segmented control bound to an Alpine expression.
-  Each option is a `{label, alpine_value}` pair — the value is written into the
-  bound expression verbatim, so it must be a JS literal (`"true"`, `"'json'"`).
-  """
-  attr :model, :string, required: true
-  attr :options, :list, required: true
-  attr :aria_label, :string, default: nil
-
-  def segmented_control(assigns) do
-    ~H"""
-    <div
-      role="group"
-      aria-label={@aria_label}
-      class="inline-flex items-center gap-0.5 rounded-md border border-stroke p-0.5 dark:border-strokedark"
-    >
-      <button
-        :for={{label, value} <- @options}
-        type="button"
-        x-on:click={"#{@model} = #{value}"}
-        x-bind:class={"#{@model} === #{value} ? 'bg-meta-4 text-white' : 'text-bodydark hover:text-black dark:hover:text-white'"}
-        x-bind:aria-pressed={"#{@model} === #{value}"}
-        class="rounded-sm px-2.5 py-1 text-xs font-medium transition"
-      >
-        {label}
-      </button>
     </div>
     """
   end

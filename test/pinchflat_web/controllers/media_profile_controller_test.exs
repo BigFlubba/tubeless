@@ -1,11 +1,14 @@
 defmodule PinchflatWeb.MediaProfileControllerTest do
   use PinchflatWeb.ConnCase
 
+  import Pinchflat.MediaFixtures
+  import Pinchflat.SourcesFixtures
   import Pinchflat.ProfilesFixtures
 
   alias Pinchflat.Repo
   alias Pinchflat.Settings
   alias Pinchflat.Profiles.MediaProfileDeletionWorker
+  alias Pinchflat.SlowIndexing.MediaCollectionIndexingWorker
 
   @create_attrs %{name: "some name", output_path_template: "output_template.{{ ext }}"}
   @update_attrs %{
@@ -33,6 +36,156 @@ defmodule PinchflatWeb.MediaProfileControllerTest do
       profile = media_profile_fixture(marked_for_deletion_at: DateTime.utc_now())
       conn = get(conn, ~p"/media_profiles")
       refute html_response(conn, 200) =~ profile.name
+    end
+  end
+
+  describe "show media_profile" do
+    setup do
+      {:ok, media_profile: media_profile_fixture()}
+    end
+
+    # The header strip is a <dl>; grab the <dd> belonging to a given <dt> label
+    defp metric_text(html, label) do
+      html
+      |> LazyHTML.from_document()
+      |> LazyHTML.query("dl div")
+      |> Enum.find(fn cell -> cell |> LazyHTML.query("dt") |> LazyHTML.text() |> String.trim() == label end)
+      |> LazyHTML.query("dd")
+      |> LazyHTML.text()
+      |> String.trim()
+    end
+
+    test "renders the profile's name and download summary in the header", %{conn: conn, media_profile: profile} do
+      conn = get(conn, ~p"/media_profiles/#{profile}")
+      html = html_response(conn, 200)
+
+      assert html =~ profile.name
+      assert html =~ "Sources"
+      assert html =~ "Downloaded"
+      assert html =~ "Quality"
+    end
+
+    test "renders grouped download settings instead of a raw attribute dump", %{conn: conn, media_profile: profile} do
+      conn = get(conn, ~p"/media_profiles/#{profile}")
+      html = html_response(conn, 200)
+
+      assert html =~ "Download settings"
+      assert html =~ "Preferred resolution"
+      assert html =~ "Show unset fields"
+      refute html =~ "Raw Attributes"
+    end
+
+    test "renders the effective yt-dlp preview", %{conn: conn, media_profile: profile} do
+      conn = get(conn, ~p"/media_profiles/#{profile}")
+      html = html_response(conn, 200)
+
+      assert html =~ "Effective yt-dlp options"
+      assert html =~ "Media downloads to"
+      assert html =~ "--remux-video mp4"
+    end
+
+    test "renders the internal box with a raw JSON view", %{conn: conn, media_profile: profile} do
+      conn = get(conn, ~p"/media_profiles/#{profile}")
+      html = html_response(conn, 200)
+
+      assert html =~ "Internal"
+      assert html =~ "Raw JSON"
+    end
+
+    test "lists the sources using the profile with what they've downloaded", %{conn: conn, media_profile: profile} do
+      source = source_fixture(%{media_profile_id: profile.id, custom_name: "Cool Channel"})
+      media_item_fixture(%{source_id: source.id, media_filepath: "/video.mp4", media_size_bytes: 1_000})
+
+      conn = get(conn, ~p"/media_profiles/#{profile}")
+      html = html_response(conn, 200)
+
+      assert html =~ "Cool Channel"
+      assert html =~ "Active"
+    end
+
+    test "flags a source whose latest job is failing", %{conn: conn, media_profile: profile} do
+      source = source_fixture(%{media_profile_id: profile.id})
+      {:ok, job} = %{"id" => source.id} |> MediaCollectionIndexingWorker.new() |> Oban.insert()
+
+      job = job |> Ecto.Changeset.change(state: "discarded") |> Repo.update!()
+      Pinchflat.Tasks.create_task(job, source)
+
+      conn = get(conn, ~p"/media_profiles/#{profile}")
+
+      assert html_response(conn, 200) =~ "Error"
+    end
+
+    # `download_media` is a setting, not a live state, and it's independent of
+    # `enabled` - a bare check mark on a paused source reads as "downloading now"
+    test "says a paused source isn't downloading even with download_media on", %{conn: conn, media_profile: profile} do
+      source_fixture(%{media_profile_id: profile.id, enabled: false, download_media: true})
+
+      conn = get(conn, ~p"/media_profiles/#{profile}")
+      html = html_response(conn, 200)
+
+      assert html =~ "Downloads media"
+      assert html =~ "nothing downloads until it&#39;s resumed"
+    end
+
+    test "totals only count media belonging to this profile's sources", %{conn: conn, media_profile: profile} do
+      source = source_fixture(%{media_profile_id: profile.id})
+      media_item_fixture(%{source_id: source.id, media_filepath: "/a.mp4", media_size_bytes: 1_500})
+      media_item_fixture(%{source_id: source.id, media_filepath: "/b.mp4", media_size_bytes: 500})
+      # not downloaded - counts toward neither total
+      media_item_fixture(%{source_id: source.id, media_filepath: nil, media_size_bytes: 999})
+
+      other_source = source_fixture(%{media_profile_id: media_profile_fixture().id})
+      media_item_fixture(%{source_id: other_source.id, media_filepath: "/c.mp4", media_size_bytes: 9_000_000})
+
+      html = conn |> get(~p"/media_profiles/#{profile}") |> html_response(200)
+
+      downloaded = metric_text(html, "Downloaded")
+
+      assert downloaded =~ ~r/\A2\b/
+      assert downloaded =~ "2 KiB"
+      # the other profile's much larger source is not folded into this profile's size
+      refute downloaded =~ "MiB"
+    end
+
+    test "omits sources marked for deletion, like the profiles index does", %{conn: conn, media_profile: profile} do
+      source_fixture(%{media_profile_id: profile.id, custom_name: "Live Channel"})
+
+      deleted = source_fixture(%{media_profile_id: profile.id, custom_name: "Deleted Channel"})
+      {:ok, _} = Pinchflat.Sources.update_source(deleted, %{marked_for_deletion_at: DateTime.utc_now()})
+      media_item_fixture(%{source_id: deleted.id, media_filepath: "/gone.mp4", media_size_bytes: 4_000})
+
+      html = conn |> get(~p"/media_profiles/#{profile}") |> html_response(200)
+
+      assert html =~ "Live Channel"
+      refute html =~ "Deleted Channel"
+      # its media doesn't quietly inflate the header totals either
+      assert metric_text(html, "Sources") == "1"
+      assert metric_text(html, "Downloaded") =~ ~r/\A0\b/
+    end
+
+    test "notes when a source overrides the profile's output path", %{conn: conn, media_profile: profile} do
+      source_fixture(%{media_profile_id: profile.id, output_path_template_override: "/elsewhere/{{ title }}.{{ ext }}"})
+
+      html = conn |> get(~p"/media_profiles/#{profile}") |> html_response(200)
+
+      assert html =~ "output path template override"
+    end
+
+    test "makes no override claim on a podcast profile, which ignores overrides", %{conn: conn} do
+      profile = media_profile_fixture(%{podcast_enabled: true})
+      source_fixture(%{media_profile_id: profile.id, output_path_template_override: "/elsewhere/{{ title }}.{{ ext }}"})
+
+      html = conn |> get(~p"/media_profiles/#{profile}") |> html_response(200)
+
+      # the podcast layout wins over the override, so the source does NOT download elsewhere
+      refute html =~ "output path template override"
+      assert html =~ "Podcast profiles ignore the output path template"
+    end
+
+    test "explains itself when nothing uses the profile", %{conn: conn, media_profile: profile} do
+      conn = get(conn, ~p"/media_profiles/#{profile}")
+
+      assert html_response(conn, 200) =~ "No sources use this media profile yet"
     end
   end
 

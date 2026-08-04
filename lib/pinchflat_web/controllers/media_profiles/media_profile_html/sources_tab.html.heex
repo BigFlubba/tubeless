@@ -1,0 +1,56 @@
+<div :if={@sources == []} class="py-10 text-center">
+  <.icon name="hero-inbox" class="h-8 w-8 text-bodydark2" />
+  <p class="mt-2 text-black dark:text-white">No sources use this media profile yet.</p>
+  <p class="mt-1 text-sm text-bodydark2">
+    Its download rules apply to a channel or playlist once you point one at it.
+  </p>
+  <.link href={~p"/sources/new"} class="mt-4 inline-block">
+    <.button color="bg-primary" rounding="rounded-lg">
+      <.icon name="hero-plus" class="mr-2" />New Source
+    </.button>
+  </.link>
+</div>
+
+<.table :if={@sources != []} rows={@sources} table_class="text-black dark:text-white">
+  <:col :let={source} label="Name">
+    <.subtle_link href={~p"/sources/#{source.id}"}>
+      {source.custom_name || source.collection_name}
+    </.subtle_link>
+  </:col>
+  <:col :let={source} label="Type">{source.collection_type}</:col>
+  <:col :let={source} label="Status">
+    <% status = source_status_pill(source, @failing_source_ids) %>
+    <span class={[
+      "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium",
+      status.class
+    ]}>
+      <.icon name={status.icon} class="h-3.5 w-3.5" /> {status.label}
+    </span>
+  </:col>
+  <%!--
+    `download_media` is a setting ("queue indexed media for download"), not a live
+    state, and it's stored independently of `enabled` - so a paused source can have
+    it on while nothing actually downloads. The pill dims and says so rather than
+    showing a bare check that reads as "this is downloading".
+  --%>
+  <:col :let={source} label="Downloads media">
+    <span
+      :if={source.download_media}
+      class={["inline-flex items-center gap-1", !source.enabled && "text-bodydark2"]}
+      title={!source.enabled && "On, but the source is paused - nothing downloads until it's resumed"}
+    >
+      <.icon name="hero-check" />
+      <span :if={!source.enabled} class="text-xs">paused</span>
+    </span>
+    <.icon :if={!source.download_media} name="hero-x-mark" class="text-bodydark2" />
+  </:col>
+  <:col :let={source} label="Downloaded">
+    <.localized_number number={source.downloaded_count} />
+    <span :if={source.media_size_bytes > 0} class="text-bodydark">
+      · <.readable_filesize byte_size={source.media_size_bytes} />
+    </span>
+  </:col>
+  <:col :let={source} label="" class="flex justify-end">
+    <.icon_link href={~p"/sources/#{source.id}/edit"} icon="hero-pencil-square" class="mr-4" />
+  </:col>
+</.table>

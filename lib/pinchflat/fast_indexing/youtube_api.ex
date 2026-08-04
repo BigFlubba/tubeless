@@ -16,6 +16,10 @@ defmodule Pinchflat.FastIndexing.YoutubeApi do
 
   # A well-known public playlist (YouTube's "Popular Right Now" uploads playlist)
   # used to verify that an API key is accepted by the YouTube API.
+  #
+  # This is a deliberate exception to the "never use real YouTube IDs" rule in
+  # CLAUDE.md: the API-key Test button makes a live call to YouTube's servers, so
+  # a made-up playlist ID would always come back 404 and report every key invalid.
   @test_playlist_id "PLrAXtmErZgOeiKm4sgNOknGvNjby9efdf"
 
   @doc """

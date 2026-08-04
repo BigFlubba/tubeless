@@ -479,6 +479,73 @@ defmodule Pinchflat.Downloading.DownloadOptionBuilderTest do
     end
   end
 
+  describe "build_profile_options/1" do
+    test "includes the options a profile determines on its own", %{media_item: media_item} do
+      media_item = update_media_profile_attribute(media_item, %{download_metadata: true, download_subs: true})
+      options = DownloadOptionBuilder.build_profile_options(media_item.source.media_profile)
+
+      assert :write_info_json in options
+      assert :write_subs in options
+      assert {:remux_video, "mp4"} in options
+    end
+
+    test "includes the thumbnail flags the profile decides", %{media_item: media_item} do
+      media_item = update_media_profile_attribute(media_item, %{download_thumbnail: true, embed_thumbnail: true})
+      options = DownloadOptionBuilder.build_profile_options(media_item.source.media_profile)
+
+      assert :write_thumbnail in options
+      assert :embed_thumbnail in options
+      assert {:convert_thumbnail, "jpg"} in options
+    end
+
+    test "omits every option that depends on the media item", %{media_item: media_item} do
+      media_item = update_media_profile_attribute(media_item, %{download_thumbnail: true})
+      options = DownloadOptionBuilder.build_profile_options(media_item.source.media_profile)
+
+      # the thumbnail's save location, the output path, and the config file all
+      # need a media item to resolve
+      refute Enum.any?(options, &match?({:output, _}, &1))
+      refute Enum.any?(options, &match?({:config_locations, _}, &1))
+    end
+
+    # These are passed to every download regardless of the profile, so previewing
+    # them would claim the profile decides something it doesn't
+    test "omits the options that aren't profile-determined at all", %{media_item: media_item} do
+      options = DownloadOptionBuilder.build_profile_options(media_item.source.media_profile)
+
+      refute :no_progress in options
+      refute :force_overwrites in options
+      refute Enum.any?(options, &match?({:parse_metadata, _}, &1))
+    end
+
+    # The whole point of this function is to describe a real download without
+    # keeping a second list of flags that can drift from one
+    test "is a strict subset of what a real download passes", %{media_item: media_item} do
+      media_item =
+        update_media_profile_attribute(media_item, %{
+          download_subs: true,
+          embed_subs: true,
+          download_thumbnail: true,
+          embed_thumbnail: true,
+          download_metadata: true,
+          embed_metadata: true,
+          sponsorblock_remove_categories: ["sponsor"],
+          sponsorblock_mark_categories: ["intro"],
+          audio_track: "original"
+        })
+
+      {:ok, full_options} = DownloadOptionBuilder.build(media_item)
+      profile_options = DownloadOptionBuilder.build_profile_options(media_item.source.media_profile)
+
+      assert profile_options != []
+
+      for option <- profile_options do
+        assert option in full_options,
+               "#{inspect(option)} is previewed on the media profile page but isn't passed to a real download"
+      end
+    end
+  end
+
   defp update_media_profile_attribute(media_item_with_preloads, attrs) do
     media_item_with_preloads.source.media_profile
     |> Profiles.change_media_profile(attrs)

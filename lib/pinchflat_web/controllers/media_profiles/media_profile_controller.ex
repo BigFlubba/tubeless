@@ -2,31 +2,19 @@ defmodule PinchflatWeb.MediaProfiles.MediaProfileController do
   use PinchflatWeb, :controller
   use Pinchflat.Sources.SourcesQuery
   use Pinchflat.Profiles.ProfilesQuery
+  use Pinchflat.Media.MediaQuery
 
   alias Pinchflat.Repo
+  alias Pinchflat.Sources
   alias Pinchflat.Profiles
-  alias Pinchflat.Reconciliation
   alias Pinchflat.Sources.Source
+  alias Pinchflat.Media.MediaItem
+  alias Pinchflat.Reconciliation
   alias Pinchflat.Profiles.MediaProfile
   alias Pinchflat.Profiles.MediaProfileDeletionWorker
 
   def index(conn, _params) do
-    media_profiles_query =
-      from mp in MediaProfile,
-        as: :media_profile,
-        where: is_nil(mp.marked_for_deletion_at),
-        order_by: [asc: mp.name],
-        select: map(mp, ^MediaProfile.__schema__(:fields)),
-        select_merge: %{
-          source_count:
-            subquery(
-              from s in Source,
-                where: s.media_profile_id == parent_as(:media_profile).id,
-                select: count(s.id)
-            )
-        }
-
-    render(conn, :index, media_profiles: Repo.all(media_profiles_query))
+    render(conn, :index)
   end
 
   def new(conn, params) do
@@ -67,14 +55,61 @@ defmodule PinchflatWeb.MediaProfiles.MediaProfileController do
 
   def show(conn, %{"id" => id}) do
     media_profile = Profiles.get_media_profile!(id)
+    sources = sources_with_totals(media_profile)
 
-    sources =
-      SourcesQuery.new()
-      |> where(^SourcesQuery.for_media_profile(media_profile))
-      |> order_by(asc: :custom_name)
-      |> Repo.all()
+    render(conn, :show,
+      media_profile: media_profile,
+      sources: sources,
+      failing_source_ids: Sources.failing_source_ids(Enum.map(sources, & &1.id)),
+      profile_totals: profile_totals(sources)
+    )
+  end
 
-    render(conn, :show, media_profile: media_profile, sources: sources)
+  # The sources using this profile, each carrying its downloaded count and byte
+  # total. One LEFT JOIN over a grouped subquery rather than a count per row, so
+  # a profile with dozens of sources still costs one query.
+  #
+  # The subquery is scoped to THIS profile's sources rather than grouping every
+  # downloaded item in the database: the outer `media_profile_id` filter can't
+  # constrain a grouped subquery, so without the inner join, opening any one
+  # profile would materialize an aggregate over the whole library.
+  defp sources_with_totals(media_profile) do
+    downloaded_subquery =
+      from(m in MediaItem,
+        inner_join: s in assoc(m, :source),
+        select: %{
+          source_id: m.source_id,
+          downloaded_count: count(m.id),
+          media_size_bytes: sum(m.media_size_bytes)
+        },
+        where: s.media_profile_id == ^media_profile.id,
+        where: is_nil(s.marked_for_deletion_at),
+        where: ^MediaQuery.downloaded(),
+        group_by: m.source_id
+      )
+
+    SourcesQuery.new()
+    |> join(:left, [s], d in subquery(downloaded_subquery), on: d.source_id == s.id)
+    |> where(^SourcesQuery.for_media_profile(media_profile))
+    # Matches the profiles index, which counts only sources that aren't being deleted
+    |> where([s], is_nil(s.marked_for_deletion_at))
+    |> order_by([s], asc: fragment("? COLLATE NOCASE", s.custom_name))
+    |> select([s], map(s, ^Source.__schema__(:fields)))
+    |> select_merge([s, d], %{
+      downloaded_count: coalesce(d.downloaded_count, 0),
+      media_size_bytes: coalesce(d.media_size_bytes, 0)
+    })
+    |> Repo.all()
+  end
+
+  # Rolled up in Elixir from the already-loaded rows — the header strip needs no
+  # query of its own
+  defp profile_totals(sources) do
+    %{
+      source_count: length(sources),
+      downloaded_count: Enum.sum(Enum.map(sources, & &1.downloaded_count)),
+      media_size_bytes: Enum.sum(Enum.map(sources, & &1.media_size_bytes))
+    }
   end
 
   def edit(conn, %{"id" => id}) do

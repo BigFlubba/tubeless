@@ -1,0 +1,50 @@
+<div class="flex flex-col min-w-max">
+  <.table rows={@media_profiles} table_class="text-white" sort_key={@sort_key} sort_direction={@sort_direction}>
+    <:col :let={media_profile} label="Name" sort_key="name" class="truncate max-w-xs">
+      <.subtle_link href={~p"/media_profiles/#{media_profile.id}"}>
+        {media_profile.name}
+      </.subtle_link>
+    </:col>
+    <:col :let={media_profile} label="Quality" sort_key="preferred_resolution">
+      <div class="flex flex-col">
+        <span>{resolution_label(media_profile.preferred_resolution)}</span>
+        <span class="text-xs text-bodydark">{container_label(media_profile)}</span>
+      </div>
+    </:col>
+    <:col :let={media_profile} label="Content">
+      {content_label(media_profile)}
+    </:col>
+    <:col :let={media_profile} label="Extras">
+      <div :if={extras_labels(media_profile) != []} class="flex flex-wrap gap-1">
+        <span
+          :for={label <- extras_labels(media_profile)}
+          class="rounded-full bg-meta-4 px-2 py-0.5 text-xs whitespace-nowrap"
+        >
+          {label}
+        </span>
+      </div>
+      <span :if={extras_labels(media_profile) == []} class="text-bodydark">None</span>
+    </:col>
+    <:col :let={media_profile} label="Podcast?" sort_key="podcast_enabled">
+      <.icon name={if media_profile.podcast_enabled, do: "hero-check", else: "hero-x-mark"} />
+    </:col>
+    <:col :let={media_profile} label="Sources" sort_key="source_count">
+      <.subtle_link href={~p"/media_profiles/#{media_profile.id}/#tab-sources"}>
+        <.localized_number number={media_profile.source_count} />
+      </.subtle_link>
+    </:col>
+    <:col :let={media_profile} label="Downloaded" sort_key="downloaded_count">
+      <.localized_number number={media_profile.downloaded_count} />
+    </:col>
+    <:col :let={media_profile} label="Size" sort_key="media_size_bytes">
+      <.readable_filesize byte_size={media_profile.media_size_bytes} />
+    </:col>
+    <:col :let={media_profile} label="" class="flex place-content-evenly">
+      <.icon_link href={~p"/media_profiles/#{media_profile.id}/edit"} icon="hero-pencil-square" class="mx-1" />
+    </:col>
+  </.table>
+
+  <section class="flex justify-center my-5">
+    <.live_pagination_controls page_number={@page} total_pages={@total_pages} />
+  </section>
+</div>

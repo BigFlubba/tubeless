@@ -1,51 +1,105 @@
-<div class="mb-6 flex gap-3 flex-row items-center justify-between">
-  <div class="flex items-center min-w-0">
-    <.link href={~p"/media_profiles"}>
-      <.icon name="hero-arrow-left" class="w-10 h-10 hover:dark:text-white" />
-    </.link>
-    <h2 class="text-title-md2 font-bold text-black dark:text-white ml-2 truncate">
-      {@media_profile.name}
-    </h2>
+<div class="mb-4 flex items-center">
+  <.link href={~p"/media_profiles"} class="flex items-center text-bodydark hover:dark:text-white">
+    <.icon name="hero-arrow-left" class="w-5 h-5" />
+    <span class="ml-2 text-sm">All media profiles</span>
+  </.link>
+</div>
+
+<%!--
+  No overflow-hidden on the card: the ⋯ actions menu is absolutely positioned and
+  would be clipped by it. The banner clips itself and rounds its own top corners.
+--%>
+<div class="mb-6 rounded-xs border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
+  <%!--
+    A media profile has no artwork of its own, so the identity band is a plain
+    gradient — it exists to sit the name and its badges in the same place the
+    source page puts them.
+  --%>
+  <div class="relative flex items-end rounded-t-xs bg-linear-to-br from-primary/50 via-meta-5/30 to-meta-4 p-4 sm:p-5">
+    <div class="flex min-w-0 items-center gap-4">
+      <div class="flex h-14 w-14 shrink-0 items-center justify-center rounded-lg border-2 border-white/80 bg-meta-4 text-white shadow-lg">
+        <.icon name="hero-rectangle-stack" class="h-7 w-7" />
+      </div>
+      <div class="min-w-0">
+        <div class="flex flex-wrap items-center gap-3">
+          <h2 class="truncate text-title-md2 font-bold text-white drop-shadow-lg">
+            {@media_profile.name}
+          </h2>
+          <span
+            :if={@media_profile.podcast_enabled}
+            class="inline-flex items-center gap-1 rounded-full bg-success/20 px-2.5 py-0.5 text-sm font-medium text-success backdrop-blur-sm"
+          >
+            <.icon name="hero-rss" class="h-4 w-4" /> Podcast
+          </span>
+        </div>
+        <% extras = extras_labels(@media_profile) %>
+        <p class="mt-1.5 flex flex-wrap items-center gap-1.5 text-sm text-white/90 drop-shadow-md">
+          <span
+            :for={extra <- extras}
+            class="rounded-full bg-white/15 px-2 py-0.5 text-xs font-medium backdrop-blur-sm"
+          >
+            {extra}
+          </span>
+          <span :if={extras == []} class="text-xs">Media file only — no extra files</span>
+        </p>
+      </div>
+    </div>
   </div>
 
-  <nav>
-    <.link href={~p"/media_profiles/#{@media_profile}/edit"}>
-      <.button color="bg-primary" rounding="rounded-lg">
-        <.icon name="hero-pencil-square" class="mr-2" />Edit <span class="hidden sm:inline pl-1">Media Profile</span>
-      </.button>
-    </.link>
-  </nav>
-</div>
-<div class="rounded-xs border border-stroke bg-white px-5 pb-2.5 pt-6 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-7.5 xl:pb-1">
-  <div class="max-w-full">
-    <.tabbed_layout>
-      <:tab_append>
-        <.actions_dropdown media_profile={@media_profile} />
-      </:tab_append>
+  <div class="flex flex-col gap-4 px-5 py-4 sm:px-7.5 lg:flex-row lg:items-stretch">
+    <dl class="grid flex-1 grid-cols-2 gap-px overflow-hidden rounded-xs border border-stroke bg-stroke text-black dark:border-strokedark dark:bg-strokedark dark:text-white sm:grid-cols-4">
+      <div class="bg-white p-4 dark:bg-boxdark">
+        <dt class="text-sm text-bodydark">Sources</dt>
+        <dd class="mt-1 text-lg font-semibold">
+          <.localized_number number={@profile_totals.source_count} />
+        </dd>
+      </div>
+      <div class="bg-white p-4 dark:bg-boxdark">
+        <dt class="text-sm text-bodydark">Downloaded</dt>
+        <dd class="mt-1 text-lg font-semibold">
+          <.localized_number number={@profile_totals.downloaded_count} />
+          <span :if={@profile_totals.media_size_bytes > 0} class="text-sm font-normal text-bodydark">
+            · <.readable_filesize byte_size={@profile_totals.media_size_bytes} />
+          </span>
+        </dd>
+      </div>
+      <div class="bg-white p-4 dark:bg-boxdark">
+        <dt class="text-sm text-bodydark">Quality</dt>
+        <dd class="mt-1 text-lg font-semibold">
+          {resolution_label(@media_profile.preferred_resolution)}
+          <span class="text-sm font-normal text-bodydark">· {container_label(@media_profile)}</span>
+        </dd>
+      </div>
+      <div class="bg-white p-4 dark:bg-boxdark">
+        <dt class="text-sm text-bodydark">Content</dt>
+        <dd class="mt-1 text-lg font-semibold">{content_label(@media_profile)}</dd>
+      </div>
+    </dl>
 
-      <:tab title="Media Profile" id="media-profile">
-        <div class="flex flex-col gap-10 text-white">
-          <section>
-            <h3 class="font-bold text-xl mt-6 mb-2">Raw Attributes</h3>
-            <.list_items_from_map map={Map.from_struct(@media_profile)} />
-          </section>
-        </div>
+    <nav class="flex shrink-0 items-center gap-2 lg:justify-end">
+      <.link
+        href={~p"/media_profiles/#{@media_profile}/edit"}
+        title="Edit media profile"
+        class="flex h-11 w-11 items-center justify-center rounded-lg border-2 border-strokedark bg-form-input text-stroke hover:border-form-strokedark hover:bg-meta-4"
+      >
+        <.icon name="hero-pencil-square" class="h-5 w-5" />
+      </.link>
+      <.actions_dropdown media_profile={@media_profile} />
+    </nav>
+  </div>
+</div>
+
+<div class="rounded-xs border border-stroke bg-white px-5 py-5 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-7.5">
+  <div class="max-w-full">
+    <.tabbed_layout default_tab="details">
+      <:tab title="Details" id="details">
+        <.details_tab
+          media_profile={@media_profile}
+          output_path_override_count={output_path_override_count(@media_profile, @sources)}
+        />
       </:tab>
-      <:tab title="Sources" id="sources">
-        <.table rows={@sources} table_class="text-black dark:text-white">
-          <:col :let={source} label="Name">
-            <.subtle_link href={~p"/sources/#{source.id}"}>
-              {source.custom_name || source.collection_name}
-            </.subtle_link>
-          </:col>
-          <:col :let={source} label="Type">{source.collection_type}</:col>
-          <:col :let={source} label="Should Download?">
-            <.icon name={if source.download_media, do: "hero-check", else: "hero-x-mark"} />
-          </:col>
-          <:col :let={source} label="" class="flex justify-end">
-            <.icon_link href={~p"/sources/#{source.id}/edit"} icon="hero-pencil-square" class="mr-4" />
-          </:col>
-        </.table>
+      <:tab title="Sources" id="sources" count={@profile_totals.source_count}>
+        <.sources_tab sources={@sources} failing_source_ids={@failing_source_ids} />
       </:tab>
     </.tabbed_layout>
   </div>

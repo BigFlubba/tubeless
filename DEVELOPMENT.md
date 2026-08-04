@@ -503,10 +503,6 @@ green. This is the main practical reason to repair with the app stopped rather t
 
 ## Misc
 
-### Channels with shorts uploaded mulitple times a day
-
-- <https://www.youtube.com/@lyndseydotw>
-
 ### yt-dlp known issues/faq
 
 - <https://github.com/yt-dlp/yt-dlp/issues/3766>

@@ -226,6 +226,108 @@ defmodule Pinchflat.SourcesTest do
     end
   end
 
+  describe "failing_source_ids/1" do
+    defp insert_batch_indexing_job(source, worker, state) do
+      {:ok, job} = %{"id" => source.id} |> worker.new() |> Oban.insert()
+
+      job = job |> Ecto.Changeset.change(state: state) |> Repo.update!()
+      Pinchflat.Tasks.create_task(job, source)
+    end
+
+    defp insert_batch_download_job(media_item, state) do
+      {:ok, job} = %{"id" => media_item.id} |> MediaDownloadWorker.new() |> Oban.insert()
+
+      job = job |> Ecto.Changeset.change(state: state) |> Repo.update!()
+      Pinchflat.Tasks.create_task(job, media_item)
+    end
+
+    test "returns an empty set when given no ids" do
+      assert Sources.failing_source_ids([]) == MapSet.new()
+    end
+
+    test "returns only the sources whose latest indexing job is failing" do
+      failing = source_fixture()
+      healthy = source_fixture()
+
+      insert_batch_indexing_job(failing, MediaCollectionIndexingWorker, "discarded")
+      insert_batch_indexing_job(healthy, MediaCollectionIndexingWorker, "completed")
+
+      assert Sources.failing_source_ids([failing.id, healthy.id]) == MapSet.new([failing.id])
+    end
+
+    test "includes a source whose latest download job is failing" do
+      source = source_fixture()
+      media_item = media_item_fixture(%{source_id: source.id})
+
+      insert_batch_download_job(media_item, "retryable")
+
+      assert Sources.failing_source_ids([source.id]) == MapSet.new([source.id])
+    end
+
+    test "excludes a source whose newer job succeeded after an older discarded one" do
+      source = source_fixture()
+
+      insert_batch_indexing_job(source, MediaCollectionIndexingWorker, "discarded")
+      insert_batch_indexing_job(source, MediaCollectionIndexingWorker, "completed")
+
+      assert Sources.failing_source_ids([source.id]) == MapSet.new()
+    end
+
+    test "excludes a source whose newer download succeeded after an older failed one" do
+      source = source_fixture()
+      media_item = media_item_fixture(%{source_id: source.id})
+
+      insert_batch_download_job(media_item, "discarded")
+      insert_batch_download_job(media_item, "completed")
+
+      assert Sources.failing_source_ids([source.id]) == MapSet.new()
+    end
+
+    # Only retryable/discarded count as failing - a cancelled job is what the
+    # diagnostics requeue path leaves behind, and in-flight states aren't failures
+    test "excludes a source whose latest job is cancelled or still in flight" do
+      cancelled = source_fixture()
+      scheduled = source_fixture()
+
+      insert_batch_indexing_job(cancelled, MediaCollectionIndexingWorker, "cancelled")
+      insert_batch_indexing_job(scheduled, MediaCollectionIndexingWorker, "scheduled")
+
+      assert Sources.failing_source_ids([cancelled.id, scheduled.id]) == MapSet.new()
+    end
+
+    test "judges the indexing chains independently, like status/2 does" do
+      source = source_fixture()
+
+      insert_batch_indexing_job(source, MediaCollectionIndexingWorker, "discarded")
+      insert_batch_indexing_job(source, FastIndexingWorker, "completed")
+
+      assert Sources.failing_source_ids([source.id]) == MapSet.new([source.id])
+    end
+
+    test "agrees with status/2 for every source it's given" do
+      failing = source_fixture(%{enabled: true})
+      healthy = source_fixture(%{enabled: true})
+
+      insert_batch_indexing_job(failing, FastIndexingWorker, "retryable")
+      insert_batch_indexing_job(healthy, FastIndexingWorker, "completed")
+
+      failing_ids = Sources.failing_source_ids([failing.id, healthy.id])
+
+      assert MapSet.member?(failing_ids, failing.id) == (Sources.status(failing) == :error)
+      assert MapSet.member?(failing_ids, healthy.id) == (Sources.status(healthy) == :error)
+    end
+
+    test "ignores sources that weren't asked about" do
+      failing = source_fixture()
+      unrelated = source_fixture()
+
+      insert_batch_indexing_job(failing, MediaCollectionIndexingWorker, "discarded")
+      insert_batch_indexing_job(unrelated, MediaCollectionIndexingWorker, "discarded")
+
+      assert Sources.failing_source_ids([failing.id]) == MapSet.new([failing.id])
+    end
+  end
+
   describe "blocking_conditions/2" do
     # The two environment probes are injected so these stay pure DB tests.
     # Their real defaults are exercised by `probes_default_to_the_real_world`.
@@ -1594,15 +1696,15 @@ defmodule Pinchflat.SourcesTest do
       source = source_fixture()
 
       valid_urls = [
-        "https://www.youtube.com/channel/UCkRfArvrzheW2E7b6SVT7vQ",
-        "https://www.youtube.com/channel/UCkRfArvrzheW2E7b6SVT7vQ/videos",
-        "https://www.youtube.com/@youtubecreators/featured",
-        "https://www.youtube.com/@youtubecreators",
-        "https://www.youtube.com/c/YouTubeCreators",
-        "https://www.youtube.com/user/YouTubeCreators",
-        "https://www.youtube.com/YouTubeCreators",
-        "https://www.youtube.com/playlist?list=PLpjK416fmKwRtq-9-O_NbZlkW0k6zu2Wn",
-        "https://www.youtube.com/playlist?list=UUkRfArvrzheW2E7b6SVT7vQ"
+        "https://www.youtube.com/channel/UCaaaaaaaaaaaaaaaaaaaaaa",
+        "https://www.youtube.com/channel/UCaaaaaaaaaaaaaaaaaaaaaa/videos",
+        "https://www.youtube.com/@some-fake-channel/featured",
+        "https://www.youtube.com/@some-fake-channel",
+        "https://www.youtube.com/c/SomeFakeChannel",
+        "https://www.youtube.com/user/SomeFakeChannel",
+        "https://www.youtube.com/SomeFakeChannel",
+        "https://www.youtube.com/playlist?list=PLyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy",
+        "https://www.youtube.com/playlist?list=UUaaaaaaaaaaaaaaaaaaaaaa"
       ]
 
       Enum.each(valid_urls, fn url ->
@@ -1614,11 +1716,11 @@ defmodule Pinchflat.SourcesTest do
       source = source_fixture()
 
       invalid_urls = [
-        "https://www.youtube.com/watch?v=72maj9FLQZI",
-        "https://youtu.be/72maj9FLQZI",
-        "https://www.youtube.com/watch?v=1FwGFhMAmBo&list=PLpjK416fmKwRtq-9-O_NbZlkW0k6zu2Wn",
-        "https://www.youtube.com/shorts/Dq0eH-ZhQTU",
-        "https://www.youtube.com/embed/X64LHlfx4qg"
+        "https://www.youtube.com/watch?v=ccccccccccc",
+        "https://youtu.be/ccccccccccc",
+        "https://www.youtube.com/watch?v=ddddddddddd&list=PLyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy",
+        "https://www.youtube.com/shorts/eeeeeeeeeee",
+        "https://www.youtube.com/embed/fffffffffff"
       ]
 
       Enum.each(invalid_urls, fn url ->
@@ -1634,8 +1736,8 @@ defmodule Pinchflat.SourcesTest do
         "https://www.example.com/playlist",
         "https://www.example.com/channel",
         "https://www.example.com/user",
-        "https://www.example.com/watch?v=72maj9FLQZI",
-        "https://www.example.com/embed/X64LHlfx4qg"
+        "https://www.example.com/watch?v=ccccccccccc",
+        "https://www.example.com/embed/fffffffffff"
       ]
 
       Enum.each(valid_urls, fn url ->

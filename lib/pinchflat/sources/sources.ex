@@ -243,6 +243,57 @@ defmodule Pinchflat.Sources do
   end
 
   @doc """
+  Which of the given source ids currently have a failing indexing or download
+  job — the batched form of what `status/2` resolves for one source, for pages
+  that render a status pill per row (the media profile page's Sources tab).
+
+  Two queries total rather than two per row, and the same "latest job per target"
+  rule as `status/2` so a row's pill can't disagree with the source page's.
+
+  Returns MapSet.t(integer())
+  """
+  def failing_source_ids([]), do: MapSet.new()
+
+  def failing_source_ids(source_ids) do
+    # Indexing tasks hang off the source directly, grouped per worker since fast
+    # and slow indexing are independent chains
+    latest_indexing_per_worker =
+      from(t in Task,
+        join: j in assoc(t, :job),
+        where: t.source_id in ^source_ids,
+        where: fragment("? LIKE '%IndexingWorker'", j.worker),
+        group_by: [t.source_id, j.worker],
+        select: %{source_id: t.source_id, latest_job_id: max(j.id)}
+      )
+
+    # Download tasks hang off media items (their own `source_id` is null)
+    latest_download_per_item =
+      from(t in Task,
+        join: j in assoc(t, :job),
+        join: mi in assoc(t, :media_item),
+        where: mi.source_id in ^source_ids,
+        where: fragment("? LIKE '%.MediaDownloadWorker'", j.worker),
+        group_by: [mi.source_id, mi.id],
+        select: %{source_id: mi.source_id, latest_job_id: max(j.id)}
+      )
+
+    [latest_indexing_per_worker, latest_download_per_item]
+    |> Enum.flat_map(&failing_ids_from_latest/1)
+    |> MapSet.new()
+  end
+
+  defp failing_ids_from_latest(latest_query) do
+    from(sub in subquery(latest_query),
+      join: j in Oban.Job,
+      on: j.id == sub.latest_job_id,
+      where: j.state in ["retryable", "discarded"],
+      distinct: true,
+      select: sub.source_id
+    )
+    |> Repo.all()
+  end
+
+  @doc """
   Everything currently standing between this source and a downloaded file, in
   order of how fundamental it is. Powers the "why is nothing downloading?" banner
   on the source page, which renders only the first entry.

@@ -1,0 +1,143 @@
+<div class="flex flex-col gap-8 text-black dark:text-white">
+  <%!--
+    Grouped download settings. Unset fields stay in the DOM but hidden — the
+    toggle reveals them client-side rather than re-rendering the page.
+  --%>
+  <section x-data="{ showUnset: false }">
+    <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
+      <h3 class="text-xl font-bold">Download settings</h3>
+      <.switch model="showUnset" label="Show unset fields" />
+    </div>
+
+    <div class="grid gap-5 lg:grid-cols-2">
+      <div
+        :for={group <- info_groups(@media_profile)}
+        class="rounded-xs border border-stroke dark:border-strokedark"
+        x-show={if Enum.any?(group.fields, &field_set?/1), do: nil, else: "showUnset"}
+        style={if Enum.any?(group.fields, &field_set?/1), do: nil, else: "display: none"}
+      >
+        <h4 class="flex items-center gap-2 border-b border-stroke px-4 py-2.5 text-sm font-semibold uppercase tracking-wide text-bodydark dark:border-strokedark">
+          <.icon name={group.icon} class="h-4 w-4" /> {group.title}
+        </h4>
+        <dl class="divide-y divide-stroke px-4 dark:divide-strokedark">
+          <div
+            :for={info_field <- group.fields}
+            class="py-2.5"
+            x-show={if field_set?(info_field), do: nil, else: "showUnset"}
+            style={if field_set?(info_field), do: nil, else: "display: none"}
+          >
+            <div class="flex items-baseline justify-between gap-4">
+              <dt class="shrink-0 text-sm font-medium">{info_field.label}</dt>
+              <dd class="min-w-0 text-right text-sm">
+                <%= cond do %>
+                  <% !field_set?(info_field) -> %>
+                    <span class="text-bodydark2">Not set</span>
+                  <% info_field.type == :code -> %>
+                    <code class="break-all font-mono text-xs">{info_field.value}</code>
+                  <% info_field.type in [:long, :long_code] -> %>
+                    <div x-data="{ expanded: false }" class="flex items-start justify-end gap-2">
+                      <p
+                        class={[
+                          "min-w-0 whitespace-pre-wrap break-words text-left",
+                          info_field.type == :long_code && "font-mono text-xs"
+                        ]}
+                        x-bind:class="expanded ? '' : 'line-clamp-1'"
+                      >
+                        {info_field.value}
+                      </p>
+                      <button
+                        type="button"
+                        x-on:click="expanded = !expanded"
+                        class="mt-0.5 shrink-0 text-bodydark hover:text-black dark:hover:text-white"
+                        x-bind:aria-label="expanded ? 'Collapse' : 'Expand'"
+                      >
+                        <.icon
+                          name="hero-chevron-down"
+                          class="h-4 w-4 transition"
+                          x-bind:class="expanded && 'rotate-180'"
+                        />
+                      </button>
+                    </div>
+                  <% true -> %>
+                    {info_field.value}
+                <% end %>
+              </dd>
+            </div>
+            <p class="mt-0.5 text-xs text-bodydark2">{info_field.help}</p>
+          </div>
+        </dl>
+      </div>
+    </div>
+  </section>
+
+  <%!--
+    What the settings above actually turn into. Built from the same builder a
+    real download uses, so it can't describe flags that aren't passed.
+  --%>
+  <section class="rounded-xs border border-stroke dark:border-strokedark">
+    <h4 class="flex items-center gap-2 border-b border-stroke px-4 py-2.5 text-sm font-semibold uppercase tracking-wide text-bodydark dark:border-strokedark">
+      <.icon name="hero-command-line" class="h-4 w-4" /> Effective yt-dlp options
+    </h4>
+
+    <div class="flex flex-col gap-4 px-4 py-3">
+      <% {output_path, output_note} = effective_output_path(@media_profile) %>
+      <div>
+        <p class="text-sm font-medium">Media downloads to</p>
+        <pre class="mt-1.5 overflow-x-auto rounded-xs bg-meta-4 p-3 font-mono text-xs text-white">{output_path}</pre>
+        <p :if={output_note} class="mt-1 text-xs text-bodydark2">{output_note}</p>
+        <% override_note = output_path_override_note(@output_path_override_count) %>
+        <p :if={override_note} class="mt-1 text-xs text-bodydark2">{override_note}</p>
+      </div>
+
+      <div>
+        <p class="text-sm font-medium">Flags this profile passes to every download</p>
+        <% option_lines = yt_dlp_option_lines(@media_profile) %>
+        <pre
+          :if={option_lines != []}
+          class="mt-1.5 overflow-x-auto rounded-xs bg-meta-4 p-3 font-mono text-xs text-white"
+        >{Enum.join(option_lines, "\n")}</pre>
+        <p :if={option_lines == []} class="mt-1.5 text-sm text-bodydark2">None.</p>
+        <p class="mt-1 text-xs text-bodydark2">
+          Flags that depend on the individual video — output paths, the thumbnail destination, your
+          yt-dlp config file — are added at download time and aren't shown here.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <%!--
+    Internal identifiers and timestamps. Kept visible for issue triage (they're
+    what anyone asks for first), just no longer the front door. The header's
+    segmented control swaps the field list for the raw JSON payload.
+  --%>
+  <section x-data="{ raw: false }" class="rounded-xs border border-stroke dark:border-strokedark">
+    <div class="flex flex-wrap items-center justify-between gap-3 border-b border-stroke px-4 py-2.5 dark:border-strokedark">
+      <h4 class="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-bodydark">
+        <.icon name="hero-wrench-screwdriver" class="h-4 w-4" /> Internal
+      </h4>
+      <.segmented_control
+        model="raw"
+        options={[{"Fields", "false"}, {"Raw JSON", "true"}]}
+        aria_label="Internal field display"
+      />
+    </div>
+
+    <div class="px-4 py-3">
+      <dl x-show="!raw" class="grid gap-x-6 gap-y-1.5 sm:grid-cols-2">
+        <div :for={{label, value} <- internal_fields(@media_profile)} class="flex items-baseline justify-between gap-3">
+          <dt class="shrink-0 text-sm text-bodydark">{label}</dt>
+          <dd class="min-w-0 text-right">
+            <code :if={value} class="break-all font-mono text-xs">{value}</code>
+            <span :if={!value} class="text-sm text-bodydark2">Not set</span>
+          </dd>
+        </div>
+      </dl>
+
+      <pre
+        x-show="raw"
+        x-cloak
+        class="max-h-96 overflow-auto rounded-xs bg-meta-4 p-3 font-mono text-xs text-white"
+      >{media_profile_json(@media_profile)}</pre>
+    </div>
+  </section>
+</div>

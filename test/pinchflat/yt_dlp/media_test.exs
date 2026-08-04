@@ -5,7 +5,7 @@ defmodule Pinchflat.YtDlp.MediaTest do
 
   alias Pinchflat.YtDlp.Media
 
-  @media_url "https://www.youtube.com/watch?v=TiZPUDkDYbk"
+  @media_url "https://www.youtube.com/watch?v=bbbbbbbbbbb"
 
   describe "download/3" do
     test "calls the backend runner with the expected arguments" do
@@ -293,36 +293,36 @@ defmodule Pinchflat.YtDlp.MediaTest do
   describe "response_to_struct/1" do
     test "transforms a response into a struct" do
       response = %{
-        "id" => "TiZPUDkDYbk",
+        "id" => "bbbbbbbbbbb",
         "title" => "Trying to Wheelie Without the Rear Brake",
         "description" => "I'm not sure what I expected.",
-        "original_url" => "https://www.youtube.com/watch?v=TiZPUDkDYbk",
+        "original_url" => "https://www.youtube.com/watch?v=bbbbbbbbbbb",
         "live_status" => "not_live",
         "aspect_ratio" => 1.0,
         "duration" => 60,
         "upload_date" => "20210101",
         "timestamp" => 1_600_000_000,
         "playlist_index" => 1,
-        "filename" => "TiZPUDkDYbk.mp4"
+        "filename" => "bbbbbbbbbbb.mp4"
       }
 
       assert %Media{
-               media_id: "TiZPUDkDYbk",
+               media_id: "bbbbbbbbbbb",
                title: "Trying to Wheelie Without the Rear Brake",
                description: "I'm not sure what I expected.",
-               original_url: "https://www.youtube.com/watch?v=TiZPUDkDYbk",
+               original_url: "https://www.youtube.com/watch?v=bbbbbbbbbbb",
                livestream: false,
                short_form_content: false,
                uploaded_at: ~U[2020-09-13 12:26:40Z],
                duration_seconds: 60,
                playlist_index: 1,
-               predicted_media_filepath: "TiZPUDkDYbk.mp4"
+               predicted_media_filepath: "bbbbbbbbbbb.mp4"
              } == Media.response_to_struct(response)
     end
 
     test "sets short_form_content to true if the URL contains /shorts/" do
       response = %{
-        "original_url" => "https://www.youtube.com/shorts/TiZPUDkDYbk",
+        "original_url" => "https://www.youtube.com/shorts/bbbbbbbbbbb",
         "aspect_ratio" => 1.0,
         "duration" => 61,
         "upload_date" => "20210101"
@@ -333,7 +333,7 @@ defmodule Pinchflat.YtDlp.MediaTest do
 
     test "sets short_form_content to true if the aspect ratio are duration are right" do
       response = %{
-        "original_url" => "https://www.youtube.com/watch?v=TiZPUDkDYbk",
+        "original_url" => "https://www.youtube.com/watch?v=bbbbbbbbbbb",
         "aspect_ratio" => 0.5,
         "duration" => 150,
         "upload_date" => "20210101"
@@ -344,7 +344,7 @@ defmodule Pinchflat.YtDlp.MediaTest do
 
     test "sets short_form_content to false otherwise" do
       response = %{
-        "original_url" => "https://www.youtube.com/watch?v=TiZPUDkDYbk",
+        "original_url" => "https://www.youtube.com/watch?v=bbbbbbbbbbb",
         "aspect_ratio" => 1.0,
         "duration" => 61,
         "upload_date" => "20210101"
@@ -366,7 +366,7 @@ defmodule Pinchflat.YtDlp.MediaTest do
 
     test "parses the duration" do
       response = %{
-        "original_url" => "https://www.youtube.com/watch?v=TiZPUDkDYbk",
+        "original_url" => "https://www.youtube.com/watch?v=bbbbbbbbbbb",
         "aspect_ratio" => 1.0,
         "duration" => 60.4,
         "upload_date" => "20210101"
@@ -377,7 +377,7 @@ defmodule Pinchflat.YtDlp.MediaTest do
 
     test "doesn't blow up if duration is missing" do
       response = %{
-        "original_url" => "https://www.youtube.com/watch?v=TiZPUDkDYbk",
+        "original_url" => "https://www.youtube.com/watch?v=bbbbbbbbbbb",
         "aspect_ratio" => 1.0,
         "duration" => nil,
         "upload_date" => "20210101"
@@ -388,7 +388,7 @@ defmodule Pinchflat.YtDlp.MediaTest do
 
     test "sets livestream to false if the live_status field isn't present" do
       response = %{
-        "original_url" => "https://www.youtube.com/watch?v=TiZPUDkDYbk",
+        "original_url" => "https://www.youtube.com/watch?v=bbbbbbbbbbb",
         "aspect_ratio" => 1.0,
         "duration" => 60,
         "upload_date" => "20210101"
@@ -399,7 +399,7 @@ defmodule Pinchflat.YtDlp.MediaTest do
 
     test "doesn't blow up if playlist_index is missing" do
       response = %{
-        "original_url" => "https://www.youtube.com/watch?v=TiZPUDkDYbk",
+        "original_url" => "https://www.youtube.com/watch?v=bbbbbbbbbbb",
         "aspect_ratio" => 1.0,
         "duration" => nil,
         "upload_date" => "20210101"
@@ -412,7 +412,7 @@ defmodule Pinchflat.YtDlp.MediaTest do
   describe "response_to_struct/1 when testing uploaded_at" do
     test "parses the upload date from the timestamp if present" do
       response = %{
-        "original_url" => "https://www.youtube.com/watch?v=TiZPUDkDYbk",
+        "original_url" => "https://www.youtube.com/watch?v=bbbbbbbbbbb",
         "aspect_ratio" => 1.0,
         "duration" => 61,
         "upload_date" => "20210101",
@@ -426,7 +426,7 @@ defmodule Pinchflat.YtDlp.MediaTest do
 
     test "parses the upload date from the uploaded_at if timestamp is present but nil" do
       response = %{
-        "original_url" => "https://www.youtube.com/watch?v=TiZPUDkDYbk",
+        "original_url" => "https://www.youtube.com/watch?v=bbbbbbbbbbb",
         "aspect_ratio" => 1.0,
         "duration" => 61,
         "upload_date" => "20210101",
@@ -440,7 +440,7 @@ defmodule Pinchflat.YtDlp.MediaTest do
 
     test "parses the upload date from the uploaded_at if timestamp absent" do
       response = %{
-        "original_url" => "https://www.youtube.com/watch?v=TiZPUDkDYbk",
+        "original_url" => "https://www.youtube.com/watch?v=bbbbbbbbbbb",
         "aspect_ratio" => 1.0,
         "duration" => 61,
         "upload_date" => "20210101"
@@ -453,7 +453,7 @@ defmodule Pinchflat.YtDlp.MediaTest do
 
     test "doesn't blow up if upload date is missing" do
       response = %{
-        "original_url" => "https://www.youtube.com/watch?v=TiZPUDkDYbk",
+        "original_url" => "https://www.youtube.com/watch?v=bbbbbbbbbbb",
         "aspect_ratio" => 1.0,
         "duration" => 61,
         "upload_date" => nil
