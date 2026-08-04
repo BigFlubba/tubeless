@@ -56,10 +56,11 @@ defmodule PinchflatWeb.CustomComponents.TextComponents do
   attr :href, :string, required: true
   attr :icon, :string, required: true
   attr :class, :string, default: ""
+  attr :rest, :global, include: ~w(target title rel method)
 
   def icon_link(assigns) do
     ~H"""
-    <.link href={@href} class={["hover:text-secondary duration-200 ease-in-out", @class]}>
+    <.link href={@href} class={["hover:text-secondary duration-200 ease-in-out", @class]} {@rest}>
       <CoreComponents.icon name={@icon} />
     </.link>
     """
@@ -143,6 +144,25 @@ defmodule PinchflatWeb.CustomComponents.TextComponents do
       _ ->
         format
     end
+  end
+
+  @doc """
+  Renders a UTC datetime as a relative "time ago"/"in ..." string (e.g. "6 hours
+  ago"), with the absolute localized datetime available on hover via the title.
+  """
+  attr :datetime, :any, required: true
+
+  def relative_datetime(assigns) do
+    timezone = Application.get_env(:pinchflat, :timezone)
+
+    assigns =
+      assigns
+      |> Map.put(:relative, Timex.from_now(assigns.datetime))
+      |> Map.put(:absolute, Calendar.strftime(Timex.Timezone.convert(assigns.datetime, timezone), "%Y-%m-%d %H:%M:%S"))
+
+    ~H"""
+    <time title={@absolute}>{@relative}</time>
+    """
   end
 
   @doc """

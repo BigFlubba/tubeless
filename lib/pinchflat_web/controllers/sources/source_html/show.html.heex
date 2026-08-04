@@ -1,21 +1,150 @@
-<div class="mb-6 flex gap-3 flex-row items-center justify-between">
-  <div class="flex gap-3 items-center min-w-0">
-    <.link href={~p"/sources"}>
-      <.icon name="hero-arrow-left" class="w-10 h-10 hover:dark:text-white" />
-    </.link>
-    <h2 class="text-title-md2 font-bold text-black dark:text-white ml-4 truncate">
-      {@source.custom_name}
-    </h2>
+<div class="mb-4 flex items-center">
+  <.link href={~p"/sources"} class="flex items-center text-bodydark hover:dark:text-white">
+    <.icon name="hero-arrow-left" class="w-5 h-5" />
+    <span class="ml-2 text-sm">All sources</span>
+  </.link>
+</div>
+
+<% status = status_pill(@source_status) %>
+<%!--
+  No overflow-hidden on the card: the ⋯ actions menu is absolutely positioned and
+  would be clipped by it. The banner clips itself and rounds its own top corners.
+--%>
+<div class="mb-6 rounded-xs border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
+  <%!--
+    Hero banner: the real channel banner when the source has one on disk, otherwise
+    a gradient placeholder (served via the auth-gated source `image` route). The
+    identity overlays the bottom of the banner atop a dark scrim for legibility.
+  --%>
+  <div class="relative h-36 w-full overflow-hidden rounded-t-xs bg-linear-to-br from-primary/50 via-meta-5/30 to-meta-4 sm:h-48">
+    <img
+      :if={source_image?(@source, :banner)}
+      src={~p"/sources/#{@source}/image/banner"}
+      alt=""
+      class="h-full w-full object-cover object-center"
+    />
+    <div class="absolute inset-0 bg-linear-to-t from-black/80 via-black/30 to-transparent"></div>
+
+    <div class="absolute inset-x-0 bottom-0 flex items-end gap-4 p-4 sm:p-5">
+      <div class="relative flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-full border-2 border-white/80 bg-meta-4 text-xl font-bold text-white shadow-lg sm:h-20 sm:w-20">
+        {source_initials(@source)}
+        <img
+          :if={source_image?(@source, :poster)}
+          src={~p"/sources/#{@source}/image/poster"}
+          alt=""
+          class="absolute inset-0 h-full w-full object-cover"
+        />
+      </div>
+      <div class="min-w-0 pb-1">
+        <div class="flex flex-wrap items-center gap-3">
+          <h2 class="truncate text-title-md2 font-bold text-white drop-shadow-lg">
+            {@source.custom_name}
+          </h2>
+          <.link
+            href={~p"/sources/#{@source}/toggle_enabled"}
+            method="post"
+            title={if @source.enabled, do: "Click to pause this source", else: "Click to resume this source"}
+            class={[
+              "inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-sm font-medium backdrop-blur-sm transition hover:opacity-80",
+              status.class
+            ]}
+          >
+            <.icon name={status.icon} class="h-4 w-4" /> {status.label}
+          </.link>
+        </div>
+        <% show_collection_name = @source.collection_name && @source.collection_name != @source.custom_name %>
+        <p class="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-white/90 drop-shadow-md">
+          <span :if={show_collection_name} class="truncate">{@source.collection_name}</span>
+          <span :if={show_collection_name && @source.original_url}>·</span>
+          <.subtle_link :if={@source.original_url} href={@source.original_url} target="_blank">
+            {source_url_label(@source.original_url)}
+            <.icon name="hero-arrow-top-right-on-square" class="ml-0.5 h-3.5 w-3.5" />
+          </.subtle_link>
+          <span :if={show_collection_name || @source.original_url}>·</span>
+          <.subtle_link href={~p"/media_profiles/#{@source.media_profile_id}"}>
+            {@source.media_profile.name}
+          </.subtle_link>
+        </p>
+      </div>
+    </div>
   </div>
 
-  <nav>
-    <.link href={~p"/sources/#{@source}/edit"}>
-      <.button color="bg-primary" rounding="rounded-lg">
-        <.icon name="hero-pencil-square" class="mr-2" /> Edit <span class="hidden sm:inline pl-1">Source</span>
-      </.button>
-    </.link>
-  </nav>
+  <div class="flex flex-col gap-4 px-5 py-4 sm:px-7.5 lg:flex-row lg:items-stretch">
+    <dl class="grid flex-1 grid-cols-2 gap-px overflow-hidden rounded-xs border border-stroke bg-stroke text-black dark:border-strokedark dark:bg-strokedark dark:text-white sm:grid-cols-4">
+      <div class="bg-white p-4 dark:bg-boxdark">
+        <dt class="text-sm text-bodydark">Downloaded</dt>
+        <dd class="mt-1 text-lg font-semibold">
+          <.localized_number number={@tab_counts.library} />
+          <span :if={@tab_counts.library_bytes > 0} class="text-sm font-normal text-bodydark">
+            · <.readable_filesize byte_size={@tab_counts.library_bytes} />
+          </span>
+        </dd>
+      </div>
+      <div class="bg-white p-4 dark:bg-boxdark">
+        <dt class="text-sm text-bodydark">Pending</dt>
+        <dd class="mt-1 text-lg font-semibold">
+          <.localized_number number={@tab_counts.pending} />
+        </dd>
+      </div>
+      <div class="bg-white p-4 dark:bg-boxdark">
+        <dt class="text-sm text-bodydark">Last checked</dt>
+        <dd class="mt-1 text-lg font-semibold">
+          <.relative_datetime :if={@source.last_indexed_at} datetime={@source.last_indexed_at} />
+          <span :if={is_nil(@source.last_indexed_at)} class="text-bodydark">Never</span>
+        </dd>
+      </div>
+      <div class="bg-white p-4 dark:bg-boxdark">
+        <dt class="text-sm text-bodydark">Next check</dt>
+        <dd class="mt-1 text-lg font-semibold">
+          <% next_check = next_check_at(@pending_tasks) %>
+          <span :if={not @source.enabled} class="text-warning">Paused</span>
+          <span :if={@source.enabled && next_check == :now}>Now</span>
+          <.relative_datetime
+            :if={@source.enabled && match?(%DateTime{}, next_check)}
+            datetime={next_check}
+          />
+          <span :if={@source.enabled && is_nil(next_check)} class="text-bodydark">—</span>
+        </dd>
+      </div>
+    </dl>
+
+    <nav class="flex shrink-0 items-center gap-2 lg:justify-end">
+      <.link
+        href={~p"/sources/#{@source}/toggle_enabled"}
+        method="post"
+        title={if @source.enabled, do: "Pause source", else: "Resume source"}
+        class={[
+          "flex h-11 w-11 items-center justify-center rounded-lg transition hover:opacity-90",
+          if(@source.enabled,
+            do: "bg-warning/15 text-warning",
+            else: "bg-success/15 text-success"
+          )
+        ]}
+      >
+        <.icon name={if @source.enabled, do: "hero-pause", else: "hero-play"} class="h-5 w-5" />
+      </.link>
+      <.link
+        href={~p"/sources/#{@source}/check_for_new_videos"}
+        method="post"
+        title="Check for new videos"
+        class="flex h-11 w-11 items-center justify-center rounded-lg bg-primary text-white hover:opacity-90"
+      >
+        <.icon name="hero-arrow-path" class="h-5 w-5" />
+      </.link>
+      <.link
+        href={~p"/sources/#{@source}/edit"}
+        title="Edit source"
+        class="flex h-11 w-11 items-center justify-center rounded-lg border-2 border-strokedark bg-form-input text-stroke hover:border-form-strokedark hover:bg-meta-4"
+      >
+        <.icon name="hero-pencil-square" class="h-5 w-5" />
+      </.link>
+      <.actions_dropdown source={@source} conn={@conn} tab_counts={@tab_counts} />
+    </nav>
+  </div>
 </div>
+
+<.blocking_banner source={@source} conditions={@blocking_conditions} />
+
 <div
   :if={podcast_missing_url_base?(@source)}
   class="mb-6 rounded-xs border border-warning bg-warning/10 px-5 py-4 text-warning"
@@ -26,114 +155,43 @@
 </div>
 <div class="rounded-xs border border-stroke bg-white px-5 py-5 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-7.5">
   <div class="max-w-full">
-    <.tabbed_layout>
-      <:tab_append>
-        <.actions_dropdown source={@source} conn={@conn} />
-      </:tab_append>
-
-      <:tab title="Source" id="source">
-        <div class="flex flex-col text-white gap-10">
-          <section :if={static_podcast_feed_url(@source)}>
-            <h3 class="font-bold text-xl mb-2 mt-6">Podcast Feed</h3>
-            <p class="mb-2 text-sm max-w-prose">
-              Tubeless has generated this source's static podcast feed on disk. It does <strong>not</strong>
-              serve the feed itself — a separate static web server (nginx, Caddy, etc.) must be pointed
-              at your podcast library for the URL below to work. If you haven't set that up yet, the URL
-              won't resolve.
-            </p>
-            <p class="mb-2 text-sm max-w-prose">
-              Once that server is serving your podcast library, subscribe to this URL in a podcast app (click to copy):
-            </p>
-            <span
-              class="cursor-pointer"
-              x-data="{ copied: false }"
-              x-on:click={~s"
-                copyWithCallbacks(
-                  '#{static_podcast_feed_url(@source)}',
-                  () => copied = true,
-                  () => copied = false
-                )
-              "}
-            >
-              <code class="font-mono text-sm break-all underline decoration-bodydark decoration-1 hover:decoration-white">
-                {static_podcast_feed_url(@source)}
-              </code>
-              <span x-show="copied" x-transition.duration.150ms><.icon name="hero-check" class="ml-1 h-4 w-4" /></span>
-            </span>
-            <p class="mt-3 mb-1 text-sm max-w-prose">
-              Tubeless published these files (feed, cover, and episodes) to:
-            </p>
-            <code class="font-mono text-sm break-all">{static_podcast_local_path(@source)}</code>
-            <p class="mt-3 text-sm max-w-prose">
-              See the
-              <.subtle_link
-                href="https://github.com/CommunityMaintained/tubeless/wiki/Podcast-RSS-Feeds"
-                target="_blank"
-              >
-                Podcast RSS Feeds wiki page
-              </.subtle_link>
-              for how to serve the library.
-            </p>
-          </section>
-          <section :if={static_podcast_feed_pending?(@source)}>
-            <h3 class="font-bold text-xl mb-2 mt-6">Podcast Feed</h3>
-            <p class="mb-2 text-sm max-w-prose">
-              This source is set to publish as a static podcast. Its feed is being generated in the
-              background and its subscribe URL will appear here once <code class="font-mono">feed.xml</code>
-              has been written. Check the <.subtle_link href={~p"/diagnostics"}>job diagnostics</.subtle_link>
-              if it doesn't appear after downloads complete.
-            </p>
-          </section>
-          <section>
-            <h3 class="font-bold text-xl mb-2 mt-6">Raw Attributes</h3>
-            <section>
-              <strong>Media Profile:</strong>
-              <.subtle_link href={~p"/media_profiles/#{@source.media_profile_id}"}>
-                {@source.media_profile.name}
-              </.subtle_link>
-            </section>
-
-            <.list_items_from_map map={Map.from_struct(@source)} />
-          </section>
-        </div>
-      </:tab>
-      <:tab title="Pending" id="pending">
+    <% activity_entries = Enum.map(@activity, &activity_entry/1) %>
+    <% unresolved_entries = Enum.map(@unresolved_activity, &activity_entry/1) %>
+    <.tabbed_layout default_tab={if @tab_counts.pending > 0, do: "pending", else: "library"}>
+      <:tab title="Pending" id="pending" count={@tab_counts.pending}>
         {live_render(
           @conn,
           PinchflatWeb.Sources.MediaItemTableLive,
           session: %{"source_id" => @source.id, "media_state" => "pending"}
         )}
       </:tab>
-      <:tab title="Downloaded" id="downloaded">
+      <:tab title="Library" id="library" count={@tab_counts.library}>
         {live_render(
           @conn,
           PinchflatWeb.Sources.MediaItemTableLive,
           session: %{"source_id" => @source.id, "media_state" => "downloaded"}
         )}
       </:tab>
-      <:tab title="Other" id="other">
+      <:tab title="Skipped" id="skipped" count={@tab_counts.skipped}>
         {live_render(
           @conn,
           PinchflatWeb.Sources.MediaItemTableLive,
           session: %{"source_id" => @source.id, "media_state" => "other"}
         )}
       </:tab>
-      <:tab title="Tasks" id="tasks">
-        <%= if match?([_|_], @pending_tasks) do %>
-          <.table rows={@pending_tasks} table_class="text-black dark:text-white">
-            <:col :let={task} label="Worker">
-              {task.job.worker}
-            </:col>
-            <:col :let={task} label="State">
-              {task.job.state}
-            </:col>
-            <:col :let={task} label="Scheduled At">
-              <.datetime_in_zone datetime={task.job.scheduled_at} />
-            </:col>
-          </.table>
-        <% else %>
-          <p>Nothing Here!</p>
-        <% end %>
+      <:tab
+        title="Activity"
+        id="activity"
+        count={@in_flight_activity_count}
+        error_count={length(unresolved_entries)}
+      >
+        <.activity_tab entries={activity_entries} unresolved={unresolved_entries} />
+      </:tab>
+      <:tab title="Details" id="details" align="end">
+        <.details_tab source={@source} conn={@conn} />
+      </:tab>
+      <:tab title="Podcast" id="podcast">
+        <.podcast_tab source={@source} conn={@conn} />
       </:tab>
     </.tabbed_layout>
   </div>

@@ -1,0 +1,77 @@
+<% static = static_podcast_state(@source) %>
+<div class="flex max-w-4xl flex-col gap-6 text-black dark:text-white">
+  <p class="max-w-prose text-sm text-bodydark">
+    Any source can be subscribed to as a podcast. There are two ways to serve it — pick whichever
+    matches how your podcast app reaches this machine.
+  </p>
+
+  <%!--
+    The two delivery modes, most-available first: the dynamic feed always works
+    (Tubeless serves it itself, auth-bypassed for podcast apps), while the static
+    one depends on the user having stood up their own web server.
+  --%>
+  <section class="rounded-xs border border-stroke dark:border-strokedark">
+    <h3 class="border-b border-stroke px-4 py-2.5 text-sm font-semibold uppercase tracking-wide text-bodydark dark:border-strokedark">
+      Subscribe
+    </h3>
+    <div class="divide-y divide-stroke dark:divide-strokedark">
+      <.feed_option icon="hero-signal" title="Served by Tubeless" badge="Ready" url={rss_feed_url(@conn, @source)}>
+        <:description>
+          Tubeless generates and serves this feed itself, so it works with no extra setup — as long
+          as your podcast app can reach this machine. The URL bypasses the app's login on purpose so
+          podcast apps can read it, so treat it as secret and keep it off the open internet.
+        </:description>
+      </.feed_option>
+
+      <.feed_option
+        icon="hero-server-stack"
+        title="Served by your own web server"
+        badge={if static.url, do: "Ready"}
+        url={static.url}
+      >
+        <:description>
+          Tubeless writes a static <code class="font-mono text-xs">feed.xml</code>
+          next to the downloaded episodes and never touches the network itself. A separate
+          static web server (nginx, Caddy, …) points at your podcast library and serves them.
+          Use this when Tubeless shouldn't be reachable by the podcast app at all.
+        </:description>
+        <:unavailable :if={!static.publishing}>
+          This source isn't published as a static podcast, so no files are written for a web server
+          to serve. Turn on <strong>Publish as Podcast</strong>
+          in its media profile
+          <.subtle_link href={~p"/media_profiles/#{@source.media_profile_id}"}>
+            ({@source.media_profile.name})
+          </.subtle_link>
+          to enable it. The feed above works either way.
+        </:unavailable>
+        <:unavailable :if={static.missing_url_base}>
+          No feed URL can be built until the <.subtle_link href={~p"/settings"}>Podcast URL Base setting</.subtle_link>
+          is filled in — Tubeless can't know the address your web server serves the library at.
+        </:unavailable>
+        <:unavailable :if={static.pending}>
+          The feed is still being generated in the background. Its URL appears here once
+          <code class="font-mono text-xs">feed.xml</code>
+          has been written — check the <.subtle_link href={~p"/diagnostics"}>job diagnostics</.subtle_link>
+          if it hasn't shown up after the first downloads finish.
+        </:unavailable>
+      </.feed_option>
+    </div>
+  </section>
+
+  <section :if={static.url || static.pending}>
+    <h3 class="mb-2 text-sm font-semibold uppercase tracking-wide text-bodydark">Files on disk</h3>
+    <p class="mb-2 max-w-prose text-sm text-bodydark">
+      Tubeless writes this source's feed, cover art, and episodes here. This is the directory your
+      static web server should be serving.
+    </p>
+    <code class="break-all font-mono text-sm">{static.local_path}</code>
+  </section>
+
+  <p class="text-sm text-bodydark">
+    <.icon name="hero-book-open" class="mr-1 h-4 w-4" />
+    <.subtle_link href="https://github.com/CommunityMaintained/tubeless/wiki/Podcast-RSS-Feeds" target="_blank">
+      Podcast RSS Feeds wiki page
+    </.subtle_link>
+    — how to serve the library and what each mode is good for.
+  </p>
+</div>

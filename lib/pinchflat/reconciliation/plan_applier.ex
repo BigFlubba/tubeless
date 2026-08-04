@@ -371,7 +371,9 @@ defmodule Pinchflat.Reconciliation.PlanApplier do
   defp persist_source_changes(_source, changes) when changes == %{}, do: :ok
 
   defp persist_source_changes(source, changes) do
-    case Sources.update_source(source, changes, run_post_commit_tasks: false) do
+    # This trusted worker relocates the app-managed series_directory/*_filepath
+    # columns, so it opts into casting those internal fields (blocked for HTTP updates).
+    case Sources.update_source(source, changes, run_post_commit_tasks: false, cast_internal_fields: true) do
       {:ok, _} ->
         :ok
 

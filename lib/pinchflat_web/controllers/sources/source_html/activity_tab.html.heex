@@ -1,0 +1,84 @@
+<div class="flex flex-col gap-6 text-black dark:text-white">
+  <%!--
+    The newest failure the user hasn't dealt with. Queried separately from the
+    timeline rather than filtered out of it, so it still shows up when more than
+    a page of successful jobs has happened since it failed.
+  --%>
+  <section :for={entry <- Enum.take(@unresolved, 1)} class="rounded-xs border border-danger/40 bg-danger/5">
+    <div class="flex flex-wrap items-center gap-2 border-b border-danger/20 px-4 py-2.5">
+      <.icon name="hero-exclamation-triangle" class="h-4 w-4 text-danger" />
+      <h3 class="text-sm font-semibold uppercase tracking-wide text-danger">Needs attention</h3>
+      <span class="text-xs text-bodydark">
+        {length(@unresolved)} unresolved
+      </span>
+    </div>
+    <div class="px-4 py-4">
+      <p class="font-medium">
+        {entry.label} <span :if={entry.target} class="text-bodydark">— {entry.target}</span>
+      </p>
+      <p class="mt-0.5 text-sm text-bodydark">
+        <.relative_datetime :if={entry.occurred_at} datetime={entry.occurred_at} />
+        <span :if={entry.attempts}>· {entry.attempts}</span>
+        <span :if={entry.status.label == "Retrying"}>· Tubeless will try again automatically</span>
+      </p>
+      <.activity_error error={entry.error} id={"pinned-error-#{entry.id}"} />
+      <p class="mt-3 text-sm text-bodydark">
+        Job-level controls (retry, requeue, discard) live in <.subtle_link href={~p"/diagnostics"}>Tools → Diagnostics</.subtle_link>.
+      </p>
+    </div>
+  </section>
+
+  <section>
+    <h3 class="mb-3 text-sm font-semibold uppercase tracking-wide text-bodydark">Recent activity</h3>
+
+    <%= if @entries == [] do %>
+      <p class="text-sm text-bodydark">
+        Nothing yet. Indexing and download runs for this source will show up here as they happen.
+      </p>
+    <% else %>
+      <%!--
+        Timeline: a single ruled line down the icon column, with each entry's icon
+        punched out of it. The list is already capped at 50 by the query.
+      --%>
+      <ol class="relative flex flex-col">
+        <li :for={entry <- @entries} class="relative flex gap-4 pb-5 last:pb-0">
+          <div class="absolute bottom-0 left-4 top-8 w-px bg-stroke dark:bg-strokedark"></div>
+          <span class={[
+            "relative z-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-full",
+            entry.status.class
+          ]}>
+            <.icon name={entry.icon} class="h-4 w-4" />
+          </span>
+
+          <div class="min-w-0 grow pt-1">
+            <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
+              <span class="font-medium">{entry.label}</span>
+              <.subtle_link :if={entry.target} href={entry.target_href}>
+                <span class="line-clamp-1 max-w-xs break-all">{entry.target}</span>
+              </.subtle_link>
+              <span class={["rounded-full px-2 py-0.5 text-xs font-medium", entry.status.class]}>
+                {entry.status.label}
+              </span>
+            </div>
+
+            <p class="mt-0.5 flex flex-wrap items-center gap-x-2 text-sm text-bodydark">
+              <span :if={entry.upcoming && entry.occurred_at}>
+                Scheduled for <.relative_datetime datetime={entry.occurred_at} />
+              </span>
+              <.relative_datetime :if={!entry.upcoming && entry.occurred_at} datetime={entry.occurred_at} />
+              <span :if={entry.duration}>· took {entry.duration}</span>
+              <span :if={entry.attempts}>· {entry.attempts}</span>
+            </p>
+
+            <.activity_error error={entry.error} id={"error-#{entry.id}"} />
+          </div>
+        </li>
+      </ol>
+
+      <p class="mt-5 text-xs text-bodydark2">
+        Showing the 50 most recent entries. History goes back 30 days — Oban prunes completed jobs
+        after that.
+      </p>
+    <% end %>
+  </section>
+</div>

@@ -1,0 +1,117 @@
+<div class="flex flex-col gap-8 text-black dark:text-white">
+  <%!--
+    Grouped source details. Unset fields stay in the DOM but hidden — the toggle
+    reveals them client-side rather than re-rendering the page.
+  --%>
+  <section x-data="{ showUnset: false }">
+    <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
+      <h3 class="text-xl font-bold">Source details</h3>
+      <.switch model="showUnset" label="Show unset fields" />
+    </div>
+
+    <div class="grid gap-5 lg:grid-cols-2">
+      <div
+        :for={group <- info_groups(@source)}
+        class="rounded-xs border border-stroke dark:border-strokedark"
+        x-show={if Enum.any?(group.fields, &field_set?/1), do: nil, else: "showUnset"}
+        style={if Enum.any?(group.fields, &field_set?/1), do: nil, else: "display: none"}
+      >
+        <h4 class="flex items-center gap-2 border-b border-stroke px-4 py-2.5 text-sm font-semibold uppercase tracking-wide text-bodydark dark:border-strokedark">
+          <.icon name={group.icon} class="h-4 w-4" /> {group.title}
+        </h4>
+        <dl class="divide-y divide-stroke px-4 dark:divide-strokedark">
+          <div
+            :for={info_field <- group.fields}
+            class="py-2.5"
+            x-show={if field_set?(info_field), do: nil, else: "showUnset"}
+            style={if field_set?(info_field), do: nil, else: "display: none"}
+          >
+            <div class="flex items-baseline justify-between gap-4">
+              <dt class="shrink-0 text-sm font-medium">{info_field.label}</dt>
+              <dd class="min-w-0 text-right text-sm">
+                <%= cond do %>
+                  <% !field_set?(info_field) -> %>
+                    <span class="text-bodydark2">Not set</span>
+                  <% info_field.href -> %>
+                    <.tooltip tooltip={info_field.tooltip} position="bottom-right" tooltip_class="right-0">
+                      <.subtle_link href={info_field.href}>{info_field.value}</.subtle_link>
+                    </.tooltip>
+                  <% info_field.type == :url -> %>
+                    <.subtle_link href={info_field.value} target="_blank">
+                      <span class="break-all">{info_field.value}</span>
+                      <.icon name="hero-arrow-top-right-on-square" class="ml-0.5 h-3.5 w-3.5" />
+                    </.subtle_link>
+                  <% info_field.type == :code -> %>
+                    <code class="break-all font-mono text-xs">{info_field.value}</code>
+                  <% info_field.type in [:long, :long_code] -> %>
+                    <div x-data="{ expanded: false }" class="flex items-start justify-end gap-2">
+                      <p
+                        class={[
+                          "min-w-0 whitespace-pre-wrap break-words text-left",
+                          info_field.type == :long_code && "font-mono text-xs"
+                        ]}
+                        x-bind:class="expanded ? '' : 'line-clamp-1'"
+                      >
+                        {info_field.value}
+                      </p>
+                      <button
+                        type="button"
+                        x-on:click="expanded = !expanded"
+                        class="mt-0.5 shrink-0 text-bodydark hover:text-black dark:hover:text-white"
+                        x-bind:aria-label="expanded ? 'Collapse' : 'Expand'"
+                      >
+                        <.icon
+                          name="hero-chevron-down"
+                          class="h-4 w-4 transition"
+                          x-bind:class="expanded && 'rotate-180'"
+                        />
+                      </button>
+                    </div>
+                  <% true -> %>
+                    {info_field.value}
+                <% end %>
+              </dd>
+            </div>
+            <p class="mt-0.5 text-xs text-bodydark2">{info_field.help}</p>
+          </div>
+        </dl>
+      </div>
+    </div>
+  </section>
+
+  <%!--
+    Internal identifiers and app-managed filepaths. Kept visible for issue triage
+    (they're what anyone asks for first), just no longer the front door. The
+    header's segmented control swaps the field list for the raw JSON payload.
+  --%>
+  <section x-data="{ raw: false }" class="rounded-xs border border-stroke dark:border-strokedark">
+    <div class="flex flex-wrap items-center justify-between gap-3 border-b border-stroke px-4 py-2.5 dark:border-strokedark">
+      <h4 class="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-bodydark">
+        <.icon name="hero-wrench-screwdriver" class="h-4 w-4" /> Internal
+      </h4>
+      <.segmented_control
+        model="raw"
+        options={[{"Fields", "false"}, {"Raw JSON", "true"}]}
+        aria_label="Internal field display"
+      />
+    </div>
+
+    <div class="px-4 py-3">
+      <dl x-show="!raw" class="grid gap-x-6 gap-y-1.5 sm:grid-cols-2">
+        <div :for={{label, value} <- internal_fields(@source)} class="flex items-baseline justify-between gap-3">
+          <dt class="shrink-0 text-sm text-bodydark">{label}</dt>
+          <dd class="min-w-0 text-right">
+            <code :if={value} class="break-all font-mono text-xs">{value}</code>
+            <span :if={!value} class="text-sm text-bodydark2">Not set</span>
+          </dd>
+        </div>
+      </dl>
+
+      <pre
+        x-show="raw"
+        x-cloak
+        class="max-h-96 overflow-auto rounded-xs bg-meta-4 p-3 font-mono text-xs text-white"
+      >{source_json(@source)}</pre>
+    </div>
+  </section>
+</div>

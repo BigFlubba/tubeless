@@ -21,11 +21,6 @@ defmodule Pinchflat.Sources.Source do
     collection_type
     custom_name
     description
-    nfo_filepath
-    poster_filepath
-    fanart_filepath
-    banner_filepath
-    series_directory
     index_frequency_minutes
     fast_index
     cookie_behaviour
@@ -42,6 +37,19 @@ defmodule Pinchflat.Sources.Source do
     marked_for_deletion_at
     min_duration_seconds
     max_duration_seconds
+  )a
+
+  # Internal, app-managed filesystem paths. These are computed by the metadata
+  # storage worker and the reconcile plan applier — never supplied by a user. They
+  # are cast only when a caller explicitly opts in (`cast_internal_fields: true`),
+  # so an HTTP source update can't point them at arbitrary paths on disk (which
+  # the image route would then serve and source deletion would then delete).
+  @internal_fields ~w(
+    series_directory
+    nfo_filepath
+    poster_filepath
+    fanart_filepath
+    banner_filepath
   )a
 
   # Expensive API calls are made when a source is inserted/updated so
@@ -120,7 +128,7 @@ defmodule Pinchflat.Sources.Source do
   end
 
   @doc false
-  def changeset(source, attrs, validation_stage) do
+  def changeset(source, attrs, validation_stage, opts \\ []) do
     # See above for rationale
     required_fields =
       if validation_stage == :initial do
@@ -129,8 +137,15 @@ defmodule Pinchflat.Sources.Source do
         @pre_insert_required_fields
       end
 
+    castable_fields =
+      if Keyword.get(opts, :cast_internal_fields, false) do
+        @allowed_fields ++ @internal_fields
+      else
+        @allowed_fields
+      end
+
     source
-    |> cast(attrs, @allowed_fields)
+    |> cast(attrs, castable_fields)
     |> dynamic_default(:custom_name, fn cs -> get_field(cs, :collection_name) end)
     |> dynamic_default(:uuid, fn _ -> Ecto.UUID.generate() end)
     |> validate_required(required_fields)

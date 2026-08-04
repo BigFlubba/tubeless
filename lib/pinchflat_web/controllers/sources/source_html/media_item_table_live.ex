@@ -4,6 +4,7 @@ defmodule PinchflatWeb.Sources.MediaItemTableLive do
 
   alias Pinchflat.Repo
   alias Pinchflat.Sources
+  alias Pinchflat.Media.SkipReason
   alias Pinchflat.Utils.NumberUtils
 
   @limit 10
@@ -27,22 +28,39 @@ defmodule PinchflatWeb.Sources.MediaItemTableLive do
             Showing <.localized_number number={length(@records)} /> of <.localized_number number={@filtered_record_count} />
           </span>
         </span>
-        <div class="bg-meta-4 rounded-md">
-          <div class="relative">
-            <span class="absolute left-2 top-1/2 -translate-y-1/2 flex">
-              <.icon name="hero-magnifying-glass" />
-            </span>
-            <%!-- The id must be unique because this LiveView renders once per media-state tab --%>
-            <form id={"media-search-form-#{@media_state}"} phx-change="search_term" phx-submit="search_term">
-              <input
-                type="text"
-                name="q"
-                value={@search_term}
-                placeholder="Search in table..."
-                class="w-full bg-transparent pl-9 pr-4 border-0 focus:ring-0 focus:outline-hidden"
-                phx-debounce="200"
-              />
-            </form>
+        <div class="flex items-center gap-2">
+          <form :if={@media_state == "other"} id="skip-reason-filter-form" phx-change="filter_reason">
+            <select
+              name="reason"
+              class="rounded-md border-0 bg-meta-4 py-2 pl-3 pr-8 text-sm focus:ring-0 focus:outline-hidden"
+            >
+              <option value="" selected={is_nil(@reason_filter)}>All reasons</option>
+              <option
+                :for={reason <- SkipReason.all_reasons()}
+                value={reason}
+                selected={@reason_filter == reason}
+              >
+                {SkipReason.label(reason)}
+              </option>
+            </select>
+          </form>
+          <div class="bg-meta-4 rounded-md">
+            <div class="relative">
+              <span class="absolute left-2 top-1/2 -translate-y-1/2 flex">
+                <.icon name="hero-magnifying-glass" />
+              </span>
+              <%!-- The id must be unique because this LiveView renders once per media-state tab --%>
+              <form id={"media-search-form-#{@media_state}"} phx-change="search_term" phx-submit="search_term">
+                <input
+                  type="text"
+                  name="q"
+                  value={@search_term}
+                  placeholder="Search in table..."
+                  class="w-full bg-transparent pl-9 pr-4 border-0 focus:ring-0 focus:outline-hidden"
+                  phx-debounce="200"
+                />
+              </form>
+            </div>
           </div>
         </div>
       </header>
@@ -62,11 +80,19 @@ defmodule PinchflatWeb.Sources.MediaItemTableLive do
                 {media_item.title}
               </.subtle_link>
             </span>
+            <.icon_link
+              :if={media_item.original_url}
+              href={media_item.original_url}
+              target="_blank"
+              title="Watch on YouTube"
+              icon="hero-arrow-top-right-on-square"
+              class="shrink-0"
+            />
           </section>
         </:col>
         <:col :let={media_item} :if={@media_state == "other"} label="Status">
-          <% status = media_status(media_item) %>
-          <.tooltip tooltip={status.tooltip} position="bottom-right" tooltip_class="w-64">
+          <% status = SkipReason.for_media_item(media_item, @source) %>
+          <.tooltip tooltip={status.detail} position="bottom-right" tooltip_class="w-64">
             <span class={["flex items-center gap-1.5", status.class]}>
               <.icon name={status.icon} class="w-5 h-5 shrink-0" />
               <span>{status.label}</span>
@@ -75,6 +101,14 @@ defmodule PinchflatWeb.Sources.MediaItemTableLive do
         </:col>
         <:col :let={media_item} label="Upload Date">
           {DateTime.to_date(media_item.uploaded_at)}
+        </:col>
+        <:col :let={media_item} :if={@media_state == "downloaded"} label="Downloaded">
+          <.relative_datetime :if={media_item.media_downloaded_at} datetime={media_item.media_downloaded_at} />
+          <span :if={is_nil(media_item.media_downloaded_at)} class="text-bodydark">—</span>
+        </:col>
+        <:col :let={media_item} :if={@media_state == "downloaded"} label="Size">
+          <.readable_filesize :if={media_item.media_size_bytes} byte_size={media_item.media_size_bytes} />
+          <span :if={is_nil(media_item.media_size_bytes)} class="text-bodydark">—</span>
         </:col>
         <:col :let={media_item} label="" class="flex justify-end">
           <.icon_link href={~p"/sources/#{@source.id}/media/#{media_item.id}/edit"} icon="hero-pencil-square" class="mr-4" />
@@ -92,8 +126,9 @@ defmodule PinchflatWeb.Sources.MediaItemTableLive do
 
     page = 1
     media_state = session["media_state"]
-    source = Sources.get_source!(session["source_id"])
-    base_query = generate_base_query(source, media_state)
+    # media_profile is needed to explain skip reasons on the "other" (Skipped) tab
+    source = Sources.get_source!(session["source_id"]) |> Repo.preload(:media_profile)
+    base_query = generate_base_query(source, media_state, nil)
     pagination_attrs = fetch_pagination_attributes(base_query, page, nil)
 
     new_assigns =
@@ -102,11 +137,20 @@ defmodule PinchflatWeb.Sources.MediaItemTableLive do
         %{
           base_query: base_query,
           source: source,
-          media_state: media_state
+          media_state: media_state,
+          reason_filter: nil
         }
       )
 
     {:ok, assign(socket, new_assigns)}
+  end
+
+  def handle_event("filter_reason", %{"reason" => reason}, %{assigns: assigns} = socket) do
+    reason_filter = parse_reason(reason)
+    base_query = generate_base_query(assigns.source, assigns.media_state, reason_filter)
+    new_assigns = fetch_pagination_attributes(base_query, 1, assigns.search_term)
+
+    {:noreply, assign(socket, Map.merge(new_assigns, %{base_query: base_query, reason_filter: reason_filter}))}
   end
 
   def handle_event("page_change", %{"direction" => direction}, %{assigns: assigns} = socket) do
@@ -191,20 +235,20 @@ defmodule PinchflatWeb.Sources.MediaItemTableLive do
     |> offset(^offset)
   end
 
-  defp generate_base_query(source, "pending") do
+  defp generate_base_query(source, "pending", _reason) do
     MediaQuery.new()
     |> select(^select_fields())
     |> MediaQuery.require_assoc(:media_profile)
     |> where(^dynamic(^MediaQuery.for_source(source) and ^MediaQuery.pending()))
   end
 
-  defp generate_base_query(source, "downloaded") do
+  defp generate_base_query(source, "downloaded", _reason) do
     MediaQuery.new()
     |> select(^select_fields())
     |> where(^dynamic(^MediaQuery.for_source(source) and ^MediaQuery.downloaded()))
   end
 
-  defp generate_base_query(source, "other") do
+  defp generate_base_query(source, "other", reason) do
     MediaQuery.new()
     |> select(^select_fields())
     |> MediaQuery.require_assoc(:media_profile)
@@ -214,6 +258,19 @@ defmodule PinchflatWeb.Sources.MediaItemTableLive do
           (not (^MediaQuery.downloaded()) and not (^MediaQuery.pending()))
       )
     )
+    |> maybe_filter_by_reason(reason)
+  end
+
+  defp maybe_filter_by_reason(query, nil), do: query
+
+  defp maybe_filter_by_reason(query, reason) do
+    where(query, ^MediaQuery.skip_reason_is(reason))
+  end
+
+  defp parse_reason(reason) do
+    if reason in Enum.map(SkipReason.all_reasons(), &to_string/1) do
+      String.to_existing_atom(reason)
+    end
   end
 
   defp filtered_base_query(base_query, search_term) do
@@ -224,43 +281,22 @@ defmodule PinchflatWeb.Sources.MediaItemTableLive do
 
   # Selecting only what we need GREATLY speeds up queries on large tables
   defp select_fields do
-    [:id, :title, :uploaded_at, :prevent_download, :last_error, :unavailable_at, :unavailable_reason, :culled_at]
-  end
-
-  # Explains why a media item is in the "Other" tab (neither downloaded nor pending).
-  # Order matters: a retention-culled item has both `culled_at` and `prevent_download`
-  # set, so `culled_at` must be checked before `prevent_download`.
-  defp media_status(%{unavailable_at: at, unavailable_reason: reason}) when not is_nil(at) do
-    tooltip = if reason, do: "Skipped: #{reason}", else: "Skipped: members-only, private, or removed"
-    %{label: "Unavailable", icon: "hero-no-symbol", class: "text-amber-400", tooltip: tooltip}
-  end
-
-  defp media_status(%{culled_at: at, prevent_download: prevent_download}) when not is_nil(at) do
-    tooltip =
-      if prevent_download do
-        "Downloaded, then deleted after its retention period. It won't be re-downloaded"
-      else
-        "Downloaded, then deleted because it's before the source's cutoff date. It may be re-downloaded if the cutoff changes"
-      end
-
-    %{label: "Removed", icon: "hero-trash", class: "text-slate-300", tooltip: tooltip}
-  end
-
-  defp media_status(%{prevent_download: true}) do
-    %{
-      label: "Ignored",
-      icon: "hero-eye-slash",
-      class: "text-slate-300",
-      tooltip: "Manually marked to not download"
-    }
-  end
-
-  defp media_status(_media_item) do
-    %{
-      label: "Filtered Out",
-      icon: "hero-funnel",
-      class: "text-slate-300",
-      tooltip: "Excluded by this source's profile rules (duration, format, title, or cutoff date)"
-    }
+    [
+      :id,
+      :title,
+      :uploaded_at,
+      :prevent_download,
+      :last_error,
+      :unavailable_at,
+      :unavailable_reason,
+      :culled_at,
+      :original_url,
+      :media_downloaded_at,
+      :media_size_bytes,
+      # Needed by SkipReason to explain why an item is in the Skipped tab
+      :short_form_content,
+      :livestream,
+      :duration_seconds
+    ]
   end
 end

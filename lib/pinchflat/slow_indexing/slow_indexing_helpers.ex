@@ -38,10 +38,41 @@ defmodule Pinchflat.SlowIndexing.SlowIndexingHelpers do
   """
   def kickoff_indexing_task(%Source{} = source, job_args \\ %{}, job_opts \\ []) do
     job_offset_seconds = if job_args[:force], do: 0, else: calculate_job_offset_seconds(source)
+    # A caller can pass an explicit `schedule_in` to run immediately; otherwise
+    # fall back to the offset.
+    job_opts = Keyword.put_new(job_opts, :schedule_in, job_offset_seconds)
 
     Tasks.delete_pending_tasks_for(source, "MediaCollectionIndexingWorker", include_executing: true)
 
-    MediaCollectionIndexingWorker.kickoff_with_task(source, job_args, job_opts ++ [schedule_in: job_offset_seconds])
+    MediaCollectionIndexingWorker.kickoff_with_task(source, job_args, job_opts)
+  end
+
+  @doc """
+  The user-triggered "Check for new videos": an immediate incremental
+  (break-on-existing) index.
+
+  Unlike `kickoff_indexing_task/3` this **never cancels an index that is already
+  executing**. That crawl can be hours of work on a large channel, and killing it
+  to start the same incremental crawl over is strictly a loss — it also
+  contradicts the blocking banner, which tells the user to wait while an index is
+  underway. Waiting (available/scheduled/retryable) jobs are still replaced, since
+  those cost nothing to re-enqueue and the point of the button is "now, not at the
+  next scheduled check".
+
+  Returns {:ok, %Task{}} | {:error, :already_running} | {:error, any()}
+  """
+  def kickoff_incremental_check(%Source{} = source) do
+    if indexing_executing?(source) do
+      {:error, :already_running}
+    else
+      Tasks.delete_pending_tasks_for(source, "MediaCollectionIndexingWorker")
+
+      MediaCollectionIndexingWorker.kickoff_with_task(source, %{}, schedule_in: 0)
+    end
+  end
+
+  defp indexing_executing?(%Source{} = source) do
+    Tasks.list_tasks_for(source, "MediaCollectionIndexingWorker", [:executing]) != []
   end
 
   @doc """

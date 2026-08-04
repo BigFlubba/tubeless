@@ -116,6 +116,43 @@ defmodule Pinchflat.SlowIndexing.SlowIndexingHelpersTest do
     end
   end
 
+  describe "kickoff_incremental_check/1" do
+    test "schedules an immediate, non-forced index" do
+      source = source_fixture(index_frequency_minutes: 30, last_indexed_at: now_minus(5, :minutes))
+
+      assert {:ok, %Task{}} = SlowIndexingHelpers.kickoff_incremental_check(source)
+
+      [job] = all_enqueued(worker: MediaCollectionIndexingWorker, args: %{"id" => source.id})
+      assert job.args == %{"id" => source.id}
+      assert_in_delta DateTime.diff(job.scheduled_at, DateTime.utc_now(), :second), 0, 1
+    end
+
+    test "replaces a waiting index job" do
+      source = source_fixture()
+      {:ok, job} = Oban.insert(MediaCollectionIndexingWorker.new(%{"id" => source.id}))
+      task = task_fixture(source_id: source.id, job_id: job.id)
+
+      assert {:ok, _} = SlowIndexingHelpers.kickoff_incremental_check(source)
+
+      assert_raise Ecto.NoResultsError, fn -> Repo.reload!(task) end
+    end
+
+    # Cancelling a crawl that may already be hours deep, to start the same crawl
+    # over, is strictly a loss - and it contradicts the banner that tells the user
+    # to wait while an index is underway
+    test "leaves an executing index alone and reports that it is already running" do
+      source = source_fixture()
+      {:ok, job} = Oban.insert(MediaCollectionIndexingWorker.new(%{"id" => source.id}))
+      task = task_fixture(source_id: source.id, job_id: job.id)
+      Repo.update_all(from(Oban.Job, where: [id: ^task.job_id], update: [set: [state: "executing"]]), [])
+
+      assert {:error, :already_running} = SlowIndexingHelpers.kickoff_incremental_check(source)
+
+      assert Repo.reload!(task)
+      assert Repo.reload!(job).state == "executing"
+    end
+  end
+
   describe "delete_indexing_tasks/2" do
     test "deletes slow indexing tasks for the source", %{source: source} do
       {:ok, job} = Oban.insert(MediaCollectionIndexingWorker.new(%{"id" => source.id}))

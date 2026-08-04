@@ -51,7 +51,7 @@ defmodule PinchflatWeb.Settings.DiagnosticsHTML do
       <% nil -> %>
         <span class="text-bodydark">-</span>
       <% %{type: :source, id: id, name: name} -> %>
-        <.job_details_link href={~p"/sources/#{id}/#tab-tasks"} label={name} fallback={"Source ##{id}"} />
+        <.job_details_link href={~p"/sources/#{id}/#tab-activity"} label={name} fallback={"Source ##{id}"} />
       <% %{type: :media_item, id: id, source_id: source_id, name: name} when not is_nil(source_id) -> %>
         <.job_details_link href={~p"/sources/#{source_id}/media/#{id}"} label={name} fallback={"Media ##{id}"} />
       <% %{type: :media_item, id: id, name: name} -> %>

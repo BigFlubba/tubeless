@@ -272,7 +272,8 @@ defmodule Pinchflat.Reconciliation.PlanBuilderTest do
             fanart_filepath: fanart,
             banner_filepath: banner
           },
-          run_post_commit_tasks: false
+          run_post_commit_tasks: false,
+          cast_internal_fields: true
         )
 
       _media_item = media_item_with_attachments(%{source_id: source.id}) |> add_stored_metadata()
@@ -334,7 +335,8 @@ defmodule Pinchflat.Reconciliation.PlanBuilderTest do
       Pinchflat.Sources.update_source(
         source,
         %{series_directory: series_dir, poster_filepath: poster, fanart_filepath: fanart},
-        run_post_commit_tasks: false
+        run_post_commit_tasks: false,
+        cast_internal_fields: true
       )
 
     {source, poster, fanart}

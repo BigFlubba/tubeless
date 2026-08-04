@@ -34,7 +34,8 @@ defmodule Pinchflat.SourcesFixtures do
             slug: "source-#{:rand.uniform(1_000_000_000)}"
           }
         ),
-        :pre_insert
+        :pre_insert,
+        cast_internal_fields: true
       )
       |> Repo.insert()
 

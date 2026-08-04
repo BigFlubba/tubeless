@@ -193,6 +193,99 @@ defmodule Pinchflat.Media.MediaQuery do
     )
   end
 
+  # ---- Skip-reason filtering (Skipped tab) ----
+  #
+  # These mirror the precedence in `Pinchflat.Media.SkipReason.reason/2` exactly so the
+  # reason filter dropdown and the per-row chip can never disagree. Each clause reads as
+  # "fails this reason's predicate AND passes every higher-precedence one", so the clauses
+  # are mutually exclusive. They assume the query has the source + media_profile bindings
+  # joined (the Skipped tab query does via `require_assoc(:media_profile)`).
+  def skip_reason_is(:unavailable), do: dynamic([mi], not is_nil(mi.unavailable_at))
+
+  def skip_reason_is(:removed) do
+    dynamic([mi], is_nil(mi.unavailable_at) and not is_nil(mi.culled_at))
+  end
+
+  def skip_reason_is(:ignored) do
+    dynamic([mi], is_nil(mi.unavailable_at) and is_nil(mi.culled_at) and mi.prevent_download == true)
+  end
+
+  def skip_reason_is(:before_cutoff) do
+    dynamic([mi], ^skip_reason_plain() and not (^upload_date_after_source_cutoff()))
+  end
+
+  def skip_reason_is(:format_excluded) do
+    dynamic(
+      [mi],
+      ^skip_reason_plain() and ^upload_date_after_source_cutoff() and not (^format_matching_profile_preference())
+    )
+  end
+
+  def skip_reason_is(:title_filter) do
+    dynamic(
+      [mi],
+      ^skip_reason_plain() and ^upload_date_after_source_cutoff() and
+        ^format_matching_profile_preference() and not (^matches_source_title_regex())
+    )
+  end
+
+  def skip_reason_is(:too_short) do
+    dynamic([mi], ^skip_reason_pre_duration() and ^below_min_duration())
+  end
+
+  def skip_reason_is(:too_long) do
+    dynamic([mi], ^skip_reason_pre_duration() and ^at_least_min_duration() and ^above_max_duration())
+  end
+
+  def skip_reason_is(:filtered) do
+    dynamic([mi], ^skip_reason_pre_duration() and not (^below_min_duration()) and not (^above_max_duration()))
+  end
+
+  # An item that isn't unavailable, retention-culled, or manually ignored - i.e. one
+  # excluded purely by the source's filter rules.
+  defp skip_reason_plain do
+    dynamic([mi], is_nil(mi.unavailable_at) and is_nil(mi.culled_at) and mi.prevent_download == false)
+  end
+
+  # Passed every filter predicate up to (but not including) the duration checks.
+  defp skip_reason_pre_duration do
+    dynamic(
+      [mi],
+      ^skip_reason_plain() and ^upload_date_after_source_cutoff() and
+        ^format_matching_profile_preference() and ^matches_source_title_regex()
+    )
+  end
+
+  # A NULL `duration_seconds` is neither too short nor too long — matching
+  # `SkipReason.too_short?/2`/`too_long?/2`, which return false for a nil duration.
+  # The `is_nil` guards are what keep these predicates *false* rather than NULL in
+  # that case: a NULL would make the negations in `:filtered` NULL too, and an item
+  # with no duration would then match no reason filter at all while its row chip
+  # said "Filtered".
+  defp below_min_duration do
+    dynamic(
+      [mi, source],
+      not is_nil(source.min_duration_seconds) and not is_nil(mi.duration_seconds) and
+        mi.duration_seconds < source.min_duration_seconds
+    )
+  end
+
+  defp above_max_duration do
+    dynamic(
+      [mi, source],
+      not is_nil(source.max_duration_seconds) and not is_nil(mi.duration_seconds) and
+        mi.duration_seconds > source.max_duration_seconds
+    )
+  end
+
+  defp at_least_min_duration do
+    dynamic(
+      [mi, source],
+      is_nil(source.min_duration_seconds) or is_nil(mi.duration_seconds) or
+        mi.duration_seconds >= source.min_duration_seconds
+    )
+  end
+
   def matches_search_term(nil), do: dynamic([mi], true)
 
   def matches_search_term(term) do

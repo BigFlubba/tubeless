@@ -10,6 +10,9 @@ defmodule Pinchflat.TasksTest do
   alias Pinchflat.JobFixtures.TestJobWorker
 
   @invalid_attrs %{job_id: nil}
+  # A second worker name, so two tasks on the same source count as two distinct
+  # pieces of work rather than two attempts at the same one
+  @fast_indexing_worker "Pinchflat.FastIndexing.FastIndexingWorker"
 
   describe "schema" do
     test "deletes a task when the job gets deleted" do
@@ -65,6 +68,197 @@ defmodule Pinchflat.TasksTest do
       task = task_fixture(source_id: source.id)
 
       assert Tasks.list_tasks_for(source, nil) == [task]
+    end
+  end
+
+  describe "list_recent_activity_for_source/2" do
+    test "includes tasks attached to the source itself" do
+      source = source_fixture()
+      task = task_fixture(source_id: source.id)
+
+      assert [%{id: id}] = Tasks.list_recent_activity_for_source(source)
+      assert id == task.id
+    end
+
+    test "includes tasks attached to the source's media items" do
+      source = source_fixture()
+      media_item = media_item_fixture(source_id: source.id)
+      task = task_fixture(source_id: nil, media_item_id: media_item.id)
+
+      assert [%{id: id}] = Tasks.list_recent_activity_for_source(source)
+      assert id == task.id
+    end
+
+    test "excludes tasks belonging to other sources" do
+      source = source_fixture()
+      other_source = source_fixture()
+      task_fixture(source_id: other_source.id)
+      task_fixture(source_id: nil, media_item_id: media_item_fixture(source_id: other_source.id).id)
+
+      assert [] == Tasks.list_recent_activity_for_source(source)
+    end
+
+    test "preloads the job and media item" do
+      source = source_fixture()
+      media_item = media_item_fixture(source_id: source.id)
+      task_fixture(source_id: nil, media_item_id: media_item.id)
+
+      assert [task] = Tasks.list_recent_activity_for_source(source)
+      assert %Oban.Job{} = task.job
+      assert task.media_item.id == media_item.id
+    end
+
+    test "orders by the timestamp the job actually reached, newest first" do
+      source = source_fixture()
+
+      old = task_fixture(source_id: source.id)
+      recent = task_fixture(source_id: source.id)
+
+      set_job_state(old.job_id, "completed", completed_at: hours_ago(5))
+      set_job_state(recent.job_id, "completed", completed_at: hours_ago(1))
+
+      assert [first, second] = Tasks.list_recent_activity_for_source(source)
+      assert first.id == recent.id
+      assert second.id == old.id
+    end
+
+    test "is bounded by the passed limit" do
+      source = source_fixture()
+      Enum.each(1..3, fn _ -> task_fixture(source_id: source.id) end)
+
+      assert length(Tasks.list_recent_activity_for_source(source, 2)) == 2
+    end
+  end
+
+  describe "list_unresolved_activity_for_source/2" do
+    test "returns retryable and discarded tasks" do
+      source = source_fixture()
+      retryable = task_fixture(source_id: source.id)
+      discarded = task_fixture(source_id: source.id)
+
+      # Different workers, so these are two distinct pieces of work rather than
+      # two attempts at the same one
+      set_job_state(retryable.job_id, "retryable", attempted_at: hours_ago(2), worker: @fast_indexing_worker)
+      set_job_state(discarded.job_id, "discarded", discarded_at: hours_ago(1))
+
+      assert [first, second] = Tasks.list_unresolved_activity_for_source(source)
+      assert first.id == discarded.id
+      assert second.id == retryable.id
+    end
+
+    # A discarded job sticks around for 30 days until Oban prunes it. Once the same
+    # work has been re-run successfully it's history, not an open problem - the
+    # same "latest per target" rule the header status pill uses.
+    test "ignores a failure that a later run of the same work recovered from" do
+      source = source_fixture()
+      failed = task_fixture(source_id: source.id)
+      recovered = task_fixture(source_id: source.id)
+
+      set_job_state(failed.job_id, "discarded", discarded_at: hours_ago(2))
+      set_job_state(recovered.job_id, "completed", completed_at: hours_ago(1))
+
+      assert [] == Tasks.list_unresolved_activity_for_source(source)
+    end
+
+    test "keeps a failure when the later success was different work" do
+      source = source_fixture()
+      failed = task_fixture(source_id: source.id)
+      unrelated = task_fixture(source_id: source.id)
+
+      set_job_state(failed.job_id, "discarded", discarded_at: hours_ago(2))
+      set_job_state(unrelated.job_id, "completed", completed_at: hours_ago(1), worker: @fast_indexing_worker)
+
+      assert [%{id: id}] = Tasks.list_unresolved_activity_for_source(source)
+      assert id == failed.id
+    end
+
+    test "keeps a media item's failure when a different media item succeeded later" do
+      source = source_fixture()
+      failed_item = media_item_fixture(source_id: source.id)
+      other_item = media_item_fixture(source_id: source.id)
+
+      failed = task_fixture(source_id: nil, media_item_id: failed_item.id)
+      succeeded = task_fixture(source_id: nil, media_item_id: other_item.id)
+
+      set_job_state(failed.job_id, "discarded", discarded_at: hours_ago(2))
+      set_job_state(succeeded.job_id, "completed", completed_at: hours_ago(1))
+
+      assert [%{id: id}] = Tasks.list_unresolved_activity_for_source(source)
+      assert id == failed.id
+    end
+
+    test "ignores tasks that completed, are waiting, or were cancelled" do
+      source = source_fixture()
+
+      for state <- ~w(completed available scheduled executing cancelled) do
+        set_job_state(task_fixture(source_id: source.id).job_id, state, [])
+      end
+
+      assert [] == Tasks.list_unresolved_activity_for_source(source)
+    end
+
+    test "includes failures of the source's media items' tasks" do
+      source = source_fixture()
+      media_item = media_item_fixture(source_id: source.id)
+      task = task_fixture(source_id: nil, media_item_id: media_item.id)
+      set_job_state(task.job_id, "discarded", [])
+
+      assert [%{id: id}] = Tasks.list_unresolved_activity_for_source(source)
+      assert id == task.id
+    end
+
+    # The whole reason this is its own query rather than a filter over
+    # `list_recent_activity_for_source/2`: the failure must survive a run of newer
+    # successful jobs that would otherwise push it out of the capped window.
+    test "surfaces a failure that is older than a full page of successful jobs" do
+      source = source_fixture()
+      failure = task_fixture(source_id: source.id)
+      set_job_state(failure.job_id, "discarded", discarded_at: hours_ago(100))
+
+      # Successful downloads of other media items - newer, but not a re-run of the
+      # work that failed, so they don't resolve it
+      Enum.each(1..51, fn hours ->
+        media_item = media_item_fixture(source_id: source.id)
+        task = task_fixture(source_id: nil, media_item_id: media_item.id)
+        set_job_state(task.job_id, "completed", completed_at: hours_ago(hours))
+      end)
+
+      recent = Tasks.list_recent_activity_for_source(source, 50)
+      refute Enum.any?(recent, &(&1.id == failure.id))
+
+      assert [%{id: id}] = Tasks.list_unresolved_activity_for_source(source)
+      assert id == failure.id
+    end
+  end
+
+  describe "count_in_flight_activity_for_source/1" do
+    test "counts non-terminal jobs attached to the source and to its media items" do
+      source = source_fixture()
+      media_item = media_item_fixture(source_id: source.id)
+
+      set_job_state(task_fixture(source_id: source.id).job_id, "scheduled", [])
+      set_job_state(task_fixture(source_id: nil, media_item_id: media_item.id).job_id, "executing", [])
+      set_job_state(task_fixture(source_id: source.id).job_id, "retryable", [])
+
+      assert Tasks.count_in_flight_activity_for_source(source) == 3
+    end
+
+    test "does not count finished work" do
+      source = source_fixture()
+
+      for state <- ~w(completed cancelled discarded) do
+        set_job_state(task_fixture(source_id: source.id).job_id, state, [])
+      end
+
+      assert Tasks.count_in_flight_activity_for_source(source) == 0
+    end
+
+    test "does not count other sources' jobs" do
+      source = source_fixture()
+      other_source = source_fixture()
+      set_job_state(task_fixture(source_id: other_source.id).job_id, "available", [])
+
+      assert Tasks.count_in_flight_activity_for_source(source) == 0
     end
   end
 
@@ -267,4 +461,13 @@ defmodule Pinchflat.TasksTest do
       assert %Ecto.Changeset{} = Tasks.change_task(task)
     end
   end
+
+  defp set_job_state(job_id, state, extra_fields) do
+    Repo.update_all(
+      from(j in Oban.Job, where: j.id == ^job_id),
+      set: [{:state, state} | extra_fields]
+    )
+  end
+
+  defp hours_ago(hours), do: DateTime.add(DateTime.utc_now(), -hours * 60 * 60, :second)
 end

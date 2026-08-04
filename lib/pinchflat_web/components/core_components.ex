@@ -103,6 +103,11 @@ defmodule PinchflatWeb.CoreComponents do
   attr :flash, :map, default: %{}, doc: "the map of flash messages to display"
   attr :title, :string, default: nil
   attr :kind, :atom, values: [:info, :error], doc: "used for styling and flash lookup"
+
+  attr :autodismiss, :boolean,
+    default: false,
+    doc: "auto-hide the toast after a few seconds (only for real, message-bearing flashes)"
+
   attr :rest, :global, doc: "the arbitrary HTML attributes to add to the flash container"
 
   slot :inner_block, doc: "the optional inner block that renders the flash message"
@@ -114,31 +119,52 @@ defmodule PinchflatWeb.CoreComponents do
     <div
       :if={msg = render_slot(@inner_block) || Phoenix.Flash.get(@flash, @kind)}
       id={@id}
-      class="pb-8"
       role="alert"
+      class={[
+        "pointer-events-auto flex items-start gap-3 rounded-lg border-l-4 bg-white p-4 shadow-card dark:bg-boxdark dark:text-white",
+        @kind == :info && "border-[#34D399]",
+        @kind == :error && "border-[#F87171]"
+      ]}
+      {toast_dismiss_attrs(@autodismiss)}
       {@rest}
     >
-      <div class={[
-        "flex justify-between w-full border-l-6 p-5 shadow-md dark:text-white",
-        @kind == :info && "border-[#34D399] bg-[#34D399]/50 dark:bg-[#34D399]/40",
-        @kind == :error && "border-[#F87171] bg-[#F87171]/50 dark:bg-[#F87171]/40"
-      ]}>
-        <main>
-          <h5 :if={@title} class="mb-2 text-lg font-bold">
-            {@title}
-          </h5>
-          <p class="mt-2 text-md leading-5 opacity-80">{msg}</p>
-        </main>
-        <button
-          type="button"
-          aria-label={gettext("close")}
-          phx-click={JS.push("lv:clear-flash", value: %{key: @kind}) |> hide("##{@id}")}
-        >
-          <.icon name="hero-x-mark-solid" class="h-7 w-7 opacity-70 hover:opacity-100" />
-        </button>
-      </div>
+      <.icon
+        name={if @kind == :info, do: "hero-check-circle-solid", else: "hero-exclamation-triangle-solid"}
+        class={"mt-0.5 h-6 w-6 shrink-0 #{if @kind == :info, do: "text-[#34D399]", else: "text-[#F87171]"}"}
+      />
+      <main class="min-w-0 flex-1">
+        <h5 :if={@title} class="text-sm font-bold">{@title}</h5>
+        <p class="mt-0.5 text-sm leading-5 opacity-80">{msg}</p>
+      </main>
+      <button
+        type="button"
+        class="shrink-0"
+        aria-label={gettext("close")}
+        phx-click={JS.push("lv:clear-flash", value: %{key: @kind}) |> hide("##{@id}")}
+      >
+        <.icon name="hero-x-mark-solid" class="h-5 w-5 opacity-60 hover:opacity-100" />
+      </button>
     </div>
     """
+  end
+
+  # Alpine-driven slide-in-from-right toast that fades itself out after 5s. Only
+  # applied to real message flashes; the connection-status flashes stay put so they
+  # persist while the socket is down.
+  defp toast_dismiss_attrs(false), do: %{}
+
+  defp toast_dismiss_attrs(true) do
+    %{
+      "x-data" => "{ show: false }",
+      "x-init" => "$nextTick(() => (show = true)); setTimeout(() => (show = false), 5000)",
+      "x-show" => "show",
+      "x-transition:enter" => "transition ease-out duration-300",
+      "x-transition:enter-start" => "opacity-0 translate-x-6",
+      "x-transition:enter-end" => "opacity-100 translate-x-0",
+      "x-transition:leave" => "transition ease-in duration-200",
+      "x-transition:leave-start" => "opacity-100 translate-x-0",
+      "x-transition:leave-end" => "opacity-0 translate-x-6"
+    }
   end
 
   @doc """
@@ -153,9 +179,9 @@ defmodule PinchflatWeb.CoreComponents do
 
   def flash_group(assigns) do
     ~H"""
-    <div class="flex flex-col gap-7.5" id={@id}>
-      <.flash kind={:info} title="Success!" flash={@flash} />
-      <.flash kind={:error} title="Error!" flash={@flash} />
+    <div class="pointer-events-none fixed right-4 top-4 z-[9999] flex w-full max-w-sm flex-col gap-3" id={@id}>
+      <.flash kind={:info} title="Success!" flash={@flash} autodismiss />
+      <.flash kind={:error} title="Error!" flash={@flash} autodismiss />
       <.flash
         id="client-error"
         kind={:error}

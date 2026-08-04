@@ -1,120 +1,158 @@
-<.button_dropdown text="Actions" class="justify-center w-full sm:w-50">
-  <:option>
-    <.link href={rss_feed_url(@conn, @source)} x-data="{ copied: false }" x-on:click={~s"
-          $event.preventDefault();
-          copyWithCallbacks(
-            '#{rss_feed_url(@conn, @source)}',
-            () => copied = true,
-            () => copied = false
-          )
-        "}>
-      Copy RSS Feed
-      <span x-show="copied" x-transition.duration.150ms><.icon name="hero-check" class="ml-2 h-4 w-4" /></span>
-    </.link>
-  </:option>
-  <:option :if={static_podcast_feed_url(@source)}>
-    <.link href={static_podcast_feed_url(@source)} x-data="{ copied: false }" x-on:click={~s"
-          $event.preventDefault();
-          copyWithCallbacks(
-            '#{static_podcast_feed_url(@source)}',
-            () => copied = true,
-            () => copied = false
-          )
-        "}>
-      Copy Podcast Feed
-      <span x-show="copied" x-transition.duration.150ms><.icon name="hero-check" class="ml-2 h-4 w-4" /></span>
-    </.link>
-  </:option>
-  <:option>
-    <span x-data="{ copied: false }" x-on:click={~s"
-        copyWithCallbacks(
-          String.raw`#{Jason.Formatter.pretty_print(Phoenix.json_library().encode!(@source))}`,
-          () => copied = true, 
-          () => copied = false
-        )
-      "}>
-      Copy JSON
-      <span x-show="copied" x-transition.duration.150ms><.icon name="hero-check" class="ml-2 h-4 w-4" /></span>
-    </span>
-  </:option>
-  <:option>
-    <.link href={~p"/sources/new?template_id=#{@source}"} method="get">
-      Use as Template
-    </.link>
-  </:option>
-  <:option>
-    <div class="h-px w-full bg-bodydark2"></div>
-  </:option>
-  <:option :if={@source.download_media}>
-    <.link
-      href={~p"/sources/#{@source}/force_download_pending"}
-      method="post"
-      data-confirm="Are you sure you want to force a download of all pending media items? This isn't normally needed."
-    >
-      Download Pending
-    </.link>
-  </:option>
-  <:option :if={@source.download_media}>
-    <.link
-      href={~p"/sources/#{@source}/force_redownload"}
-      method="post"
-      data-confirm="Are you sure you want to re-download all currently downloaded media items? This doesn't upgrade your media, but will download any missing files if your settings have changed. This isn't normally needed."
-    >
-      Redownload Existing
-    </.link>
-  </:option>
-  <:option>
-    <.link
+<% static_feed_url = static_podcast_state(@source).url %>
+<div x-data="{ open: false }" class="relative">
+  <button
+    type="button"
+    x-on:click="open = !open"
+    class="flex h-11 w-11 items-center justify-center rounded-lg border-2 border-strokedark bg-form-input text-stroke hover:border-form-strokedark hover:bg-meta-4"
+    aria-label="More actions"
+  >
+    <.icon name="hero-ellipsis-horizontal" />
+  </button>
+
+  <div
+    x-show="open"
+    x-on:click.outside="open = false"
+    x-transition
+    class="absolute right-0 top-full z-40 mt-2 w-max max-w-[90vw] overflow-hidden rounded-md bg-black py-2 shadow-card"
+    style="display: none"
+  >
+    <p class="px-4 pb-1 pt-2 text-xs font-semibold uppercase tracking-wide text-bodydark2">Indexing</p>
+    <.action_item
       href={~p"/sources/#{@source}/force_index"}
       method="post"
-      data-confirm="Are you sure you want index all content from this source? This isn't normally needed."
-    >
-      Force Index
-    </.link>
-  </:option>
-  <:option>
-    <.link
+      icon="hero-arrow-path-rounded-square"
+      title="Rebuild full index"
+      description="Re-index the entire channel, including old videos"
+      confirm="Re-index the entire channel from scratch, including old videos? This isn't normally needed."
+    />
+    <.action_item
       href={~p"/sources/#{@source}/force_metadata_refresh"}
       method="post"
-      data-confirm="Are you sure you want to refresh this source's metadata?"
-    >
-      Refresh Metadata
-    </.link>
-  </:option>
-  <:option>
-    <.link
+      icon="hero-document-text"
+      title="Refresh metadata and artwork"
+      description="Update titles, descriptions, NFO and thumbnails"
+      confirm="Refresh this source's metadata and artwork?"
+    />
+
+    <div :if={@source.download_media} class="my-2 h-px bg-bodydark2/30"></div>
+    <p :if={@source.download_media} class="px-4 pb-1 pt-1 text-xs font-semibold uppercase tracking-wide text-bodydark2">
+      Downloads
+    </p>
+    <.action_item
+      :if={@source.download_media}
+      href={~p"/sources/#{@source}/force_download_pending"}
+      method="post"
+      icon="hero-arrow-down-tray"
+      title="Download pending now"
+      description={download_pending_label(@tab_counts.pending)}
+      confirm="Force a download of all pending media items now? This isn't normally needed."
+    />
+    <.action_item
+      :if={@source.download_media}
+      href={~p"/sources/#{@source}/force_redownload"}
+      method="post"
+      icon="hero-clock"
+      title="Re-download library"
+      description={redownload_library_label(@tab_counts.library)}
+      confirm="Re-download all currently downloaded media items? This doesn't upgrade your media, but re-fetches files if your settings have changed. This isn't normally needed."
+    />
+
+    <div class="my-2 h-px bg-bodydark2/30"></div>
+    <p class="px-4 pb-1 pt-1 text-xs font-semibold uppercase tracking-wide text-bodydark2">Files</p>
+    <.action_item
       href={~p"/sources/#{@source}/sync_files_on_disk"}
       method="post"
-      data-confirm="Are you sure you want to sync files? This will update media items if their files have been deleted. File addition or moves are not detected. This isn't normally needed."
+      icon="hero-clipboard-document-check"
+      title="Verify database against disk"
+      description="Flag records whose files are missing"
+      confirm="Check the database against disk? This flags media items whose files have been deleted. File additions or moves are not detected."
+    />
+    <.action_item
+      href={~p"/reconciliation?source_id=#{@source.id}"}
+      icon="hero-arrows-right-left"
+      title="Reconcile files"
+      description="Move or rename files after settings changes"
+    />
+
+    <div class="my-2 h-px bg-bodydark2/30"></div>
+    <span
+      class="flex items-center gap-3 px-4 py-2 text-bodydark2 hover:text-white cursor-pointer"
+      x-data="{ copied: false }"
+      x-on:click={~s"
+        copyWithCallbacks(
+          '#{rss_feed_url(@conn, @source)}',
+          () => copied = true,
+          () => copied = false
+        )
+      "}
     >
-      Sync Files on Disk
+      <.icon name="hero-rss" class="h-5 w-5 shrink-0" />
+      <span class="font-medium">Copy RSS feed</span>
+      <span x-show="copied" x-transition.duration.150ms><.icon name="hero-check" class="h-4 w-4" /></span>
+    </span>
+    <span
+      :if={static_feed_url}
+      class="flex items-center gap-3 px-4 py-2 text-bodydark2 hover:text-white cursor-pointer"
+      x-data="{ copied: false }"
+      x-on:click={~s"
+        copyWithCallbacks(
+          '#{static_feed_url}',
+          () => copied = true,
+          () => copied = false
+        )
+      "}
+    >
+      <.icon name="hero-microphone" class="h-5 w-5 shrink-0" />
+      <span class="font-medium">Copy podcast feed</span>
+      <span x-show="copied" x-transition.duration.150ms><.icon name="hero-check" class="h-4 w-4" /></span>
+    </span>
+    <span
+      class="flex items-center gap-3 px-4 py-2 text-bodydark2 hover:text-white cursor-pointer"
+      x-data="{ copied: false }"
+      x-on:click={~s"
+        copyWithCallbacks(
+          String.raw`#{Jason.Formatter.pretty_print(Phoenix.json_library().encode!(@source))}`,
+          () => copied = true,
+          () => copied = false
+        )
+      "}
+    >
+      <.icon name="hero-code-bracket" class="h-5 w-5 shrink-0" />
+      <span class="font-medium">Copy JSON</span>
+      <span x-show="copied" x-transition.duration.150ms><.icon name="hero-check" class="h-4 w-4" /></span>
+    </span>
+    <.link
+      href={~p"/sources/new?template_id=#{@source}"}
+      method="get"
+      class="flex items-center gap-3 px-4 py-2 text-bodydark2 hover:text-white"
+    >
+      <.icon name="hero-document-duplicate" class="h-5 w-5 shrink-0" />
+      <span class="font-medium">New source from this one</span>
     </.link>
-  </:option>
-  <:option>
-    <.link href={~p"/reconciliation?source_id=#{@source.id}"}>
-      Reconcile Files
-    </.link>
-  </:option>
-  <:option>
-    <div class="h-px w-full bg-bodydark2"></div>
-  </:option>
-  <:option>
+
+    <%!--
+      Delete actions are parked here (danger-styled) until Phase 5 moves them into a
+      "Danger zone" block at the bottom of the Settings tab.
+    --%>
+    <div class="my-2 h-px bg-bodydark2/30"></div>
+    <p class="px-4 pb-1 pt-1 text-xs font-semibold uppercase tracking-wide text-danger">Danger zone</p>
     <.link
       href={~p"/sources/#{@source}"}
       method="delete"
-      data-confirm="Are you sure you want to delete this source (leaving files in place)? This cannot be undone."
+      data-confirm="Delete this source? Files already downloaded to disk are kept. This cannot be undone."
+      class="flex items-center gap-3 px-4 py-2 text-danger hover:bg-danger/10"
     >
-      Delete Source
+      <.icon name="hero-trash" class="h-5 w-5 shrink-0" />
+      <span class="font-medium">Delete source</span>
     </.link>
-  </:option>
-  <:option>
     <.link
       href={~p"/sources/#{@source}?delete_files=true"}
       method="delete"
-      data-confirm="Are you sure you want to delete this source and it's files on disk? This cannot be undone."
-      class="mt-5 md:mt-0"
+      data-confirm="Delete this source AND all of its files on disk? This cannot be undone."
+      class="flex items-center gap-3 px-4 py-2 text-danger hover:bg-danger/10"
     >
-      Delete Source + Files
+      <.icon name="hero-trash" class="h-5 w-5 shrink-0" />
+      <span class="font-medium">Delete source + files</span>
     </.link>
-  </:option>
-</.button_dropdown>
+  </div>
+</div>

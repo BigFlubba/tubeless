@@ -54,6 +54,24 @@ defmodule PinchflatWeb.Sources.MediaItemTableLiveTest do
       refute html =~ pending_media_item.title
     end
 
+    test "shows Downloaded and Size columns on the downloaded tab", %{conn: conn, source: source} do
+      media_item_fixture(source_id: source.id, media_downloaded_at: DateTime.utc_now(), media_size_bytes: 1_048_576)
+
+      {:ok, _view, html} = live_isolated(conn, MediaItemTableLive, session: create_session(source, "downloaded"))
+
+      assert html =~ "Downloaded"
+      assert html =~ "Size"
+    end
+
+    test "links each item to its original video on YouTube", %{conn: conn, source: source} do
+      media_item = media_item_fixture(source_id: source.id, media_filepath: nil)
+
+      {:ok, _view, html} = live_isolated(conn, MediaItemTableLive, session: create_session(source, "pending"))
+
+      assert html =~ media_item.original_url
+      assert html =~ "Watch on YouTube"
+    end
+
     test "shows records that aren't pending or downloaded when other", %{conn: conn} do
       media_profile = media_profile_fixture(shorts_behaviour: :exclude)
       source = source_fixture(media_profile_id: media_profile.id)
@@ -74,9 +92,10 @@ defmodule PinchflatWeb.Sources.MediaItemTableLiveTest do
 
       {:ok, _view, html} = live_isolated(conn, MediaItemTableLive, session: create_session(source, "other"))
 
+      # Match the chip span, not the reason dropdown's <option> list
       assert html =~ "Status"
-      assert html =~ "Ignored"
-      refute html =~ "Removed"
+      assert html =~ "<span>Ignored</span>"
+      refute html =~ "<span>Removed</span>"
     end
 
     test "shows 'Removed' status for culled media even when prevent_download is set", %{conn: conn, source: source} do
@@ -90,8 +109,8 @@ defmodule PinchflatWeb.Sources.MediaItemTableLiveTest do
 
       {:ok, _view, html} = live_isolated(conn, MediaItemTableLive, session: create_session(source, "other"))
 
-      assert html =~ "Removed"
-      refute html =~ "Ignored"
+      assert html =~ "<span>Removed</span>"
+      refute html =~ "<span>Ignored</span>"
     end
 
     test "shows 'Unavailable' status for unavailable media when other", %{conn: conn, source: source} do
@@ -106,19 +125,92 @@ defmodule PinchflatWeb.Sources.MediaItemTableLiveTest do
 
       {:ok, _view, html} = live_isolated(conn, MediaItemTableLive, session: create_session(source, "other"))
 
-      assert html =~ "Unavailable"
-      refute html =~ "Ignored"
-      refute html =~ "Removed"
+      assert html =~ "<span>Unavailable</span>"
+      refute html =~ "<span>Ignored</span>"
+      refute html =~ "<span>Removed</span>"
     end
 
-    test "shows 'Filtered Out' status for media excluded by profile rules when other", %{conn: conn} do
+    test "shows a specific skip reason chip for excluded media when other", %{conn: conn} do
       media_profile = media_profile_fixture(shorts_behaviour: :exclude)
       source = source_fixture(media_profile_id: media_profile.id)
       _media_item = media_item_fixture(source_id: source.id, media_filepath: nil, short_form_content: true)
 
       {:ok, _view, html} = live_isolated(conn, MediaItemTableLive, session: create_session(source, "other"))
 
-      assert html =~ "Filtered Out"
+      assert html =~ "<span>Wrong format</span>"
+    end
+  end
+
+  describe "skip reason filter" do
+    setup %{} do
+      media_profile = media_profile_fixture()
+      source = source_fixture(media_profile_id: media_profile.id, min_duration_seconds: 600, title_filter_regex: "keep")
+
+      too_short =
+        media_item_fixture(
+          source_id: source.id,
+          media_filepath: nil,
+          title: "keep this short one",
+          duration_seconds: 10
+        )
+
+      title_filtered =
+        media_item_fixture(source_id: source.id, media_filepath: nil, title: "nope", duration_seconds: 700)
+
+      ignored =
+        media_item_fixture(
+          source_id: source.id,
+          media_filepath: nil,
+          prevent_download: true,
+          title: "zzz ignored one",
+          duration_seconds: 700
+        )
+
+      {:ok, source: source, too_short: too_short, title_filtered: title_filtered, ignored: ignored}
+    end
+
+    test "only shows the reason dropdown on the Skipped tab", %{conn: conn, source: source} do
+      {:ok, _view, other_html} = live_isolated(conn, MediaItemTableLive, session: create_session(source, "other"))
+      {:ok, _view, pending_html} = live_isolated(conn, MediaItemTableLive, session: create_session(source, "pending"))
+
+      assert other_html =~ "All reasons"
+      refute pending_html =~ "All reasons"
+    end
+
+    test "narrows the list to the selected reason", %{
+      conn: conn,
+      source: source,
+      too_short: too_short,
+      title_filtered: title_filtered,
+      ignored: ignored
+    } do
+      {:ok, view, html} = live_isolated(conn, MediaItemTableLive, session: create_session(source, "other"))
+
+      # All three excluded items show before filtering
+      assert html =~ too_short.title
+      assert html =~ title_filtered.title
+      assert html =~ ignored.title
+
+      html = render_change(view, "filter_reason", %{"reason" => "too_short"})
+
+      assert html =~ too_short.title
+      refute html =~ title_filtered.title
+      refute html =~ ignored.title
+    end
+
+    test "clearing the reason restores every excluded item", %{
+      conn: conn,
+      source: source,
+      too_short: too_short,
+      title_filtered: title_filtered
+    } do
+      {:ok, view, _html} = live_isolated(conn, MediaItemTableLive, session: create_session(source, "other"))
+
+      render_change(view, "filter_reason", %{"reason" => "too_short"})
+      html = render_change(view, "filter_reason", %{"reason" => ""})
+
+      assert html =~ too_short.title
+      assert html =~ title_filtered.title
     end
   end
 

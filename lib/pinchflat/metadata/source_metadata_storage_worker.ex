@@ -68,8 +68,11 @@ defmodule Pinchflat.Metadata.SourceMetadataStorageWorker do
           },
           source_image_attrs
         ),
-        # `run_post_commit_tasks: false` prevents this from running in an infinite loop
-        run_post_commit_tasks: false
+        # `run_post_commit_tasks: false` prevents this from running in an infinite loop.
+        # `cast_internal_fields: true` lets this trusted worker write the app-managed
+        # series_directory/*_filepath columns (blocked for HTTP updates).
+        run_post_commit_tasks: false,
+        cast_internal_fields: true
       )
 
       # Post-commit tasks are suppressed above, so trigger the podcast export

@@ -38,6 +38,433 @@ defmodule Pinchflat.SourcesTest do
     end
   end
 
+  describe "tab_counts/1" do
+    test "counts pending, library, and skipped media items in one map" do
+      source = source_fixture()
+
+      # library (downloaded — fixture sets media_filepath by default)
+      media_item_fixture(%{source_id: source.id})
+      media_item_fixture(%{source_id: source.id})
+      # pending (no file, download allowed, passes filters)
+      media_item_fixture(%{source_id: source.id, media_filepath: nil})
+      # skipped (no file but download prevented, so neither downloaded nor pending)
+      media_item_fixture(%{source_id: source.id, media_filepath: nil, prevent_download: true})
+
+      assert %{pending: 1, library: 2, skipped: 1} = Sources.tab_counts(source)
+    end
+
+    # `pending` is an eligibility count, not a count of live download jobs - the
+    # UI labels it "Pending" rather than "Queued" for exactly this reason.
+    test "counts eligible media whether or not a download job exists for it" do
+      source = source_fixture()
+      with_job = media_item_fixture(%{source_id: source.id, media_filepath: nil})
+      _without_job = media_item_fixture(%{source_id: source.id, media_filepath: nil})
+
+      {:ok, job} = %{"id" => with_job.id} |> MediaDownloadWorker.new() |> Oban.insert()
+      Pinchflat.Tasks.create_task(job, with_job)
+
+      assert %{pending: 2} = Sources.tab_counts(source)
+    end
+
+    test "sums the byte size of downloaded (library) items" do
+      source = source_fixture()
+      media_item_fixture(%{source_id: source.id, media_size_bytes: 100})
+      media_item_fixture(%{source_id: source.id, media_size_bytes: 250})
+      # pending items contribute no bytes
+      media_item_fixture(%{source_id: source.id, media_filepath: nil})
+
+      assert %{library: 2, library_bytes: 350} = Sources.tab_counts(source)
+    end
+
+    test "returns zeroes for a source with no media items" do
+      source = source_fixture()
+
+      assert %{pending: 0, library: 0, skipped: 0, library_bytes: 0} = Sources.tab_counts(source)
+    end
+
+    test "only counts media items belonging to the given source" do
+      source = source_fixture()
+      other_source = source_fixture()
+      media_item_fixture(%{source_id: other_source.id})
+
+      assert %{pending: 0, library: 0, skipped: 0} = Sources.tab_counts(source)
+    end
+  end
+
+  describe "status/1" do
+    test "returns :paused when the source is disabled" do
+      source = source_fixture(%{enabled: false})
+      assert Sources.status(source) == :paused
+    end
+
+    # The source page renders the pill and the blocking-conditions banner from one
+    # request and both need this, so it's resolved once and injected into both
+    test "uses an injected :indexing_failed? instead of querying for it" do
+      source = source_fixture(%{enabled: true})
+
+      assert Sources.status(source, indexing_failed?: true) == :error
+      assert Sources.status(source, indexing_failed?: false) == :active
+    end
+
+    test "returns :active for an enabled source with no failing jobs" do
+      source = source_fixture(%{enabled: true})
+      assert Sources.status(source) == :active
+    end
+
+    test "returns :error when an indexing or download job is failing" do
+      source = source_fixture(%{enabled: true})
+
+      {:ok, job} =
+        %{"id" => source.id}
+        |> Pinchflat.SlowIndexing.MediaCollectionIndexingWorker.new()
+        |> Oban.insert()
+
+      job
+      |> Ecto.Changeset.change(state: "retryable")
+      |> Repo.update!()
+
+      Pinchflat.Tasks.create_task(job, source)
+
+      assert Sources.status(source) == :error
+    end
+
+    test "returns :error when a download job attached to a media item is failing" do
+      source = source_fixture(%{enabled: true})
+      media_item = media_item_fixture(%{source_id: source.id})
+
+      {:ok, job} =
+        %{"id" => media_item.id}
+        |> MediaDownloadWorker.new()
+        |> Oban.insert()
+
+      job
+      |> Ecto.Changeset.change(state: "retryable")
+      |> Repo.update!()
+
+      # Download tasks attach to the media item, not the source directly
+      Pinchflat.Tasks.create_task(job, media_item)
+
+      assert Sources.status(source) == :error
+    end
+
+    test "returns :active when a newer indexing job succeeds after an older discarded one" do
+      source = source_fixture(%{enabled: true})
+
+      insert_indexing_job = fn state ->
+        {:ok, job} =
+          %{"id" => source.id}
+          |> MediaCollectionIndexingWorker.new()
+          |> Oban.insert()
+
+        job = job |> Ecto.Changeset.change(state: state) |> Repo.update!()
+        Pinchflat.Tasks.create_task(job, source)
+      end
+
+      # Older run gave up (discarded); a newer run then succeeded
+      insert_indexing_job.("discarded")
+      insert_indexing_job.("completed")
+
+      assert Sources.status(source) == :active
+    end
+
+    test "returns :active when a newer download job succeeds after an older discarded one" do
+      source = source_fixture(%{enabled: true})
+      media_item = media_item_fixture(%{source_id: source.id})
+
+      insert_download_job = fn state ->
+        {:ok, job} =
+          %{"id" => media_item.id}
+          |> MediaDownloadWorker.new()
+          |> Oban.insert()
+
+        job = job |> Ecto.Changeset.change(state: state) |> Repo.update!()
+        Pinchflat.Tasks.create_task(job, media_item)
+      end
+
+      insert_download_job.("discarded")
+      insert_download_job.("completed")
+
+      assert Sources.status(source) == :active
+    end
+
+    # Fast and slow indexing are independent, self-perpetuating chains - a healthy
+    # run of one must not vouch for the other, in either insertion order.
+    test "returns :error when the slow indexing chain is dead but fast indexing succeeds" do
+      source = source_fixture(%{enabled: true})
+
+      insert_indexing_job(source, MediaCollectionIndexingWorker, "discarded")
+      insert_indexing_job(source, FastIndexingWorker, "completed")
+
+      assert Sources.status(source) == :error
+    end
+
+    test "returns :error when the fast indexing chain is dead but slow indexing succeeds" do
+      source = source_fixture(%{enabled: true})
+
+      insert_indexing_job(source, FastIndexingWorker, "discarded")
+      insert_indexing_job(source, MediaCollectionIndexingWorker, "completed")
+
+      assert Sources.status(source) == :error
+    end
+
+    test "returns :active when the latest job of each indexing chain succeeded" do
+      source = source_fixture(%{enabled: true})
+
+      insert_indexing_job(source, MediaCollectionIndexingWorker, "discarded")
+      insert_indexing_job(source, FastIndexingWorker, "discarded")
+      insert_indexing_job(source, MediaCollectionIndexingWorker, "completed")
+      insert_indexing_job(source, FastIndexingWorker, "completed")
+
+      assert Sources.status(source) == :active
+    end
+
+    defp insert_indexing_job(source, worker, state) do
+      {:ok, job} = %{"id" => source.id} |> worker.new() |> Oban.insert()
+
+      job = job |> Ecto.Changeset.change(state: state) |> Repo.update!()
+      Pinchflat.Tasks.create_task(job, source)
+    end
+  end
+
+  describe "blocking_conditions/2" do
+    # The two environment probes are injected so these stay pure DB tests.
+    # Their real defaults are exercised by `probes_default_to_the_real_world`.
+    defp conditions(source, opts \\ []) do
+      opts = Keyword.merge([queue_paused?: false, storage_directory_writable?: true], opts)
+
+      Sources.blocking_conditions(source, opts)
+    end
+
+    defp codes(source, opts \\ []), do: Enum.map(conditions(source, opts), & &1.code)
+
+    test "returns nothing for a healthy source that has downloaded media" do
+      source = source_fixture(%{enabled: true, download_media: true, last_indexed_at: DateTime.utc_now()})
+      media_item_fixture(%{source_id: source.id, media_filepath: "/downloads/video.mp4"})
+
+      assert conditions(source) == []
+    end
+
+    test "returns nothing when media is queued and waiting to download" do
+      source = source_fixture(%{enabled: true, download_media: true, last_indexed_at: DateTime.utc_now()})
+      media_item_fixture(%{source_id: source.id, media_filepath: nil})
+
+      assert conditions(source) == []
+    end
+
+    test "returns nothing at all for a paused source" do
+      # Being paused is a chosen state the header pill already reports, and
+      # everything downstream of it is a consequence rather than a cause
+      source = source_fixture(%{enabled: false, download_media: false, last_indexed_at: nil})
+
+      assert conditions(source, queue_paused?: true, storage_directory_writable?: false) == []
+    end
+
+    test "reports a source that indexes but never downloads" do
+      source = source_fixture(%{enabled: true, download_media: false, last_indexed_at: DateTime.utc_now()})
+      media_item_fixture(%{source_id: source.id, media_filepath: nil})
+
+      assert :downloads_disabled in codes(source)
+    end
+
+    test "reports a source that has never been indexed and has no index in flight" do
+      source = source_fixture(%{enabled: true, last_indexed_at: nil})
+
+      assert [:never_indexed] = codes(source)
+    end
+
+    test "reports a first index that is already queued instead of prompting for one" do
+      source = source_fixture(%{enabled: true, last_indexed_at: nil})
+      insert_indexing_job(source, "scheduled")
+
+      assert [:index_pending] = codes(source)
+    end
+
+    test "treats an executing first index as pending too" do
+      source = source_fixture(%{enabled: true, last_indexed_at: nil})
+      insert_indexing_job(source, "executing")
+
+      assert [:index_pending] = codes(source)
+    end
+
+    test "falls back to never_indexed once the in-flight index has finished" do
+      source = source_fixture(%{enabled: true, last_indexed_at: nil})
+      insert_indexing_job(source, "completed")
+
+      assert [:never_indexed] = codes(source)
+    end
+
+    test "distinguishes an index that ran but found nothing" do
+      source = source_fixture(%{enabled: true, last_indexed_at: DateTime.utc_now()})
+
+      assert [:index_found_nothing] = codes(source)
+    end
+
+    test "reports when every indexed item was filtered out" do
+      source =
+        source_fixture(%{
+          enabled: true,
+          last_indexed_at: DateTime.utc_now(),
+          min_duration_seconds: 600
+        })
+
+      media_item_fixture(%{source_id: source.id, media_filepath: nil, duration_seconds: 30})
+
+      assert [:all_filtered_out] = codes(source)
+    end
+
+    test "singles out a download cutoff date that excludes everything" do
+      source =
+        source_fixture(%{
+          enabled: true,
+          last_indexed_at: DateTime.utc_now(),
+          download_cutoff_date: ~D[2030-01-01]
+        })
+
+      media_item_fixture(%{source_id: source.id, media_filepath: nil, uploaded_at: ~U[2020-01-01 00:00:00Z]})
+
+      assert [:cutoff_excludes_everything] = codes(source)
+    end
+
+    test "reports a paused download queue" do
+      source = source_fixture(%{enabled: true, last_indexed_at: DateTime.utc_now()})
+      media_item_fixture(%{source_id: source.id, media_filepath: "/downloads/video.mp4"})
+
+      assert [:queue_paused] = codes(source, queue_paused?: true)
+    end
+
+    test "reports a failing indexing run" do
+      source = source_fixture(%{enabled: true, last_indexed_at: DateTime.utc_now()})
+      media_item_fixture(%{source_id: source.id, media_filepath: "/downloads/video.mp4"})
+
+      insert_indexing_job(source, "discarded")
+
+      assert [:indexing_failed] = codes(source)
+    end
+
+    # The source page already resolves this for the header pill, so it can hand it
+    # over rather than making the banner ask the database the same question again
+    test "uses an injected :indexing_failed? instead of querying for it" do
+      source = source_fixture(%{enabled: true, last_indexed_at: DateTime.utc_now()})
+      media_item_fixture(%{source_id: source.id, media_filepath: "/downloads/video.mp4"})
+
+      assert [:indexing_failed] = codes(source, indexing_failed?: true)
+
+      insert_indexing_job(source, "discarded")
+      assert [] = codes(source, indexing_failed?: false)
+    end
+
+    test "reports an unwritable media directory" do
+      source = source_fixture(%{enabled: true, last_indexed_at: DateTime.utc_now()})
+      media_item_fixture(%{source_id: source.id, media_filepath: "/downloads/video.mp4"})
+
+      assert [:storage_directory_unwritable] = codes(source, storage_directory_writable?: false)
+    end
+
+    # A first index that is failing must say so, rather than describing its symptom
+    # ("being indexed, please wait" / "hasn't been indexed yet") and hiding both the
+    # error and the diagnostics link.
+    test "reports a failing first index rather than reporting it as pending" do
+      source = source_fixture(%{enabled: true, last_indexed_at: nil})
+      insert_indexing_job(source, "retryable")
+
+      assert [:indexing_failed] = codes(source)
+    end
+
+    test "reports a discarded first index rather than reporting it as never indexed" do
+      source = source_fixture(%{enabled: true, last_indexed_at: nil})
+      insert_indexing_job(source, "discarded")
+
+      assert [:indexing_failed] = codes(source)
+    end
+
+    test "still reports a healthy first index as pending" do
+      source = source_fixture(%{enabled: true, last_indexed_at: nil})
+      insert_indexing_job(source, "executing")
+
+      assert [:index_pending] = codes(source)
+    end
+
+    # A podcast source downloads into `podcast_directory`, not `media_directory`,
+    # so that's the volume whose permissions matter for it.
+    test "checks the podcast library for a source that publishes as a podcast" do
+      profile = media_profile_fixture(%{podcast_enabled: true})
+      source = source_fixture(%{enabled: true, last_indexed_at: DateTime.utc_now(), media_profile_id: profile.id})
+      media_item_fixture(%{source_id: source.id, media_filepath: "/downloads/podcasts/show/ep.mp3"})
+
+      # A directory that isn't there is its own kind of unwritable. The real probe
+      # runs here (not the injected one) - that's the point of the test.
+      missing_dir = Path.join(System.tmp_dir!(), "no-podcast-volume-#{System.unique_integer([:positive])}")
+      original = Application.get_env(:pinchflat, :podcast_directory)
+      Application.put_env(:pinchflat, :podcast_directory, missing_dir)
+      on_exit(fn -> Application.put_env(:pinchflat, :podcast_directory, original) end)
+
+      assert [%{code: :storage_directory_unwritable, message: message}] =
+               Sources.blocking_conditions(source, queue_paused?: false)
+
+      assert message =~ missing_dir
+    end
+
+    test "orders conditions so the most fundamental one is first" do
+      source =
+        source_fixture(%{
+          enabled: true,
+          download_media: false,
+          last_indexed_at: nil
+        })
+
+      assert [:downloads_disabled, :never_indexed, :queue_paused, :storage_directory_unwritable] ==
+               codes(source, queue_paused?: true, storage_directory_writable?: false)
+    end
+
+    test "every condition carries a human message" do
+      source = source_fixture(%{enabled: true, download_media: false, last_indexed_at: nil})
+
+      for condition <- conditions(source, queue_paused?: true, storage_directory_writable?: false) do
+        assert is_binary(condition.message)
+        assert String.length(condition.message) > 0
+      end
+    end
+
+    test "probes default to the real world when not injected" do
+      source = source_fixture(%{enabled: true, last_indexed_at: DateTime.utc_now()})
+      media_item_fixture(%{source_id: source.id, media_filepath: "/downloads/video.mp4"})
+
+      # The test environment has a writable media dir and no running Oban queues,
+      # so the real probes must both come back clean rather than raising
+      assert Sources.blocking_conditions(source) == []
+    end
+
+    defp insert_indexing_job(source, state) do
+      {:ok, job} =
+        %{"id" => source.id}
+        |> MediaCollectionIndexingWorker.new()
+        |> Oban.insert()
+
+      job = job |> Ecto.Changeset.change(state: state) |> Repo.update!()
+      Pinchflat.Tasks.create_task(job, source)
+
+      job
+    end
+  end
+
+  describe "update_source/3 internal filepath fields" do
+    test "ignores app-managed filepath fields from ordinary (HTTP) updates" do
+      source = source_fixture(%{banner_filepath: nil})
+
+      assert {:ok, updated} = Sources.update_source(source, %{banner_filepath: "/etc/passwd"})
+      assert updated.banner_filepath == nil
+    end
+
+    test "casts app-managed filepath fields when cast_internal_fields is set" do
+      source = source_fixture(%{banner_filepath: nil})
+
+      assert {:ok, updated} =
+               Sources.update_source(source, %{banner_filepath: "/downloads/x/banner.jpg"}, cast_internal_fields: true)
+
+      assert updated.banner_filepath == "/downloads/x/banner.jpg"
+    end
+  end
+
   describe "output_path_template/1" do
     test "returns the source's override if present" do
       source = source_fixture(%{output_path_template_override: "/override/{{ title }}.{{ ext }}"})
