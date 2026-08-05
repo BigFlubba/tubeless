@@ -24,13 +24,6 @@ defmodule Pinchflat.ProfilesTest do
     end
   end
 
-  describe "list_media_profiles/0" do
-    test "it returns all media_profiles" do
-      media_profile = media_profile_fixture()
-      assert Profiles.list_media_profiles() == [media_profile]
-    end
-  end
-
   describe "get_media_profile!/1" do
     test "it returns the media_profile with given id" do
       media_profile = media_profile_fixture()

@@ -20,15 +20,6 @@ defmodule Pinchflat.Media do
   @fields_to_drop_on_update [:playlist_index]
 
   @doc """
-  Returns the list of media_items.
-
-  Returns [%MediaItem{}, ...].
-  """
-  def list_media_items do
-    Repo.all(MediaItem)
-  end
-
-  @doc """
   Returns a list of media_items that are upgradeable based on the redownload delay
   of the media_profile their source belongs to. In this context, upgradeable means
   that it's been long enough since upload that the video may be in a higher quality

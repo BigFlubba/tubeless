@@ -10,13 +10,6 @@ defmodule Pinchflat.Tasks do
   alias Pinchflat.Sources.Source
 
   @doc """
-  Returns the list of tasks. Returns [%Task{}, ...]
-  """
-  def list_tasks do
-    Repo.all(Task)
-  end
-
-  @doc """
   Returns the list of tasks for a given record type and ID. Optionally allows you to specify
   which worker or job states to include.
 
@@ -182,6 +175,8 @@ defmodule Pinchflat.Tasks do
   Gets a single task.
 
   Returns %Task{}. Raises `Ecto.NoResultsError` if the Task does not exist.
+
+  Has no production caller — it's how the task-deletion tests assert a task is gone.
   """
   def get_task!(id), do: Repo.get!(Task, id)
 
@@ -260,12 +255,5 @@ defmodule Pinchflat.Tasks do
     job_states = if include_executing, do: base_job_states ++ [:executing], else: base_job_states
 
     delete_tasks_for(record, worker_name, job_states)
-  end
-
-  @doc """
-  Returns an `%Ecto.Changeset{}` for tracking task changes.
-  """
-  def change_task(%Task{} = task, attrs \\ %{}) do
-    Task.changeset(task, attrs)
   end
 end

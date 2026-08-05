@@ -32,13 +32,6 @@ defmodule Pinchflat.TasksTest do
     end
   end
 
-  describe "list_tasks/0" do
-    test "returns all tasks" do
-      task = task_fixture()
-      assert Tasks.list_tasks() == [task]
-    end
-  end
-
   describe "list_tasks_for/3" do
     test "lets you specify which record type/ID to join on" do
       source = source_fixture()
@@ -452,13 +445,6 @@ defmodule Pinchflat.TasksTest do
       assert Repo.reload!(task)
       assert :ok = Tasks.delete_pending_tasks_for(source, nil, include_executing: true)
       assert_raise Ecto.NoResultsError, fn -> Repo.reload!(task) end
-    end
-  end
-
-  describe "change_task/1" do
-    test "returns a task changeset" do
-      task = task_fixture()
-      assert %Ecto.Changeset{} = Tasks.change_task(task)
     end
   end
 

@@ -34,13 +34,6 @@ defmodule Pinchflat.MediaTest do
     end
   end
 
-  describe "list_media_items/0" do
-    test "it returns all media_items" do
-      media_item = media_item_fixture()
-      assert Media.list_media_items() == [media_item]
-    end
-  end
-
   describe "list_upgradeable_media_items/0" do
     setup do
       media_profile = media_profile_fixture(%{redownload_delay_days: 4})

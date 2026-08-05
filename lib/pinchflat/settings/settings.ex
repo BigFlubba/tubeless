@@ -80,6 +80,10 @@ defmodule Pinchflat.Settings do
 
   @doc """
   Returns `%Ecto.Changeset{}`
+
+  Has no production caller — the settings page saves via `update_setting/2` — but
+  is the entry point the settings tests use to exercise `Setting.changeset/2`'s
+  validations directly.
   """
   def change_setting(%Setting{} = setting, attrs \\ %{}) do
     Setting.changeset(setting, attrs)

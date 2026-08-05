@@ -11,15 +11,6 @@ defmodule Pinchflat.Profiles do
   alias Pinchflat.Podcasts.PodcastExportWorker
 
   @doc """
-  Returns the list of media_profiles.
-
-  Returns [%MediaProfile{}, ...]
-  """
-  def list_media_profiles do
-    Repo.all(MediaProfile)
-  end
-
-  @doc """
   Gets a single media_profile.
 
   Returns %MediaProfile{}. Raises `Ecto.NoResultsError` if the Media profile does not exist.

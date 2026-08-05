@@ -2,7 +2,6 @@ defmodule Pinchflat.Utils.FilesystemUtils do
   @moduledoc """
   Utility methods for working with the filesystem
   """
-  alias Pinchflat.Media
   alias Pinchflat.Utils.StringUtils
 
   @doc """
@@ -131,21 +130,6 @@ defmodule Pinchflat.Utils.FilesystemUtils do
         with {:ok, _bytes} <- File.copy(source, destination) do
           File.rm(source)
         end
-
-      err ->
-        err
-    end
-  end
-
-  @doc """
-  Fetches the file size of a media item and saves it to the database.
-
-  Returns {:ok, media_item} | {:error, any()}
-  """
-  def compute_and_save_media_filesize(media_item) do
-    case File.stat(media_item.media_filepath) do
-      {:ok, %{size: size}} ->
-        Media.update_media_item(media_item, %{media_size_bytes: size})
 
       err ->
         err
