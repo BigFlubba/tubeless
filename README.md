@@ -1,3 +1,11 @@
+> [!CAUTION]
+> The head repo for Tubeless has been pulled for unknown reasons. Unless development comes this way or I find the time to learn and update it, this project will remain stale. Sorry, I am not a dev and am still learning code.
+>
+> I am not responsible for any security vulnerabilities or bugs that may crop up.
+>
+> Feel free to fork this project as I want to see this evolve.
+
+
 <p align="center">
   <img
     src="priv/static/images/logo-white-wordmark-with-background.png"
