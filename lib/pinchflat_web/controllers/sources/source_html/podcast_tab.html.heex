@@ -18,8 +18,8 @@
       <.feed_option icon="hero-signal" title="Served by Tubeless" badge="Ready" url={rss_feed_url(@conn, @source)}>
         <:description>
           Tubeless generates and serves this feed itself, so it works with no extra setup — as long
-          as your podcast app can reach this machine. The URL bypasses the app's login on purpose so
-          podcast apps can read it, so treat it as secret and keep it off the open internet.
+          as your podcast app can reach this system. The URL bypasses the app's login on purpose so
+          podcast apps can read it. This option is suitable for LAN only. DO NOT expose Tubeless to the internet.
         </:description>
       </.feed_option>
 
@@ -31,22 +31,21 @@
       >
         <:description>
           Tubeless writes a static <code class="font-mono text-xs">feed.xml</code>
-          next to the downloaded episodes and never touches the network itself. A separate
-          static web server (nginx, Caddy, …) points at your podcast library and serves them.
-          Use this when Tubeless shouldn't be reachable by the podcast app at all.
+          next to the downloaded episodes. A separate
+          static web server (nginx, Caddy, …) is required to serve your library files.
+          This solution decouples Tubeless from your web server to provide higher security.
         </:description>
         <:unavailable :if={!static.publishing}>
           This source isn't published as a static podcast, so no files are written for a web server
           to serve. Turn on <strong>Publish as Podcast</strong>
           in its media profile
-          <.subtle_link href={~p"/media_profiles/#{@source.media_profile_id}"}>
-            ({@source.media_profile.name})
-          </.subtle_link>
+          <.subtle_link href={~p"/media_profiles/#{@source.media_profile_id}"}>({@source.media_profile.name})</.subtle_link>
           to enable it. The feed above works either way.
         </:unavailable>
         <:unavailable :if={static.missing_url_base}>
-          No feed URL can be built until the <.subtle_link href={~p"/settings"}>Podcast URL Base setting</.subtle_link>
-          is filled in — Tubeless can't know the address your web server serves the library at.
+          The feed URL cannot be built until the
+          <.subtle_link href={~p"/settings"}>Podcast URL Base setting</.subtle_link>
+          is set — Tubeless doesn't know the address your web server address.
         </:unavailable>
         <:unavailable :if={static.pending}>
           The feed is still being generated in the background. Its URL appears here once
@@ -69,9 +68,11 @@
 
   <p class="text-sm text-bodydark">
     <.icon name="hero-book-open" class="mr-1 h-4 w-4" />
-    <.subtle_link href="https://github.com/CommunityMaintained/tubeless/wiki/Podcast-RSS-Feeds" target="_blank">
-      Podcast RSS Feeds wiki page
-    </.subtle_link>
+    <%!-- Kept on one line: newlines inside the anchor render as underlined whitespace. --%>
+    <.subtle_link
+      href="https://github.com/CommunityMaintained/tubeless/wiki/Podcast-RSS-Feeds"
+      target="_blank"
+    >Podcast RSS Feeds wiki page</.subtle_link>
     — how to serve the library and what each mode is good for.
   </p>
 </div>

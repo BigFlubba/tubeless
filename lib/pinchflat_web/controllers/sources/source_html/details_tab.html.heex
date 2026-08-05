@@ -32,15 +32,20 @@
                 <%= cond do %>
                   <% !field_set?(info_field) -> %>
                     <span class="text-bodydark2">Not set</span>
+                    <%!--
+                      The `:url` branch is checked before the plain `href` branch: a
+                      `:url` field may carry a compact display value (a handle, a
+                      playlist ID) in `value` and the full URL in `href`.
+                    --%>
+                  <% info_field.type == :url -> %>
+                    <.subtle_link href={info_field.href || info_field.value} target="_blank">
+                      <span class="break-all">{info_field.value}</span>
+                      <.icon name="hero-arrow-top-right-on-square" class="ml-0.5 h-3.5 w-3.5" />
+                    </.subtle_link>
                   <% info_field.href -> %>
                     <.tooltip tooltip={info_field.tooltip} position="bottom-right" tooltip_class="right-0">
                       <.subtle_link href={info_field.href}>{info_field.value}</.subtle_link>
                     </.tooltip>
-                  <% info_field.type == :url -> %>
-                    <.subtle_link href={info_field.value} target="_blank">
-                      <span class="break-all">{info_field.value}</span>
-                      <.icon name="hero-arrow-top-right-on-square" class="ml-0.5 h-3.5 w-3.5" />
-                    </.subtle_link>
                   <% info_field.type == :code -> %>
                     <code class="break-all font-mono text-xs">{info_field.value}</code>
                   <% info_field.type in [:long, :long_code] -> %>

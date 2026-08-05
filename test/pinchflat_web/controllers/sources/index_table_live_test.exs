@@ -42,8 +42,18 @@ defmodule PinchflatWeb.Sources.SourceLive.IndexTableLiveTest do
 
       {:ok, view, _html} = live_isolated(conn, IndexTableLive, session: create_session())
 
-      assert cell_text(view, "tbody tr:first-child td:nth-of-type(2)") == "2"
-      assert cell_text(view, "tbody tr:first-child td:nth-of-type(3)") == "0"
+      assert cell_text(view, "tbody tr:first-child td:nth-of-type(3)") == "2"
+      assert cell_text(view, "tbody tr:first-child td:nth-of-type(4)") == "0"
+    end
+
+    test "names the collection type of each source", %{conn: conn} do
+      source_fixture(custom_name: "A_Channel", collection_type: "channel")
+      source_fixture(custom_name: "B_Playlist", collection_type: "playlist")
+
+      {:ok, view, _html} = live_isolated(conn, IndexTableLive, session: create_session())
+
+      assert cell_text(view, "tbody tr:first-child td:nth-of-type(2)") == "Channel"
+      assert cell_text(view, "tbody tr:last-child td:nth-of-type(2)") == "Playlist"
     end
 
     test "shows pending and downloaded counts for sources with downloaded media", %{conn: conn} do
@@ -53,8 +63,8 @@ defmodule PinchflatWeb.Sources.SourceLive.IndexTableLiveTest do
 
       {:ok, view, _html} = live_isolated(conn, IndexTableLive, session: create_session())
 
-      assert cell_text(view, "tbody tr:first-child td:nth-of-type(2)") == "1"
       assert cell_text(view, "tbody tr:first-child td:nth-of-type(3)") == "1"
+      assert cell_text(view, "tbody tr:first-child td:nth-of-type(4)") == "1"
     end
   end
 
@@ -153,6 +163,23 @@ defmodule PinchflatWeb.Sources.SourceLive.IndexTableLiveTest do
 
       click_element(view, "th", "Size")
       assert render_element(view, "tbody tr:first-child") =~ source1.custom_name
+    end
+
+    test "sorts by collection type", %{conn: conn} do
+      source1 = source_fixture(custom_name: "Source_A", collection_type: "channel")
+      source2 = source_fixture(custom_name: "Source_B", collection_type: "playlist")
+
+      {:ok, view, _html} = live_isolated(conn, IndexTableLive, session: create_session())
+
+      click_element(view, "th", "Type")
+
+      assert render_element(view, "tbody tr:first-child") =~ source1.custom_name
+      assert render_element(view, "tbody tr:last-child") =~ source2.custom_name
+
+      click_element(view, "th", "Type")
+
+      assert render_element(view, "tbody tr:first-child") =~ source2.custom_name
+      assert render_element(view, "tbody tr:last-child") =~ source1.custom_name
     end
 
     test "sorts by media profile name without case sensitivity", %{conn: conn} do

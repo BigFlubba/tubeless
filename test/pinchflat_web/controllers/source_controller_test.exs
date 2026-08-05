@@ -73,6 +73,21 @@ defmodule PinchflatWeb.SourceControllerTest do
       assert html =~ ~s(href="https://www.youtube.com/@some-fake-channel")
     end
 
+    test "collapses a playlist URL to a hash-prefixed playlist ID as the link label", %{conn: conn} do
+      url = "https://www.youtube.com/playlist?list=PLxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+      source = source_fixture(%{original_url: url, collection_type: "playlist"})
+      html = get(conn, ~p"/sources/#{source}") |> html_response(200)
+
+      assert html =~ ~r/>\s*#PLxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/
+      assert html =~ ~s(href="#{url}")
+    end
+
+    test "names the collection type in the details tab", %{conn: conn} do
+      source = source_fixture(%{collection_type: "playlist"})
+
+      assert get(conn, ~p"/sources/#{source}") |> html_response(200) =~ "Playlist"
+    end
+
     test "renders for a source with no media items", %{conn: conn} do
       source = source_fixture()
       conn = get(conn, ~p"/sources/#{source}")

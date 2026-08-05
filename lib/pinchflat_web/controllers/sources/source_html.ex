@@ -14,6 +14,37 @@ defmodule PinchflatWeb.Sources.SourceHTML do
   def source_form(assigns)
 
   @doc """
+  A source's collection type as an icon plus label, for places that list sources
+  (the sources table, the source page). A source indexed before its type was
+  known renders as "Unknown" rather than an empty cell.
+  """
+  attr :collection_type, :atom, required: true
+  attr :class, :string, default: nil
+
+  def collection_type_badge(assigns) do
+    ~H"""
+    <span class={["inline-flex items-center gap-1.5 whitespace-nowrap", @class]}>
+      <.icon name={collection_type_icon(@collection_type)} class="h-4 w-4 shrink-0 text-bodydark2" />
+      {collection_type_label(@collection_type) || "Unknown"}
+    </span>
+    """
+  end
+
+  @doc """
+  Display name for a `Source`'s `collection_type`. Nil when the type isn't known.
+  """
+  def collection_type_label(:channel), do: "Channel"
+  def collection_type_label(:playlist), do: "Playlist"
+  def collection_type_label(_), do: nil
+
+  @doc """
+  Icon paired with a `collection_type` wherever it's displayed.
+  """
+  def collection_type_icon(:channel), do: "hero-tv"
+  def collection_type_icon(:playlist), do: "hero-queue-list"
+  def collection_type_icon(_), do: "hero-question-mark-circle"
+
+  @doc """
   A single item in the source Actions menu: an icon, a title, and a one-line
   description. Renders as a `.link` so it supports POST/DELETE actions with an
   optional confirmation dialog.
@@ -94,13 +125,13 @@ defmodule PinchflatWeb.Sources.SourceHTML do
     <div
       :if={@condition}
       class={[
-        "mb-6 flex flex-wrap items-start gap-x-4 gap-y-3 rounded-xs border px-5 py-4",
+        "mb-6 flex flex-wrap items-center gap-x-4 gap-y-3 rounded-xs border px-5 py-4",
         @severity == :danger && "border-danger bg-danger/10 text-danger",
         @severity == :warning && "border-warning bg-warning/10 text-warning",
         @severity == :info && "border-primary bg-primary/10 text-primary"
       ]}
     >
-      <.icon name={severity_icon(@severity)} class="mt-0.5 h-5 w-5 shrink-0" />
+      <.icon name={severity_icon(@severity)} class="h-5 w-5 shrink-0" />
       <p class="min-w-0 grow max-w-prose text-sm">{@condition.message}</p>
       <% action = condition_action(@condition.code, @source) %>
       <.link
@@ -512,7 +543,18 @@ defmodule PinchflatWeb.Sources.SourceHTML do
     [
       field("Name", source.custom_name, "What this source is called throughout Tubeless"),
       field("Collection name", source.collection_name, "The name reported by the channel or playlist itself"),
-      field("Source URL", source.original_url, "The channel or playlist page Tubeless indexes", type: :url),
+      field(
+        "Type",
+        collection_type_label(source.collection_type),
+        "Whether this source is a channel or a playlist. Set from the URL when the source was added"
+      ),
+      field(
+        "Source URL",
+        source_url_label(source.original_url),
+        "The channel or playlist page Tubeless indexes",
+        type: :url,
+        href: source.original_url
+      ),
       field("Media profile", source.media_profile.name, "The download rules applied to this source's media",
         href: ~p"/media_profiles/#{source.media_profile_id}",
         tooltip: media_profile_summary(source.media_profile)
@@ -600,7 +642,6 @@ defmodule PinchflatWeb.Sources.SourceHTML do
       {"ID", to_string(source.id)},
       {"UUID", source.uuid},
       {"Collection ID", source.collection_id},
-      {"Collection type", source.collection_type && to_string(source.collection_type)},
       {"Slug", source.slug},
       {"NFO filepath", source.nfo_filepath},
       {"Poster filepath", source.poster_filepath},
@@ -766,13 +807,19 @@ defmodule PinchflatWeb.Sources.SourceHTML do
 
   @doc """
   A compact, human-friendly label for a source's original URL. YouTube handle and
-  channel URLs collapse to just the `@handle` (e.g. `https://www.youtube.com/@some-fake-channel`
-  → `@some-fake-channel`); anything else drops the scheme/`www.` and trailing slash.
-  The value stays the link text — the `href` is still the full URL.
+  channel URLs collapse to just the `@handle` (e.g.
+  `https://www.youtube.com/@some-fake-channel` → `@some-fake-channel`) and playlist
+  URLs to `#` plus the playlist ID (e.g.
+  `https://www.youtube.com/playlist?list=PLxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx` →
+  `#PLxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx`); anything else drops the scheme/`www.` and
+  trailing slash. The value stays the link text — the `href` is still the full URL.
   """
   def source_url_label(url) when is_binary(url) do
-    case Regex.run(~r{/(@[^/?#]+)}, url) do
-      [_, handle] -> handle
+    # The playlist ID is checked first: a playlist can live under a channel URL
+    # (`/@someone/...?list=PL…`), where the list is what identifies the source.
+    case {Regex.run(~r{[?&]list=([^&#]+)}, url), Regex.run(~r{/(@[^/?#]+)}, url)} do
+      {[_, playlist_id], _} -> "##{playlist_id}"
+      {_, [_, handle]} -> handle
       _ -> url |> String.replace(~r{^https?://(www\.)?}, "") |> String.trim_trailing("/")
     end
   end

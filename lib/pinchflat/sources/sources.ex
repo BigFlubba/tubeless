@@ -311,7 +311,7 @@ defmodule Pinchflat.Sources do
 
     [
       not source.download_media &&
-        "This source is set to index only — new media is catalogued but never downloaded."
+        "This source is set to index only — new media is catalogged but never downloaded."
         |> then(&{:downloads_disabled, &1}),
       indexing_failed? &&
         {:indexing_failed, "The most recent indexing run for this source failed, so new media isn't being discovered."},
