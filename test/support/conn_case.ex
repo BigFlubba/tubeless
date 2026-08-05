@@ -44,6 +44,10 @@ defmodule PinchflatWeb.ConnCase do
     TestingHelperMethods.create_platform_directories()
     Pinchflat.DataCase.setup_sandbox(tags)
 
+    # Every `:browser` route redirects to the agreement page until it's accepted.
+    # Tests that exercise that gate opt out with `@tag :skip_user_agreement`
+    unless tags[:skip_user_agreement], do: Pinchflat.Settings.UserAgreement.accept()
+
     conn = Phoenix.ConnTest.build_conn()
     session_conn = Plug.Test.init_test_session(conn, %{})
 

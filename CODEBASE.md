@@ -88,14 +88,15 @@ File reconciliation (`lib/pinchflat/reconciliation/`) trues up already-downloade
 
 ### Elixir Libraries (notable)
 
-| Library      | Role                                                     |
-| ------------ | -------------------------------------------------------- |
-| NimbleParsec | Parser combinators — used to parse yt-dlp output formats |
-| Timex        | Date/time utilities                                      |
-| Jason        | JSON encoding/decoding                                   |
-| Gettext      | i18n — English error strings in `priv/gettext/`          |
-| Finch        | HTTP client (used by Swoosh and internal HTTP calls)     |
-| Swoosh       | Email library (wired up but not a primary feature)       |
+| Library       | Role                                                                                 |
+| ------------- | ------------------------------------------------------------------------------------ |
+| NimbleParsec  | Parser combinators — used to parse yt-dlp output formats                             |
+| Timex         | Date/time utilities                                                                  |
+| Jason         | JSON encoding/decoding                                                               |
+| Gettext       | i18n — English error strings in `priv/gettext/`                                      |
+| EarmarkParser | Markdown → AST; renders `DISCLAIMER.md` into the user agreement page at compile time |
+| Finch         | HTTP client (used by Swoosh and internal HTTP calls)                                 |
+| Swoosh        | Email library (wired up but not a primary feature)                                   |
 
 ### Code Quality & Testing
 
@@ -244,6 +245,7 @@ All test infrastructure is used in both local dev and CI.
 | `.dockerignore`                          | CI/release | Docker build ignore list                                                                                                                                              |
 | `.gitignore`                             | local only | Git ignore list                                                                                                                                                       |
 | `CONTRIBUTING.md`                        | —          | Contribution guidelines                                                                                                                                               |
+| `DISCLAIMER.md`                          | both       | Terms of Use — the single source of the in-app user agreement text and its version, compiled into the app from the project root                                       |
 | `LICENSE`                                | —          | Project license                                                                                                                                                       |
 | `.github/ISSUE_TEMPLATE/`                | —          | Bug report, feature request, and other issue templates                                                                                                                |
 | `.github/pull_request_template.md`       | —          | PR description template with license acknowledgment                                                                                                                   |

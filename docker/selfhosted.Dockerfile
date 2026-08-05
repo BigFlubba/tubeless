@@ -31,6 +31,10 @@ COPY priv priv
 COPY lib lib
 COPY assets assets
 
+# The user agreement page compiles its text in from DISCLAIMER.md, so the file
+# has to be in the build context (it isn't needed at runtime).
+COPY DISCLAIMER.md DISCLAIMER.md
+
 # Fetch the SQLean SQLite extensions into priv/ (pinned version, not in git) so
 # `mix release` bundles them into the OTP release. ci-base provides curl + unzip.
 COPY tooling/fetch-sqlean.sh tooling/fetch-sqlean.sh

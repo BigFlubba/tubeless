@@ -60,6 +60,8 @@ While you can [download individual videos](https://github.com/CommunityMaintaine
 
 If it doesn't work for your use case, please make a feature request! You can also check out these great alternatives: [Tube Archivist](https://github.com/tubearchivist/tubearchivist), [ytdl-sub](https://github.com/jmbannon/ytdl-sub), and [TubeSync](https://github.com/meeb/tubesync)
 
+> **Legal:** Tubeless is a self-hosted automation tool for content you have the right to access and copy. It contains no DRM circumvention and is not affiliated with YouTube, Google, Plex, or Jellyfin. Provided free, as-is, with no warranty and no liability — see [DISCLAIMER.md](./DISCLAIMER.md) and [LICENSE](./LICENSE). First startup requires accepting the terms.
+
 ## Features
 
 [See the wiki for the full list of features](https://github.com/CommunityMaintained/tubeless/wiki#features)

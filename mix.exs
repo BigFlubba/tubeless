@@ -87,6 +87,7 @@ defmodule Pinchflat.MixProject do
       {:nimble_parsec, "~> 1.4"},
       {:timex, "~> 3.7"},
       {:prom_ex, "~> 1.11"},
+      {:earmark_parser, "~> 1.4"},
       {:mox, "~> 1.0", only: :test},
       {:credo, "~> 1.7.7", only: [:dev, :test], runtime: false},
       {:credo_naming, "~> 2.1", only: [:dev, :test], runtime: false},

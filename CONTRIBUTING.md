@@ -16,6 +16,10 @@ By contributing, you agree not to add features or documentation that encourage:
 - Circumvention of access controls, DRM, or paywalls
 - Misrepresentation of platform affiliation or endorsement
 
+### Scope limits
+
+We do not accept contributions that implement, assist, or document circumvention of technological protection measures, DRM decryption, defeat of authentication or payment controls, age-verification bypass, or evasion of anti-automation measures. Pull requests and issues of this kind will be closed without discussion. This is a hard scope boundary, not a matter of implementation quality.
+
 ### Reporting bugs and requesting features
 
 Open an issue. Check for duplicates first. For bugs, include your Docker version, logs, and steps to reproduce.
@@ -30,6 +34,10 @@ Open an issue. Check for duplicates first. For bugs, include your Docker version
    - `chore: ...` / `docs: ...` → no release bump
 4. Open a PR against `main`. CI will run tests and build a Docker image tagged `pr-<number>-<sha>` for testing.
 5. A maintainer will review and merge.
+
+### Developer Certificate of Origin
+
+All commits must be signed off (`git commit -s`), certifying the [Developer Certificate of Origin 1.1](https://developercertificate.org/). By signing off you certify that you wrote the contribution or have the right to submit it under the project's AGPL-3.0 license, and that you are not submitting code copied from a source with incompatible terms.
 
 ### Development setup
 

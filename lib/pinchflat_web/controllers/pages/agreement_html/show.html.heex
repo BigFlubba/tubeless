@@ -1,0 +1,59 @@
+<div class="fixed inset-0 z-999 flex items-center justify-center overflow-y-auto bg-black/70 p-4">
+  <div
+    class="w-full max-w-3xl rounded-xs border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="agreement-heading"
+    x-data="{ agreed: false }"
+  >
+    <div class="border-b border-stroke px-6 py-5 dark:border-strokedark">
+      <h2 id="agreement-heading" class="text-2xl font-bold text-black dark:text-white">
+        User Agreement
+      </h2>
+      <p class="mt-1 text-xs uppercase tracking-wide text-bodydark">
+        Version {@agreement_version} &middot; Effective {@agreement_effective_date}
+      </p>
+      <p class="mt-1 text-sm text-bodydark">
+        <%= if @previously_accepted do %>
+          The agreement has been updated. Please review and accept it to continue.
+        <% else %>
+          Please review and accept the agreement to start using Tubeless.
+        <% end %>
+      </p>
+    </div>
+
+    <div class="max-h-[55vh] overflow-y-auto px-6 py-5 text-sm leading-relaxed text-black dark:text-bodydark">
+      <.agreement_text />
+    </div>
+
+    <.form
+      :let={_f}
+      for={%{}}
+      as={:agreement}
+      action={~p"/agreement"}
+      class="border-t border-stroke px-6 py-5 dark:border-strokedark"
+    >
+      <label class="flex cursor-pointer select-none items-start gap-3 text-black dark:text-white">
+        <input
+          type="checkbox"
+          name="agreement[accepted]"
+          value="true"
+          x-model="agreed"
+          class="mt-1 h-5 w-5 cursor-pointer accent-primary"
+        />
+        <span>I have read and agree to the Terms of Use, and I confirm I will only use Tubeless with content I have the right to access and copy</span>
+      </label>
+
+      <div class="mt-5 flex justify-end">
+        <.button
+          type="submit"
+          color="bg-primary"
+          rounding="rounded-lg"
+          x-bind:disabled="!agreed"
+        >
+          I Agree
+        </.button>
+      </div>
+    </.form>
+  </div>
+</div>

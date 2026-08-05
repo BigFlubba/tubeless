@@ -10,6 +10,8 @@ defmodule Pinchflat.Settings.Setting do
 
   @allowed_fields [
     :onboarding,
+    :agreement_accepted_version,
+    :agreement_accepted_at,
     :yt_dlp_version,
     :yt_dlp_update_policy,
     :yt_dlp_pinned_version,
@@ -47,6 +49,12 @@ defmodule Pinchflat.Settings.Setting do
 
   schema "settings" do
     field :onboarding, :boolean, default: true
+
+    # The user agreement version that was accepted (nil = never accepted, which
+    # gates the whole UI). See `Pinchflat.Settings.UserAgreement`
+    field :agreement_accepted_version, :string
+    field :agreement_accepted_at, :utc_datetime
+
     field :yt_dlp_version, :string
     field :yt_dlp_update_policy, :string, default: "stable"
     field :yt_dlp_pinned_version, :string

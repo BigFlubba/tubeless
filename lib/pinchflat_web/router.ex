@@ -14,6 +14,7 @@ defmodule PinchflatWeb.Router do
     plug :protect_from_forgery
     plug :put_secure_browser_headers
     plug :allow_iframe_embed
+    plug :require_user_agreement
   end
 
   pipeline :api do
@@ -43,6 +44,9 @@ defmodule PinchflatWeb.Router do
     pipe_through :browser
 
     get "/", Pages.PageController, :home
+
+    get "/agreement", Pages.AgreementController, :show
+    post "/agreement", Pages.AgreementController, :accept
 
     resources "/media_profiles", MediaProfiles.MediaProfileController
     resources "/search", Searches.SearchController, only: [:show], singleton: true

@@ -4,7 +4,10 @@ defmodule PinchflatWeb.Plugs do
   """
 
   use PinchflatWeb, :router
+  use PinchflatWeb, :verified_routes
+
   alias Pinchflat.Settings
+  alias Pinchflat.Settings.UserAgreement
 
   @doc """
   If the `expose_feed_endpoints` setting is true, this plug does nothing. Otherwise, it calls `basic_auth/2`.
@@ -36,6 +39,24 @@ defmodule PinchflatWeb.Plugs do
   """
   def allow_iframe_embed(conn, _opts) do
     delete_resp_header(conn, "x-frame-options")
+  end
+
+  @doc """
+  Blocks the entire HTML UI until the current version of the user agreement has
+  been accepted, redirecting GETs to the agreement page. Only applied to the
+  `:browser` pipeline, so podcast feeds, media streaming, the health check, and
+  background jobs are all unaffected.
+
+  `path_info` (not `request_path`) is matched so this keeps working when the app
+  is mounted under a `BASE_ROUTE_PATH` prefix.
+  """
+  def require_user_agreement(conn, _opts) do
+    cond do
+      conn.path_info == ["agreement"] -> conn
+      UserAgreement.accepted?() -> conn
+      conn.method == "GET" -> conn |> redirect(to: ~p"/agreement") |> halt()
+      true -> conn |> send_resp(:forbidden, "User agreement not accepted") |> halt()
+    end
   end
 
   @doc """

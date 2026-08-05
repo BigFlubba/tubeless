@@ -51,3 +51,5 @@ body:
       options:
         - label: This feature request has not been requested before
           required: true
+        - label: By opening this issue you confirm that your request does not involve circumventing access controls, DRM, authentication, payment, or age restrictions, and that it concerns content you are entitled to access and copy.
+          required: true
