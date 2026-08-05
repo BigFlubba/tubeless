@@ -94,11 +94,12 @@ defmodule PinchflatWeb.Pages.PageHTML do
   def wal_notice(_database), do: nil
 
   @doc """
-  Formats a byte count as a human-readable binary-unit string with no decimals,
-  eg "341 GiB" — the summary cards round to whole units to stay compact.
+  Formats a byte count as a human-readable binary-unit string, eg "341.2 GiB".
+  Precision follows the unit (see `NumberUtils.human_byte_size/2`) so the
+  summary cards stay compact without throwing away meaningful digits.
   """
   def format_bytes(bytes) do
-    {num, suffix} = NumberUtils.human_byte_size(bytes, precision: 0)
-    "#{round(num)} #{suffix}"
+    {num, suffix} = NumberUtils.human_byte_size(bytes)
+    "#{num} #{suffix}"
   end
 end

@@ -12,6 +12,7 @@ defmodule Pinchflat.Diagnostics.DatabaseDiagnostics do
 
   alias Pinchflat.Repo
   alias Pinchflat.Tasks.Task
+  alias Pinchflat.Utils.NumberUtils
 
   # Sorted roughly by how interesting they are on a diagnostics page
   @tracked_tables ~w(media_items sources media_profiles tasks oban_jobs)
@@ -148,14 +149,16 @@ defmodule Pinchflat.Diagnostics.DatabaseDiagnostics do
   end
 
   @doc """
-  Formats a byte count as a human-readable binary-unit string.
+  Formats a byte count as a human-readable binary-unit string. Precision
+  follows the unit (see `NumberUtils.human_byte_size/2`).
 
   Returns binary()
   """
-  def format_bytes(bytes) when bytes < 1024, do: "#{bytes} B"
-  def format_bytes(bytes) when bytes < 1024 * 1024, do: "#{Float.round(bytes / 1024, 1)} KiB"
-  def format_bytes(bytes) when bytes < 1024 * 1024 * 1024, do: "#{Float.round(bytes / 1024 / 1024, 1)} MiB"
-  def format_bytes(bytes), do: "#{Float.round(bytes / 1024 / 1024 / 1024, 2)} GiB"
+  def format_bytes(bytes) do
+    {num, suffix} = NumberUtils.human_byte_size(bytes)
+
+    "#{num} #{suffix}"
+  end
 
   # SQLite reports a healthy database as a single "ok" row; everything else is
   # a problem description meant to be read as-is.

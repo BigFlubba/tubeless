@@ -115,9 +115,10 @@ defmodule Pinchflat.Diagnostics.DatabaseDiagnosticsTest do
   describe "format_bytes/1" do
     test "formats byte counts in binary units" do
       assert DatabaseDiagnostics.format_bytes(512) == "512 B"
-      assert DatabaseDiagnostics.format_bytes(2048) == "2.0 KiB"
-      assert DatabaseDiagnostics.format_bytes(5 * 1024 * 1024) == "5.0 MiB"
+      assert DatabaseDiagnostics.format_bytes(2048) == "2 KiB"
+      assert DatabaseDiagnostics.format_bytes(5 * 1024 * 1024) == "5 MiB"
       assert DatabaseDiagnostics.format_bytes(3 * 1024 * 1024 * 1024) == "3.0 GiB"
+      assert DatabaseDiagnostics.format_bytes(2 * 1024 * 1024 * 1024 * 1024) == "2.0 TiB"
     end
   end
 end

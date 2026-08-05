@@ -28,7 +28,7 @@
         <p class="truncate text-lg font-bold text-white sm:text-xl">
           <.localized_number number={@system_status.library.downloaded} />
           <.pluralize count={@system_status.library.downloaded} word="media" suffix="" /> ·
-          <.readable_filesize byte_size={@system_status.library.size_bytes} precision={0} />
+          <.readable_filesize byte_size={@system_status.library.size_bytes} />
         </p>
         <%= if storage_measured?(storage.media) do %>
           <div class="mt-1 h-1 w-full overflow-hidden rounded-full bg-strokedark">
@@ -67,7 +67,7 @@
       <p class="truncate text-xs font-semibold text-bodydark sm:text-sm">Database</p>
       <div class="min-w-0">
         <p class="truncate text-lg font-bold text-white sm:text-xl">
-          <.readable_filesize byte_size={@system_status.database.size_bytes} precision={0} />
+          <.readable_filesize byte_size={@system_status.database.size_bytes} />
         </p>
         <%= if storage.collocated or not storage_measured?(storage.database) do %>
           <p class="truncate text-xs text-bodydark">

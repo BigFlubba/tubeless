@@ -194,7 +194,7 @@ defmodule PinchflatWeb.CustomComponents.TextComponents do
   """
 
   attr :byte_size, :integer, required: true
-  attr :precision, :integer, default: 2
+  attr :precision, :any, default: :auto
 
   def readable_filesize(assigns) do
     {num, suffix} = NumberUtils.human_byte_size(assigns.byte_size, precision: assigns.precision)
