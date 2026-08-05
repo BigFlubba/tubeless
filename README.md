@@ -1,19 +1,8 @@
-> [!IMPORTANT]
-> Tubeless is a rebranded, actively-developed successor to [Pinchflat](https://github.com/kieraneglin/pinchflat). It supports drop-in migration from Pinchflat — both the original `kieraneglin/pinchflat` and the `CommunityMaintained/pinchflat` fork — and from here focuses on shipping new features and usability improvements rather than tracking upstream. Migration is one-way: there is no supported path back to Pinchflat. See [Migrating from Pinchflat](#migrating-from-pinchflat). PRs welcome — see [CONTRIBUTING.md](CONTRIBUTING.md). Discord Server [created](https://discord.gg/V7grTVkc37)!
->
-> **Pinchflat vs. Tubeless:** Review the options below and carefully choose your own adventure.
-
-<p align="center">
-  <img
-    src="priv/static/images/pinchflat-vs-tubeless.png"
-    width="700"
-  />
-</p>
-
 <p align="center">
   <img
     src="priv/static/images/logo-white-wordmark-with-background.png"
-    width="700"
+    alt="Tubeless logo"
+    width="1000"
   />
 </p>
 
@@ -27,29 +16,41 @@
 
 </div>
 
+<div align="center">
+
 # Your next YouTube media manager
+
+</div>
 
 ## Table of contents:
 
 - [Your next YouTube media manager](#your-next-youtube-media-manager)
-  - [Table of contents:](#table-of-contents)
-  - [What it does](#what-it-does)
-  - [Pinchflat vs Tubeless](#pinchflat-vs-tubeless)
-  - [Screenshots](#screenshots)
-  - [Installation](#installation)
-    - [Unraid](#unraid)
-    - [Portainer](#portainer)
-    - [Docker](#docker)
-    - [Podman](#podman)
-    - [IMPORTANT: File permissions](#important-file-permissions)
-    - [ADVANCED: Storing Tubeless config directory on a network share](#advanced-storing-tubeless-config-directory-on-a-network-share)
-    - [Environment variables](#environment-variables)
-    - [Reverse Proxies](#reverse-proxies)
-      - [Caddy Proxy Example](#caddy-proxy-example)
-  - [Migrating from Pinchflat](#migrating-from-pinchflat)
-  - [Stability disclaimer](#stability-disclaimer)
-  - [Legal Use \& Disclaimer](#legal-use--disclaimer)
-  - [License](#license)
+- [Table of contents:](#table-of-contents)
+- [Important](#important)
+- [What it does](#what-it-does)
+- [Features](#features)
+- [Screenshots](#screenshots)
+- [Installation and configuration](#installation-and-configuration)
+- [Migrating from Pinchflat](#migrating-from-pinchflat)
+- [Stability disclaimer](#stability-disclaimer)
+- [Legal Use \& Disclaimer](#legal-use--disclaimer)
+- [License](#license)
+- [Star History](#star-history)
+
+## Important
+
+> [!IMPORTANT]
+> Tubeless is a rebranded, actively-developed successor to [Pinchflat](https://github.com/kieraneglin/pinchflat). It supports drop-in migration from Pinchflat — both the original `kieraneglin/pinchflat` and the `CommunityMaintained/pinchflat` fork — and from here focuses on shipping new features and usability improvements rather than tracking upstream.
+>
+> Migration is one-way: there is no supported path back to Pinchflat. See [Migrating from Pinchflat](https://github.com/CommunityMaintained/tubeless/wiki/Migrating-from-Pinchflat). PRs welcome — see [CONTRIBUTING.md](CONTRIBUTING.md).
+
+<p align="center">
+  <img
+    src="priv/static/images/pinchflat-vs-tubeless.png"
+    alt="Pinchflat vs. Tubeless"
+    width="1000"
+  />
+</p>
 
 ## What it does
 
@@ -59,72 +60,22 @@ While you can [download individual videos](https://github.com/CommunityMaintaine
 
 If it doesn't work for your use case, please make a feature request! You can also check out these great alternatives: [Tube Archivist](https://github.com/tubearchivist/tubearchivist), [ytdl-sub](https://github.com/jmbannon/ytdl-sub), and [TubeSync](https://github.com/meeb/tubesync)
 
-## Pinchflat vs Tubeless
+## Features
 
-| Features                                                                                                                                                                               | Pinchflat | Tubeless |
-| -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- | -------- |
-| 12/24hr time switch                                                                                                                                                                    | ❌        | ✅       |
-| Activly maintained                                                                                                                                                                     | ❌        | ✅       |
-| Advanced filtering ([docs](https://github.com/CommunityMaintained/tubeless/wiki/Frequently-Asked-Questions#i-only-want-certain-videos-from-a-source---how-can-i-only-download-those))  | ❌        | ✅       |
-| Apprise notification support                                                                                                                                                           | ✅        | ✅       |
-| Audio & video codec preference                                                                                                                                                         | ✅        | ✅       |
-| Automatically delete old content ([docs](https://github.com/CommunityMaintained/tubeless/wiki/Automatically-Delete-Media))                                                             | ✅        | ✅       |
-| Automatically download new content from channels and playlists                                                                                                                         | ✅        | ✅       |
-| Automatically redownload new media after a set period                                                                                                                                  | ✅        | ✅       |
-| Control yt-dlp updates from Settings ([docs](https://github.com/CommunityMaintained/tubeless/wiki/Frequently-Asked-Questions#how-do-i-update-yt-dlp-independently-from-tubeless))      | ❌        | ✅       |
-| Cookie support ([docs](https://github.com/CommunityMaintained/tubeless/wiki/YouTube-Cookies))                                                                                          | ✅        | ✅       |
-| Custom rules for handling YouTube Shorts and livestreams                                                                                                                               | ✅        | ✅       |
-| Custom yt-dlp options ([docs](https://github.com/CommunityMaintained/tubeless/wiki/%5BAdvanced%5D-Custom-yt%E2%80%90dlp-options))                                                      | ✅        | ✅       |
-| Cutoff date support ([docs](https://github.com/CommunityMaintained/tubeless/wiki/Frequently-Asked-Questions#i-only-want-certain-videos-from-a-source---how-can-i-only-download-those)) | ❌        | ✅       |
-| Database compaction                                                                                                                                                                    | ❌        | ✅       |
-| Database insights                                                                                                                                                                      | ❌        | ✅       |
-| Database integrity check                                                                                                                                                               | ❌        | ✅       |
-| Database repair ([docs](https://github.com/CommunityMaintained/tubeless/wiki/Database-Repair))                                                                                         | ❌        | ✅       |
-| Database telemetry                                                                                                                                                                     | ❌        | ✅       |
-| Default cookie behavior                                                                                                                                                                | ❌        | ✅       |
-| Download audio only content                                                                                                                                                            | ✅        | ✅       |
-| Easy-to-use web interface                                                                                                                                                              | ✅        | ✅       |
-| Fast indexing ([docs](https://github.com/CommunityMaintained/tubeless/wiki/Frequently-Asked-Questions#what-is-fast-indexing))                                                          | ❌        | ✅       |
-| File reconciliation to update structure or path (bulk)                                                                                                                                 | ❌        | ✅       |
-| HTTP Basic Authentication support ([docs](https://github.com/CommunityMaintained/tubeless/wiki/Username-and-Password))                                                                 | ✅        | ✅       |
-| Ignore YouTube AI-upscaled videos                                                                                                                                                      | ❌        | ✅       |
-| Indexing cutoff date                                                                                                                                                                   | ❌        | ✅       |
-| Podcast feeds (dynamic, LAN access only ([docs](https://github.com/CommunityMaintained/tubeless/wiki/Podcast-RSS-Feeds#option-b-dynamic-feeds-served-by-tubeless))                     | ✅        | ✅       |
-| Podcast feeds (static, suitable for external access ([docs](https://github.com/CommunityMaintained/tubeless/wiki/Podcast-RSS-Feeds#option-a-static-podcast-library-serve-in-place))    | ❌        | ✅       |
-| Powerful naming system                                                                                                                                                                 | ✅        | ✅       |
-| Prometheus and Grafana metrics ([docs](https://github.com/CommunityMaintained/tubeless/wiki/Prometheus-and-Grafana))                                                                   | ✅        | ✅       |
-| Proxy support ([docs](https://github.com/CommunityMaintained/tubeless/wiki/Proxy))                                                                                                     | ❌        | ✅       |
-| Queue visibility and discarded job management in the WebUI                                                                                                                             | ❌        | ✅       |
-| Reliable hands-off operation                                                                                                                                                           | ✅        | ✅       |
-| Job health and recovery dashboard                                                                                                                                                      | ❌        | ✅       |
-| Run custom scripts after downloading/deleting media (alpha - [docs](https://github.com/CommunityMaintained/tubeless/wiki/%5BAdvanced%5D-Custom-lifecycle-scripts))                     | ✅        | ✅       |
-| Self contained                                                                                                                                                                         | ✅        | ✅       |
-| Setting cutoff dates and filtering by title                                                                                                                                            | ✅        | ✅       |
-| SponsorBlock integration                                                                                                                                                               | ✅        | ✅       |
-| SponsorBlock remove and mark selected categories                                                                                                                                       | ❌        | ✅       |
-| Support for media center apps (Plex, Jellyfin, Emby, & Kodi) ([docs](https://github.com/CommunityMaintained/tubeless/wiki/Media-Center-integration))                                   | ✅        | ✅       |
-| YouTube API key support ([docs](https://github.com/CommunityMaintained/tubeless/wiki/Generating-a-YouTube-API-key))                                                                    | ✅        | ✅       |
-| YT-DLP plugin support ([docs](https://github.com/CommunityMaintained/tubeless/wiki/%5BAdvanced%5D-yt%E2%80%90dlp-plugins))                                                             | ✅        | ✅       |
+[See the wiki for the full list of features](https://github.com/CommunityMaintained/tubeless/wiki#features)
 
 ## Screenshots
 
-<img src="priv/static/images/app-form-screenshot.jpg" alt="Tubeless screenshot" width="700" />
-<img src="priv/static/images/app-screenshot.jpg" alt="Tubeless screenshot" width="700" />
+<div align="center">
 
-## Installation
+<img src="priv/static/images/app-form-screenshot.jpg" alt="Tubeless screenshot" width="1000" />
+<img src="priv/static/images/app-screenshot.jpg" alt="Tubeless screenshot" width="1000" />
 
-### Unraid
+</div>
 
-~~Simply search for Tubeless in the Community Apps store!~~
+## Installation and configuration
 
-- Currently unavailable.
-
-### Portainer
-
-> [!IMPORTANT]
-> See the note below about storing config on a network file share. It's preferred to store the config on a local disk if at all possible.
-
-Docker Compose file:
+#### Docker Compose (recommended):
 
 ```yaml
 services:
@@ -132,102 +83,17 @@ services:
     image: ghcr.io/communitymaintained/tubeless:latest
     environment:
       # Set the timezone to your local timezone
-      - TZ=America/New_York
+      - TZ=America/Chicago
     ports:
       - '8945:8945'
     volumes:
+      # Replace /host/path/to/config and /host/path/to/downloads
+      # below with the paths of your choosing
       - /host/path/to/config:/config
       - /host/path/to/downloads:/downloads
 ```
 
-### Docker
-
-1. Create two directories on your host machine: one for storing config and one for storing downloaded media. Make sure they're both writable by the user running the Docker container.
-2. Prepare the Docker image in one of the two ways below:
-   - **From GHCR:** `docker pull ghcr.io/communitymaintained/tubeless:latest`
-     - NOTE: also available on Docker Hub at `communitymaintained/tubeless:latest`
-   - **Building locally:** `docker build . --file docker/selfhosted.Dockerfile -t ghcr.io/communitymaintained/tubeless:latest`
-3. Run the container:
-
-```bash
-# Be sure to replace /host/path/to/config and /host/path/to/downloads below with
-# the paths to the directories you created in step 1
-# Be sure to replace America/New_York with your local timezone
-docker run \
-  -e TZ=America/New_York \
-  -p 8945:8945 \
-  -v /host/path/to/config:/config \
-  -v /host/path/to/downloads:/downloads \
-  ghcr.io/communitymaintained/tubeless:latest
-```
-
-### Podman
-
-The Podman setup is similar to Docker, but changes a few flags to run under a User Namespace instead of root. To run Tubeless under Podman and use the current user's UID/GID for file access, run this:
-
-```
-podman run \
-  --security-opt label=disable \
-  --userns=keep-id --user=$UID \
-  -e TZ=America/Los_Angeles \
-  -p 8945:8945 \
-  -v /host/path/to/config:/config:rw \
-  -v /host/path/to/downloads/:/downloads:rw \
-  ghcr.io/communitymaintained/tubeless:latest
-```
-
-Using this setup, consider creating a new `tubeless` user and giving that user ownership of the config and download directory. See [Podman --userns](https://docs.podman.io/en/v4.6.1/markdown/options/userns.container.html) docs.
-
-### IMPORTANT: File permissions
-
-You _must_ ensure the host directories you've mounted are writable by the user running the Docker container. If you get a permission error, follow the steps it suggests. See [upstream #106](https://github.com/kieraneglin/pinchflat/issues/106) for more.
-
-> [!IMPORTANT]
-> It's not recommended to run the container as root. Doing so can create permission issues if other apps need to work with the downloaded media.
-
-### ADVANCED: Storing Tubeless config directory on a network share
-
-As pointed out in [upstream #137](https://github.com/kieraneglin/pinchflat/issues/137), SQLite doesn't like being run in WAL mode on network shares. If you're running Tubeless on a network share, you can disable WAL mode by setting the `JOURNAL_MODE` environment variable to `delete`. This will make Tubeless run in rollback journal mode, which is less performant but should work on network shares.
-
-> [!CAUTION]
-> Changing this setting from WAL to `delete` on an existing Tubeless instance could, conceivably, result in data loss. Only change this setting if you know what you're doing, why this is important, and are okay with possible data loss or DB corruption. Backup your database first!
-
-If you change this setting and it works well for you, please open an issue or leave a comment on [upstream #137](https://github.com/kieraneglin/pinchflat/issues/137)! Doubly so if it does _not_ work well.
-
-### Environment variables
-
-| Name                        | Required? | Default                        | Notes                                                                                                                                            |
-| --------------------------- | --------- | ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `TZ`                        | No        | `UTC`                          | Must follow [IANA TZ format](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones)                                                       |
-| `LOG_LEVEL`                 | No        | `debug`                        | Can be set to `info`, `warning`, & `error`, but `debug` is strongly recommended                                                                  |
-| `UMASK`                     | No        | `022`                          | Unraid users may want to set this to `000`                                                                                                       |
-| `BASIC_AUTH_USERNAME`       | No        |                                | See [authentication docs](https://github.com/CommunityMaintained/tubeless/wiki/Username-and-Password)                                            |
-| `BASIC_AUTH_PASSWORD`       | No        |                                | See [authentication docs](https://github.com/CommunityMaintained/tubeless/wiki/Username-and-Password)                                            |
-| `EXPOSE_FEED_ENDPOINTS`     | No        | `false`                        | See [RSS feed docs](https://github.com/CommunityMaintained/tubeless/wiki/Podcast-RSS-Feeds)                                                      |
-| `ENABLE_IPV6`               | No        | `false`                        | Setting to _any_ non-blank value will enable IPv6                                                                                                |
-| `JOURNAL_MODE`              | No        | `wal`                          | Set to `delete` if your config directory is stored on a network share (not recommended)                                                          |
-| `TZ_DATA_PATH`              | No        | `<EXTRAS_PATH>/elixir_tz_data` | The container path where the timezone database is stored                                                                                         |
-| `BASE_ROUTE_PATH`           | No        | `/`                            | The base path for route generation. Useful when running behind certain reverse proxies - prefixes must be stripped.                              |
-| `YT_DLP_WORKER_CONCURRENCY` | No        | `2`                            | The number of concurrent workers that use `yt-dlp` _per queue_. Set to 1 if you're getting IP limited, otherwise don't touch it                  |
-| `ENABLE_PROMETHEUS`         | No        | `false`                        | Setting to _any_ non-blank value will enable Prometheus. See [docs](https://github.com/CommunityMaintained/tubeless/wiki/Prometheus-and-Grafana) |
-
-### Reverse Proxies
-
-Tubeless makes heavy use of websockets for real-time updates. If you're running Tubeless behind a reverse proxy, then you'll need to make sure it's configured to support websockets.
-
-#### Caddy Proxy Example
-
-To configure Tubeless behind Caddy, set the `BASE_ROUTE_PATH` environment variable to `/tubeless/` then add a stanza like this to the `Caddyfile`:
-
-```caddyfile
-home.example.com:443 {
-  redir /tubeless /tubeless/
-
-  handle_path /tubeless/* {
-    reverse_proxy localhost:8945
-  }
-}
-```
+[See the wiki for other install methods, full instructions, & advanced installation](https://github.com/CommunityMaintained/tubeless/wiki/Installation)
 
 ## Migrating from Pinchflat
 
@@ -240,9 +106,9 @@ ghcr.io/communitymaintained/pinchflat:latest  →  ghcr.io/communitymaintained/t
 
 Also available on Docker Hub as `communitymaintained/tubeless:latest`.
 
-Stop the old container, update the image reference, and start it again. Your `/config` and `/downloads` volumes carry over unchanged.
+Stop the old container, update the image reference, and recreate it. Your `/config` and `/downloads` volumes carry over unchanged.
 
-> [!NOTE]
+> [!WARNING]
 > Migration is one-way. Tubeless develops independently and won't guarantee forward-compatibility with Pinchflat, so there is no supported path back once you've migrated. Back up your `/config` directory before switching if you want a safety net.
 
 ---
@@ -265,10 +131,14 @@ See [LICENSE](LICENSE) file
 
 ## Star History
 
-<a href="https://www.star-history.com/?repos=CommunityMaintained%2Ftubeless&type=date&legend=top-left">
+<div align="center">
+
+<a href="https://www.star-history.com/?repos=CommunityMaintained%2Ftubeless&type=timeline&logscale&legend=top-left">
  <picture>
-   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=CommunityMaintained/tubeless&type=date&theme=dark&legend=top-left&sealed_token=sguZKqTf_XmZn1aegAYXT3xN_SoYM417DNDOKJMfvDOKOS12fBQsI5hk3YFSWaqezA-H4AD1KcFJ6kIOaf_j7xs9n4IpTD-WLM0z41Ad6f1iMEXUJnUTOt62ZggIliKfoMGf-jlGE3N3m5OPPVY3E5RAp3l7WknaTO__-YDXpe6aB3ymMoXAmmjsg9v4" />
-   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=CommunityMaintained/tubeless&type=date&legend=top-left&sealed_token=sguZKqTf_XmZn1aegAYXT3xN_SoYM417DNDOKJMfvDOKOS12fBQsI5hk3YFSWaqezA-H4AD1KcFJ6kIOaf_j7xs9n4IpTD-WLM0z41Ad6f1iMEXUJnUTOt62ZggIliKfoMGf-jlGE3N3m5OPPVY3E5RAp3l7WknaTO__-YDXpe6aB3ymMoXAmmjsg9v4" />
-   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=CommunityMaintained/tubeless&type=date&legend=top-left&sealed_token=sguZKqTf_XmZn1aegAYXT3xN_SoYM417DNDOKJMfvDOKOS12fBQsI5hk3YFSWaqezA-H4AD1KcFJ6kIOaf_j7xs9n4IpTD-WLM0z41Ad6f1iMEXUJnUTOt62ZggIliKfoMGf-jlGE3N3m5OPPVY3E5RAp3l7WknaTO__-YDXpe6aB3ymMoXAmmjsg9v4" />
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=CommunityMaintained/tubeless&type=timeline&theme=dark&logscale&legend=top-left&sealed_token=zFd3fJA8Iyjy2XbsJ27Lr9WmKBolmqw1uPvg_ZYziE6gi7bMiqKR9EFypSlfCltL-TbqBHt4IrDXTkABniJIBo-SJ1ipmjGvOJdjkicQ5BSpQxjmXTNCoNlI3hw46389j06Dge2KsxOVE3URbA3t2QzZcWUxDb2Lf8IQnCZ7uTNNrkTm3W1Dga4BQmed" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=CommunityMaintained/tubeless&type=timeline&logscale&legend=top-left&sealed_token=zFd3fJA8Iyjy2XbsJ27Lr9WmKBolmqw1uPvg_ZYziE6gi7bMiqKR9EFypSlfCltL-TbqBHt4IrDXTkABniJIBo-SJ1ipmjGvOJdjkicQ5BSpQxjmXTNCoNlI3hw46389j06Dge2KsxOVE3URbA3t2QzZcWUxDb2Lf8IQnCZ7uTNNrkTm3W1Dga4BQmed" />
+   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=CommunityMaintained/tubeless&type=timeline&logscale&legend=top-left&sealed_token=zFd3fJA8Iyjy2XbsJ27Lr9WmKBolmqw1uPvg_ZYziE6gi7bMiqKR9EFypSlfCltL-TbqBHt4IrDXTkABniJIBo-SJ1ipmjGvOJdjkicQ5BSpQxjmXTNCoNlI3hw46389j06Dge2KsxOVE3URbA3t2QzZcWUxDb2Lf8IQnCZ7uTNNrkTm3W1Dga4BQmed" width="1000" />
  </picture>
 </a>
+
+</div>
